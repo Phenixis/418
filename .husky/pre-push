@@ -1,0 +1,18 @@
+#!/usr/bin/env sh
+
+echo "Running pre-push checks..."
+
+# Check if .env file exists
+if [ ! -f ".env" ]; then
+    echo "No .env file found, skipping build check (likely CI/release environment)"
+    echo "✅ Push is allowed to continue without build check."
+    exit 0
+fi
+
+echo "Verifying build..."
+if !pnpm build; then
+    echo "Build failed. Please fix the issues before pushing."
+    exit 1
+fi
+
+echo "Everything is good, push proceeded."

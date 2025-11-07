@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+
+echo "Running pre-commit checks..."
+
+echo "Verifying linting..."
+if !pnpm lint; then
+    echo "Linting failed. Please fix the issues before committing."
+    exit 1
+fi
+
+echo "Everything is good, commit proceeded."
