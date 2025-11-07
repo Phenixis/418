@@ -1,36 +1,74 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 418 - Application de gestion d'absence
 
-## Getting Started
+## Installation
 
-First, run the development server:
+### 1. Installer NodeJS
+
+#### Windows
+
+Sous windows, le plus simple est d'utiliser l'installateur MSI disponible juste [ici](https://nodejs.org/fr/download). Vous pouvez ensuite run l'installateur.
+
+#### Linux
+
+Sous Linux, le plus simple est d'utilisé NVM (Node Version Manager), qui est un utilitaire pour gérer les versions de Node.
+
+1. Installer NVM :
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Rechargez le terminal, et installer la dernière version:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+nvm install node
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+3. Vérifiez l'installation
 
-## Learn More
+```bash
+nvm -v
+node -v
+npm -v
+```
 
-To learn more about Next.js, take a look at the following resources:
+### 2. Installer PNPM
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Initialement, node utilise NPM (Node Package Manager) pour installer les packages (en gros c'est des plugins qui ajoutent des fonctionnalités, etc.) nécessaires pour lancer des applications.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Le problème avec NPM est qu'il n'est pas optimal, il peut facilement rendre l'application très lente. Donc, on va utiliser PNPM (Performant NPM). Pour l'installer, lancez la commande suivante:
 
-## Deploy on Vercel
+```bash
+npm add -g pnpm
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 3. Cloner le dépôt github
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+git clone https://github.com/Phenixis/418
+```
+
+### 4. Installer les packages
+
+```bash
+pnpm install
+```
+
+### 5. Lancez le server de dev
+
+```bash
+pnpm dev
+```
+
+Open [http://localhost:3005](http://localhost:3005).
+
+## Utils
+
+### Run the development server
+
+```bash
+pnpm dev
+```
+
+Open [http://localhost:3005](http://localhost:3005).
+
