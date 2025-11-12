@@ -12,19 +12,26 @@ Sous windows, le plus simple est d'utiliser l'installateur MSI disponible juste 
 
 Sous Linux, le plus simple est d'utilisé NVM (Node Version Manager), qui est un utilitaire pour gérer les versions de Node.
 
-1. Installer NVM :
+1. Installez NVM :
 
 ```bash
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
 ```
 
-2. Rechargez le terminal, et installer la dernière version:
+2. Rechargez le terminal, et installez la dernière version stable :
 
 ```bash
-nvm install node
+source ~/.bashrc
+nvm install --lts
 ```
 
-3. Vérifiez l'installation
+3. Si vous avez plusieurs versions installées, assurez-vous d'utiliser la dernière version stable par défaut :
+
+```bash
+nvm alias default lts/*
+```
+
+4. Vérifiez l'installation
 
 ```bash
 nvm -v
