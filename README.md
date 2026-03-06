@@ -125,7 +125,7 @@ Utiliser le **PascalCase**. Cela permet de distinguer visuellement les composant
 
 ### Fichiers non-composants (`.ts`, `.js`)
 Utiliser le **kebab-case** (minuscules séparées par des tirets).
-- ✅ `auth-utils.ts`, `api-client.ts`, `use-local-storage.ts` (hooks).
+- ✅ `auth-utils.ts`, `api-client.ts`, `use-local-storage.ts`.
 
 ### Architecture des dossiers
 - **Dossiers de fonctionnalités :** `kebab-case`.
@@ -140,7 +140,6 @@ Utiliser le **kebab-case** (minuscules séparées par des tirets).
 | :--- | :--- | :--- |
 | **Composants React** | `PascalCase` | `UserProfile.tsx` |
 | **Fichiers / Dossiers** | `kebab-case` | `auth-utils.ts`, `/api-routes/` |
-| **Hooks personnalisés** | `camelCase` (prefix `use`) | `useLocalStorage.ts` |
 | **Styles (Modules)** | `PascalCase.module.css` | `Navbar.module.css` |
 | **Types / Interfaces** | `PascalCase` | `UserSession.ts` |
 | **Variables / Attributs** | `camelCase` | `const userAge = 25;` |
