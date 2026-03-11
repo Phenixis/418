@@ -147,7 +147,6 @@ Suivre le schéma **{table}\_{colonne}\_{objet}** (ou **{table}_pk** pour la cl�
 - Clé étrangère : {table}_{colonne}_fk → order_user_id_fk
 - Index : {table}_{colonne}_idx → user_email_idx
 - Contrainte Unique : {table}_{colonne}_key → user_email_key
-- 
 
 ---
 
