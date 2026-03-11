@@ -138,17 +138,17 @@ Utiliser le **kebab-case** (minuscules séparées par des tirets).
 
 ### Table et colonnes
 Utiliser le **snake_case**. PostgreSQL convertit tous les identifiants non entourés de guillemets en minuscules.
-- ✅ `user_profile_id`
+- ✅ `user_profile_id`, `etudiant_pk`
 
 ### Index et contraintes
 
-Suivre le schéma **{table}_{colonne}_{objet}** (ou **{table}_pk** pour la clé primaire) :
+Suivre le schéma **{table}\_{colonne}\_{objet}** (ou **{table}_pk** pour la clé primaire) :
 - Clé primaire : {table}_pk → user_pk
 - Clé étrangère : {table}_{colonne}_fk → order_user_id_fk
 - Index : {table}_{colonne}_idx → user_email_idx
 - Contrainte Unique : {table}_{colonne}_key → user_email_key
 
-## 4. Résumé
+## 5. Résumé
 
 | Catégorie | Style | Exemple |
 | :--- | :--- | :--- |
