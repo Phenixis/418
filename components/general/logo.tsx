@@ -1,19 +1,37 @@
-import * as LogoIcon from "@/public/logo.svg"
+import LogoIcon from "@/public/logo.svg"
 import Image from "next/image"
 
 export enum LogoVariants {
-    ICON_ONLY="icon_only",
-    NAME_BELOW="name_below"
+    ICON_ONLY = "icon_only",
+    NAME_ALONE = "name_alone",
+    NAME_BELOW = "name_below",
+    NAME_RIGHT = "name_right"
 }
 
 export default function Logo({
     variant
-} : Readonly<{
+}: Readonly<{
     variant: LogoVariants
 }>) {
     return (
         <div className="">
-            <Image src={LogoIcon} alt="Logo de soko" width={100} height={100} />
+            {
+                variant !== LogoVariants.NAME_ALONE && (
+                    <div className="flex items-center justify-center">
+                        <Image src={LogoIcon} alt="Logo de soko" width={100} height={100} />
+                        {
+                            variant === LogoVariants.NAME_RIGHT && (
+                                <h4 className="h1 font-semibold">SOKO</h4>
+                            )
+                        }
+                    </div>
+                )
+            }
+            {
+                (variant === LogoVariants.NAME_BELOW || variant === LogoVariants.NAME_ALONE) && (
+                    <h4 className="h1 text-center font-semibold w-full">SOKO</h4>
+                )
+            }
         </div>
     )
 }
