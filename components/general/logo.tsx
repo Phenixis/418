@@ -1,5 +1,6 @@
 import LogoIcon from "@/public/logo.svg"
 import Image from "next/image"
+import { cn } from "@/lib/utils"
 
 export enum LogoVariants {
     ICON_ONLY = "icon_only",
@@ -9,12 +10,14 @@ export enum LogoVariants {
 }
 
 export default function Logo({
-    variant
+    variant,
+    className
 }: Readonly<{
-    variant: LogoVariants
+    variant: LogoVariants,
+    className?: string
 }>) {
     return (
-        <div className="">
+        <div className={cn("", className)}>
             {
                 variant !== LogoVariants.NAME_ALONE && (
                     <div className="flex items-center justify-center">
