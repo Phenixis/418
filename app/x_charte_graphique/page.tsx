@@ -5,6 +5,16 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
+import {
+    Select,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+import LockIcon from '@mui/icons-material/Lock';
+import { Badge } from "@/components/ui/badge"
 
 export default function Page() {
     return (
@@ -63,7 +73,7 @@ export default function Page() {
                     Icônes
                 </h2>
                 <div className="flex items-start justify-between">
-                    ...
+                    <LockIcon />
                 </div>
             </article>
             <article>
@@ -130,7 +140,7 @@ export default function Page() {
                     <h3 className="h3">
                         Interactions
                     </h3>
-                    <div className="flex items-start justify-start gap-2">
+                    <div className="flex items-start justify-between gap-2">
                         <Button>Primary</Button>
                         <Button variant="secondary">Secondary</Button>
                         <Button variant="destructive">Destructive</Button>
@@ -139,10 +149,37 @@ export default function Page() {
                         <Button variant="link">Link</Button>
                         <Button variant="big">Big</Button>
                     </div>
-                    <Input placeholder="Input" className="w-[30%]" />
-                    <div className="flex items-center gap-2">
-                        <Checkbox id="checkbox" />
-                        <Label htmlFor="checkbox" className="cursor-pointer">Checkbox</Label>
+                    <div className="flex items-center justify-between gap-2">
+                        <Input placeholder="Input" />
+                        <Select>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select" />
+                            </SelectTrigger>
+                            <SelectContent position="item-aligned">
+                                <SelectGroup>
+                                    <SelectItem value="o1">Option 1</SelectItem>
+                                    <SelectItem value="o2">Option 2</SelectItem>
+                                    <SelectItem value="o3">Option 3</SelectItem>
+                                </SelectGroup>
+                            </SelectContent>
+                        </Select>
+                        <div className="flex items-center gap-2">
+                            <Checkbox id="checkbox" />
+                            <Label htmlFor="checkbox" className="cursor-pointer">Checkbox</Label>
+                        </div>
+                    </div>
+                </div>
+                <div className="space-y-2">
+                    <h3 className="h3">
+                        Badge
+                    </h3>
+                    <div className="flex items-center justify-between gap-2">
+                        <Badge variant="default">Default</Badge>
+                        <Badge variant="secondary">Secondary</Badge>
+                        <Badge variant="destructive">Destructive</Badge>
+                        <Badge variant="outline">Outline</Badge>
+                        <Badge variant="ghost">Ghost</Badge>
+                        <Badge variant="link">Link</Badge>
                     </div>
                 </div>
             </article>
