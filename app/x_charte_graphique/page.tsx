@@ -1,3 +1,5 @@
+"use client"
+
 import Color from "@/components/charte_graphique/color"
 import Logo, { LogoVariants } from "@/components/general/logo"
 import { ColorVariants } from "@/components/charte_graphique/color.types"
@@ -14,9 +16,32 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import LockIcon from '@mui/icons-material/Lock';
-import { Badge } from "@/components/ui/badge"
+import { Badge } from "@/components/ui/badge";
+import {
+    Command,
+    CommandDialog,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+    CommandSeparator
+} from "@/components/ui/command"
+import {
+    useState
+} from "react"
+import {
+    Card,
+    CardAction,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card"
 
 export default function Page() {
+    const [commandDialogOpen, setCommandDialogOpen] = useState(false);
     return (
         <section className="container mx-auto flex flex-col py-10 gap-16">
             <h1 className="h1 text-center">Charte Graphique</h1>
@@ -167,6 +192,26 @@ export default function Page() {
                             <Checkbox id="checkbox" />
                             <Label htmlFor="checkbox" className="cursor-pointer">Checkbox</Label>
                         </div>
+                        <Button onClick={() => setCommandDialogOpen(true)}>
+                            Command Dialog
+                        </Button>
+                        <CommandDialog open={commandDialogOpen} onOpenChange={setCommandDialogOpen}>
+                            <CommandInput placeholder="Type a command or search..." />
+                            <CommandList>
+                                <CommandEmpty>No results found.</CommandEmpty>
+                                <CommandGroup heading="Suggestions">
+                                    <CommandItem>Calendar</CommandItem>
+                                    <CommandItem>Search Emoji</CommandItem>
+                                    <CommandItem>Calculator</CommandItem>
+                                </CommandGroup>
+                                <CommandSeparator />
+                                <CommandGroup heading="Settings">
+                                    <CommandItem>Profile</CommandItem>
+                                    <CommandItem>Billing</CommandItem>
+                                    <CommandItem>Settings</CommandItem>
+                                </CommandGroup>
+                            </CommandList>
+                        </CommandDialog>
                     </div>
                 </div>
                 <div className="space-y-2">
@@ -180,6 +225,35 @@ export default function Page() {
                         <Badge variant="outline">Outline</Badge>
                         <Badge variant="ghost">Ghost</Badge>
                         <Badge variant="link">Link</Badge>
+                    </div>
+                </div>
+                <div className="space-y-2">
+                    <h3 className="h3">
+                        Carte
+                    </h3>
+                    <div className="flex items-center justify-between gap-2">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Titre de la carte</CardTitle>
+                                <CardDescription>
+                                    Ceci est la description de la carte. Elle sert à décrire l'utilité de la carte, son objectif ou à donner plus d'informations sur le contenu.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="flex flex-col gap-4">
+                                <p>Ceci est le contenu de la carte.</p>
+                                <div>
+                                    <p>Il peut contenir des inputs:</p>
+                                    <Input placeholder="Input" />
+                                </div>
+                                <div>
+                                    <p>Il peut contenir des boutons:</p>
+                                    <Button variant="big" className="w-full">Big</Button>
+                                </div>
+                            </CardContent>
+                            <CardFooter>
+                                <p>Ceci est le footer de la carte. Il est automatique placé en bas de la carte, et peut permettre de mettre des boutons ou autre.</p>
+                            </CardFooter>
+                        </Card>
                     </div>
                 </div>
             </article>
