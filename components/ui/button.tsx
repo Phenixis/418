@@ -19,7 +19,7 @@ const buttonVariants = cva(
         ghost:
           "hover:bg-black/10 hover:text-black",
         link: "text-black underline-offset-4 decoration-3 hover:underline decoration-primary",
-        big: "bg-primary hover:bg-transparent border-2 border-primary text-black hover:text-primary rounded-full text-lg! px-8! py-4!",
+        big: "bg-primary hover:bg-transparent border-2 border-primary text-black hover:text-primary rounded-full !text-lg !px-8 !py-4",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",
