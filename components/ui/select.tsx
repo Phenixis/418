@@ -1,7 +1,9 @@
 "use client"
 
 import * as React from "react"
-import { Check as CheckIcon, ExpandMore as ChevronDownIcon, ExpandLess as ChevronUpIcon } from "@mui/icons-material"
+import CheckIcon from "@mui/icons-material/Check"
+import ChevronDownIcon from "@mui/icons-material/ExpandMore"
+import ChevronUpIcon from "@mui/icons-material/ExpandLess"
 import { Select as SelectPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
