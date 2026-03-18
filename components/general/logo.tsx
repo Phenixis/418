@@ -13,7 +13,7 @@ export default function Logo({
     variant,
     className
 }: Readonly<{
-    variant: LogoVariants,
+    variant: LogoVariants;
     className?: string
 }>) {
     return (
