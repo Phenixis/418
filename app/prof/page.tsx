@@ -87,7 +87,7 @@ export default function ProfPage() {
         <div className="min-h-screen bg-gray-100 p-8">
             <h1 className="text-4xl font-bold text-gray-800 mb-12">Professeurs</h1>
 
-            <div className="mb-8 flex flex-col items-start gap-4">
+            <div className=" flex flex-col items-start gap-4">
                 <Button onClick={handleToggleQrCodeVisibility}>
                     {isQrCodeVisible ? 'Masquer le QR code' : 'Générer le QR code'}
                 </Button>
