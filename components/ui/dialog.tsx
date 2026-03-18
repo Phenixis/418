@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Clear } from "@mui/icons-material"
+import Clear from "@mui/icons-material/Clear"
 import { Dialog as DialogPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
