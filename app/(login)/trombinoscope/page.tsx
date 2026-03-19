@@ -2,6 +2,7 @@ import Logo from '@/components/general/logo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import SettingsIcon from '@mui/icons-material/Settings';
+import { StudentCard } from '@/components/general/Card';
 
 
 
@@ -42,7 +43,10 @@ export default function TrombinoscopePage() {
                         </select>
                     </div>
 
-                    <div>
+                    {/* Filtrer par promotion 
+
+
+
                         <label className="block text-sm font-medium mb-2">Filtrer par promotion</label>
                         <select className="w-full px-4 py-2 border rounded-lg">
                             <option>Toutes</option>
@@ -59,6 +63,15 @@ export default function TrombinoscopePage() {
                             <option>Nom (Z-A)</option>
                             <option>Date d'inscription</option>
                         </select>
+                    </div>
+                    
+                    */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                        <StudentCard 
+                            firstName="Jean" 
+                            lastName="Dupont" 
+                            photoUrl="https://randomuser.me/api/portraits/men/1.jpg"
+                        />
                     </div>
                 </div>
             </main>
