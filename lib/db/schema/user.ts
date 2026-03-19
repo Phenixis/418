@@ -18,9 +18,7 @@ export const table = lib.pgTable('users', {
     
     password: lib.varchar("password", { length: 100 }).notNull(),
 
-    created_at: lib.timestamp('created_at').notNull().defaultNow(),
-    updated_at: lib.timestamp('updated_at').notNull().defaultNow(),
-    deleted_at: lib.timestamp('deleted_at')
+    ...lib.baseAttributes
 });
 
 export const relations = lib.relations(table, () => ({}));
