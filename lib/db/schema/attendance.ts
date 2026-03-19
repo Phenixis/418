@@ -7,7 +7,7 @@ export const table = lib.pgTable('attendance', {
     courseId: lib.varchar("course_id", { length: 10 })
         .references(() => CourseTable.table.courseId).notNull(),
     studentMail: lib.varchar("student_mail", { length: 60 }).notNull()
-        .references(() => StudentTable.table.user_mail),
+        .references(() => StudentTable.table.userMail),
 });
 
 export type Select = typeof table.$inferSelect;
