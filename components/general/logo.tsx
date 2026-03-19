@@ -10,10 +10,10 @@ export enum LogoVariants {
 }
 
 export default function Logo({
-    variant,
+    variant = LogoVariants.NAME_RIGHT,
     className
 }: Readonly<{
-    variant: LogoVariants;
+    variant?: LogoVariants;
     className?: string
 }>) {
     return (
