@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -14,9 +14,13 @@ import {
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { passwordRules } from "./rules";
+import { register } from "@/lib/actions/authentication";
+import { ActionResult } from "@/lib/actions/types";
 
 export default function InscriptionForm() {
-    const [name, setName] = useState("");
+    const formRef = useRef<HTMLFormElement>(null)
+    const [firstName, setFirstName] = useState("");
+    const [lastName, setLastName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
@@ -24,36 +28,63 @@ export default function InscriptionForm() {
 
     const passwordValid = passwordRules.every((rule) => rule.test(password));
     const formValid =
-        name.trim() !== "" &&
+        firstName.trim() !== "" &&
+        lastName.trim() !== "" &&
         email.trim() !== "" &&
         passwordValid &&
         password === confirmPassword;
 
+    const [state, formAction, pending] = useActionState<ActionResult, FormData>(async (prevState, formData) => {
+        return await register(prevState, formData)
+    }, { pending: true })
+
+    useEffect(() => {
+        if ("success" in state) {
+            globalThis.location.href = state.redirectTo;
+        }
+    }, [state]);
+
     return (
-        <main className="h-screen w-screen flex items-center justify-center">
+        <form className="h-screen w-screen flex items-center justify-center" action={formAction} ref={formRef}>
             <Card className="w-full max-w-md">
                 <CardHeader>
-                    <CardTitle>Inscription</CardTitle>
+                    <CardTitle className="h2 font-normal">Inscription</CardTitle>
                     <CardDescription hidden>
                         Créez votre compte.
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-4">
-                    <div className="w-full flex flex-col gap-2">
-                        <Label htmlFor="name">Nom</Label>
-                        <Input
-                            id="name"
-                            type="text"
-                            placeholder="Nom"
-                            className="bg-white"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                        />
+                    <div className="w-full flex items-center gap-2">
+                        <div className="w-full flex flex-col gap-2">
+                            <Label htmlFor="first-name">Prénom</Label>
+                            <Input
+                                id="first-name"
+                                name="first-name"
+                                type="text"
+                                placeholder="Prénom"
+                                className="bg-white"
+                                value={firstName}
+                                onChange={(e) => setFirstName(e.target.value)}
+                            />
+                        </div>
+                        <div className="w-full flex flex-col gap-2">
+                            <Label htmlFor="last-name">Nom</Label>
+                            <Input
+                                id="last-name"
+                                name="last-name"
+                                type="text"
+                                placeholder="Nom"
+                                className="bg-white"
+                                value={lastName}
+                                onChange={(e) => setLastName(e.target.value)}
+                            />
+                        </div>
                     </div>
                     <div className="w-full flex flex-col gap-2">
                         <Label htmlFor="email">Email</Label>
                         <Input
                             id="email"
+                            name="email"
                             type="email"
                             placeholder="Email"
                             className="bg-white"
@@ -65,6 +96,7 @@ export default function InscriptionForm() {
                         <Label htmlFor="password">Mot de passe</Label>
                         <Input
                             id="password"
+                            name="password"
                             type="password"
                             placeholder="Mot de passe"
                             className="bg-white"
@@ -94,6 +126,7 @@ export default function InscriptionForm() {
                         <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
                         <Input
                             id="confirmPassword"
+                            name="confirmPassword"
                             type="password"
                             placeholder="Confirmer le mot de passe"
                             className="bg-white"
@@ -105,21 +138,15 @@ export default function InscriptionForm() {
                         )}
                     </div>
                 </CardContent>
-                <CardFooter className="gap-4 justify-between">
-                    <Link href="/connexion" className="text-sm text-faded hover:underline">
+                <CardFooter className="gap-4 flex-col-reverse justify-end">
+                    <Link href="/professeur/connexion" className="text-sm text-faded hover:underline">
                         Déjà un compte ?
                     </Link>
-                    {formValid ? (
-                        <Link href="/dashboard">
-                            <Button variant="default">S&apos;inscrire</Button>
-                        </Link>
-                    ) : (
-                        <Button variant="default" disabled>
-                            S&apos;inscrire
-                        </Button>
-                    )}
+                    <Button variant="big" className="w-full" disabled={pending || !formValid} type="submit">
+                        S'inscrire
+                    </Button>
                 </CardFooter>
             </Card>
-        </main>
+        </form>
     );
 }
