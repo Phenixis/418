@@ -7,7 +7,12 @@ const mockEtudiants: Etudiant[] = [
     { id: '3', prenom: 'Peter', nom: 'Parker', photoUrl: 'https://randomuser.me/api/portraits/men/75.jpg' },
     { id: '4', prenom: 'Marlène', nom: 'Dubois', photoUrl: 'https://randomuser.me/api/portraits/women/68.jpg' },
     { id: '5', prenom: 'Enzo', nom: 'Letaillandier', photoUrl: 'https://randomuser.me/api/portraits/women/22.jpg' },
-    { id: '6', prenom: 'Jean-Marie', nom: 'De La Granddsqkjkdhqlksjdhqlkdjqslkdjh', photoUrl: 'https://randomuser.me/api/portraits/men/11.jpg' },
+    {
+        id: '6',
+        prenom: 'Jean-Marie',
+        nom: 'De La Granddsqkjkdhqlksjdhqlkdjqslkdjh',
+        photoUrl: 'https://randomuser.me/api/portraits/men/11.jpg'
+    },
     { id: '7', prenom: 'Olivier', nom: 'Minne', photoUrl: 'https://randomuser.me/api/portraits/men/52.jpg' },
     { id: '8', prenom: 'Scarlett', nom: 'Johansson', photoUrl: 'https://randomuser.me/api/portraits/women/55.jpg' },
     { id: '9', prenom: 'Dora', nom: "L'Exploratrice", photoUrl: 'https://randomuser.me/api/portraits/women/33.jpg' },
