@@ -106,7 +106,7 @@ export default function InscriptionForm() {
                     </div>
                 </CardContent>
                 <CardFooter className="gap-4 justify-between">
-                    <Link href="/connexion" className="text-sm text-muted-foreground hover:underline">
+                    <Link href="/connexion" className="text-sm text-faded hover:underline">
                         Déjà un compte ?
                     </Link>
                     {formValid ? (
