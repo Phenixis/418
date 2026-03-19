@@ -1,6 +1,6 @@
 import * as lib from './lib';
 
-export const group = lib.pgTable('group', {
+export const table = lib.pgTable('group', {
     ...lib.baseAttributes,
     promo: lib.char("promo", { length: 1 }).primaryKey(),
     td: lib.char("td", { length: 1 }).primaryKey(),
@@ -10,7 +10,7 @@ export const group = lib.pgTable('group', {
     descriptionPath: lib.varchar("description_path", { length: 50 }).notNull()
 });
 
-export const relations = lib.relations(group, () => ({}))
+export const relations = lib.relations(table, () => ({}))
 
-export type Select = typeof group.$inferSelect;
-export type Insert = typeof group.$inferInsert;
+export type Select = typeof table.$inferSelect;
+export type Insert = typeof table.$inferInsert;
