@@ -6,6 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { StudentCard } from '@/components/general/Card';
+import {
+    Collapsible,
+    CollapsibleTrigger,
+    CollapsibleContent,
+} from '@/components/ui/collapsible';
 
 // Interface pour représenter un étudiant
 interface Student {
@@ -309,6 +314,12 @@ const STUDENTS: Student[] = [
 
 export default function TrombinoscopePage() {
     const [searchQuery, setSearchQuery] = useState('');
+    const [openYears, setOpenYears] = useState<Record<string, boolean>>({
+        '1ère année': false,
+        '2ème année': false,
+        '3ème année': false,
+    });
+    const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
 
     const getStudentsByYearAndGroup = (yearLabel: string, tdGroup: string, tpGroup: string) =>
         STUDENTS.filter(student => {
@@ -321,6 +332,20 @@ export default function TrombinoscopePage() {
 
             return matchesYear && matchesTdGroup && matchesTpGroup && matchesSearch;
         });
+
+    const toggleYear = (yearLabel: string) => {
+        setOpenYears(prev => ({
+            ...prev,
+            [yearLabel]: !prev[yearLabel],
+        }));
+    };
+
+    const toggleGroup = (groupLabel: string) => {
+        setOpenGroups(prev => ({
+            ...prev,
+            [groupLabel]: !prev[groupLabel],
+        }));
+    };
 
     return (
         <div className="flex flex-col min-h-screen">
@@ -358,23 +383,33 @@ export default function TrombinoscopePage() {
                 <div className="space-y-3">
                     {YEAR_LABELS.map(yearLabel => {
                         return (
-                            <details
+                            <Collapsible
                                 key={yearLabel}
+                                open={openYears[yearLabel]}
+                                onOpenChange={() => toggleYear(yearLabel)}
                                 className="rounded-lg border border-faded bg-background-alternative px-4 py-3"
                             >
-                                <summary className="cursor-pointer text-2xl font-display">{yearLabel}</summary>
+                                <CollapsibleTrigger className="w-full text-2xl font-display text-left">
+                                    {yearLabel}
+                                </CollapsibleTrigger>
 
-                                <div className="mt-3 space-y-2 pl-4">
+                                <CollapsibleContent className="mt-3 space-y-2 pl-4">
                                     {GROUP_COMBINATIONS.map(({ tdGroup, tpGroup, label }) => {
                                         const studentsByGroup = getStudentsByYearAndGroup(yearLabel, tdGroup, tpGroup);
+                                        const groupKey = `${yearLabel}-${label}`;
 
                                         return (
-                                            <details key={label} className="rounded-md px-2 py-1">
-                                                <summary className="cursor-pointer text-lg font-medium">
+                                            <Collapsible
+                                                key={label}
+                                                open={openGroups[groupKey]}
+                                                onOpenChange={() => toggleGroup(groupKey)}
+                                                className="rounded-md px-2 py-1"
+                                            >
+                                                <CollapsibleTrigger className="w-full text-lg font-medium text-left">
                                                     {label}
-                                                </summary>
+                                                </CollapsibleTrigger>
 
-                                                <div className="mt-3 grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                                                <CollapsibleContent className="mt-3 grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                                                     {studentsByGroup.length > 0 ? (
                                                         studentsByGroup.map(student => (
                                                             <StudentCard
@@ -387,12 +422,12 @@ export default function TrombinoscopePage() {
                                                     ) : (
                                                         <p className="font-faded">Aucun étudiant dans ce groupe.</p>
                                                     )}
-                                                </div>
-                                            </details>
+                                                </CollapsibleContent>
+                                            </Collapsible>
                                         );
                                     })}
-                                </div>
-                            </details>
+                                </CollapsibleContent>
+                            </Collapsible>
                         );
                     })}
                 </div>
