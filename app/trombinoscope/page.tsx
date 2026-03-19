@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -6,6 +5,7 @@ import Logo from '@/components/general/logo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import SettingsIcon from '@mui/icons-material/Settings';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { StudentCard } from '@/components/general/Card';
 import {
     Collapsible,
@@ -321,7 +321,7 @@ export default function TrombinoscopePage() {
 
     // État pour contrôler l'ouverture/fermeture de chaque section année
     const [openYears, setOpenYears] = useState<Record<string, boolean>>({
-        '1ère année': false,
+        '1ère année': true,
         '2ème année': false,
         '3ème année': false,
     });
@@ -392,7 +392,7 @@ export default function TrombinoscopePage() {
                 </div>
 
                 {/* Liste des années avec leurs groupes et étudiants */}
-                <div className="space-y-3">
+                <div className="space-y-4">
                     {/* Itère sur chaque année (1ère, 2ème, 3ème) */}
                     {YEAR_LABELS.map(yearLabel => {
                         return (
@@ -401,14 +401,14 @@ export default function TrombinoscopePage() {
                                 key={yearLabel}
                                 open={openYears[yearLabel]}
                                 onOpenChange={() => toggleYear(yearLabel)}
-                                className="rounded-lg border border-faded bg-background-alternative px-4 py-3"
+                                className="px-2"
                             >
-                                <CollapsibleTrigger className="w-full text-2xl font-display text-left cursor-pointer">
+                                <CollapsibleTrigger className="w-full text-2xl font-display text-left">
                                     {yearLabel}
                                 </CollapsibleTrigger>
 
                                 {/* Contenu du collapsible année : tous les groupes TD/TP */}
-                                <CollapsibleContent className="mt-3 space-y-2 pl-4">
+                                <CollapsibleContent className="mt-2 space-y-2 pl-5">
                                     {/* Itère sur toutes les combinaisons TD/TP pour cette année */}
                                     {GROUP_COMBINATIONS.map(({ tdGroup, tpGroup, label }) => {
                                         const studentsByGroup = getStudentsByYearAndGroup(yearLabel, tdGroup, tpGroup);
@@ -420,9 +420,9 @@ export default function TrombinoscopePage() {
                                                 key={label}
                                                 open={openGroups[groupKey]}
                                                 onOpenChange={() => toggleGroup(groupKey)}
-                                                className="rounded-md px-2 py-1"
+                                                className="px-1"
                                             >
-                                                <CollapsibleTrigger className="w-full text-lg font-medium text-left cursor-pointer">
+                                                <CollapsibleTrigger className="w-full text-lg font-medium text-left">
                                                     {label}
                                                 </CollapsibleTrigger>
 
