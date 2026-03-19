@@ -382,7 +382,7 @@ export default function TrombinoscopePage() {
             {/* Contenu principal */}
             <main className="flex-1 p-8">
                 <div className="flex items-start gap-4 mb-8">
-                    <h1 className="text-2xl h1 font-display">Trombinoscope</h1>
+                    <h1 className="h1">Trombinoscope</h1>
                     <Input
                         placeholder="Chercher un étudiant, un groupe, une classe,..."
                         className="w-full bg-white rounded-lg"
@@ -403,7 +403,7 @@ export default function TrombinoscopePage() {
                                 onOpenChange={() => toggleYear(yearLabel)}
                                 className="rounded-lg border border-faded bg-background-alternative px-4 py-3"
                             >
-                                <CollapsibleTrigger className="w-full text-2xl font-display text-left">
+                                <CollapsibleTrigger className="w-full text-2xl font-display text-left cursor-pointer">
                                     {yearLabel}
                                 </CollapsibleTrigger>
 
@@ -422,7 +422,7 @@ export default function TrombinoscopePage() {
                                                 onOpenChange={() => toggleGroup(groupKey)}
                                                 className="rounded-md px-2 py-1"
                                             >
-                                                <CollapsibleTrigger className="w-full text-lg font-medium text-left">
+                                                <CollapsibleTrigger className="w-full text-lg font-medium text-left cursor-pointer">
                                                     {label}
                                                 </CollapsibleTrigger>
 
