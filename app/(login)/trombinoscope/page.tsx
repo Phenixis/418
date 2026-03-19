@@ -361,7 +361,6 @@ export default function TrombinoscopePage() {
                             <details
                                 key={yearLabel}
                                 className="rounded-lg border border-faded bg-background-alternative px-4 py-3"
-                               
                             >
                                 <summary className="cursor-pointer text-2xl font-display">{yearLabel}</summary>
 
