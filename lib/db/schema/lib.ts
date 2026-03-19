@@ -15,7 +15,7 @@ export {
     jsonb,
 } from 'drizzle-orm/pg-core';
 export { relations, sql } from 'drizzle-orm';
-import { timestamp, varchar } from 'drizzle-orm/pg-core';
+import { timestamp, varchar, boolean } from 'drizzle-orm/pg-core';
 
 export const baseAttributes = {
     created_at: timestamp("created_at").notNull().defaultNow(),
@@ -28,5 +28,6 @@ export const userAttributes = {
     last_name: varchar("last_name", { length: 30 }).notNull(),
     first_name: varchar("first_name", { length: 30 }).notNull(),
     password: varchar("password", { length: 100 }).notNull(),
+    isTeacher: boolean("isTeacher").default(false).notNull(),
     ...baseAttributes
 }
