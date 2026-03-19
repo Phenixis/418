@@ -76,3 +76,65 @@
         @apply font-sans;
     }
 }
+
+
+/* =================================================================
+   STYLES POUR LES NOTIFICATIONS (SONNER)
+   ================================================================= */
+.sonner-toast {
+  --normal-bg: hsl(var(--card));
+  --normal-border: hsl(var(--border));
+  --normal-text: hsl(var(--card-foreground));
+  --success-bg: hsl(var(--success));
+  --success-border: hsl(var(--success));
+  --success-text: hsl(var(--success-foreground));
+  --error-bg: hsl(var(--destructive));
+  --error-border: hsl(var(--destructive));
+  --error-text: hsl(var(--destructive-foreground));
+  --info-bg: hsl(var(--info));
+  --info-border: hsl(var(--info));
+  --info-text: hsl(var(--info-foreground));
+  --warning-bg: hsl(var(--warning));
+  --warning-border: hsl(var(--warning));
+  --warning-text: hsl(var(--warning-foreground));
+}
+
+[data-sonner-toast] {
+  font-family: var(--font-inter);
+  border-radius: 0.5rem;
+  border-width: 1px;
+}
+
+[data-sonner-toast] [data-title] {
+  font-weight: 600;
+}
+
+[data-sonner-toast] [data-close-button] {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  border-radius: 0.25rem;
+  background-color: transparent;
+  opacity: 0.8;
+  transition: opacity 150ms;
+}
+
+[data-sonner-toast] [data-close-button]:hover {
+  opacity: 1;
+}
+
+[data-sonner-toast][data-type="error"] [data-close-button] {
+  background-color: hsl(var(--destructive-foreground) / 0.1);
+}
+
+[data-sonner-toast][data-type="success"] [data-close-button] {
+  background-color: hsl(var(--success-foreground) / 0.1);
+}
+
+[data-sonner-toast][data-type="info"] [data-close-button] {
+  background-color: hsl(var(--info-foreground) / 0.1);
+}
+
+[data-sonner-toast][data-type="warning"] [data-close-button] {
+  background-color: hsl(var(--warning-foreground) / 0.1);
+}
