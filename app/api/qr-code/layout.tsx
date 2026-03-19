@@ -1,6 +1,6 @@
 import { connection } from 'next/server'
  
-export default async function Page({
+export default async function QrCodeLayout({
     children
 }: {
     children: React.ReactNode
