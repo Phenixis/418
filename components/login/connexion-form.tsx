@@ -48,14 +48,13 @@ export default function ConnexionForm() {
         <CardContent className="space-y-6">
           <div className="w-full flex flex-col gap-2">
             <Label htmlFor="email">Email</Label>
-            
             <div className="flex items-center gap-2">
               <Input 
               id="email" 
               name="email" 
               type="text" 
-              placeholder="Email" 
-              className="bg-white" 
+              placeholder="Email"
+              required
               value={email} 
               onChange={(e) => setEmail(e.target.value)}
               onBlur={() => {
@@ -75,7 +74,8 @@ export default function ConnexionForm() {
               type="password"
               name="password"
               placeholder="Mot de passe"
-              className="bg-white mb-2"
+              className="mb-2"
+              required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               onFocus={() => setPasswordFocused(true)}

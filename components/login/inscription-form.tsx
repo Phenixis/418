@@ -62,7 +62,8 @@ export default function InscriptionForm() {
                                 name="first-name"
                                 type="text"
                                 placeholder="Prénom"
-                                className="bg-white"
+                                
+                                required
                                 value={firstName}
                                 onChange={(e) => setFirstName(e.target.value)}
                             />
@@ -74,7 +75,8 @@ export default function InscriptionForm() {
                                 name="last-name"
                                 type="text"
                                 placeholder="Nom"
-                                className="bg-white"
+                                
+                                required
                                 value={lastName}
                                 onChange={(e) => setLastName(e.target.value)}
                             />
@@ -82,15 +84,25 @@ export default function InscriptionForm() {
                     </div>
                     <div className="w-full flex flex-col gap-2">
                         <Label htmlFor="email">Email</Label>
-                        <Input
-                            id="email"
-                            name="email"
-                            type="email"
-                            placeholder="Email"
-                            className="bg-white"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
+                        <div className="flex items-center gap-2">
+                            <Input
+                                id="email"
+                                name="email"
+                                type="text"
+                                placeholder="Email"
+                                
+                                required
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                onBlur={() => {
+                                    const emailWithoutDomain = email.split("@")[0];
+                                    setEmail(emailWithoutDomain);
+                                }}
+                            />
+                            <p className="text-faded shrink-0">
+                                @univ-rennes.fr
+                            </p>
+                        </div>
                     </div>
                     <div className="w-full flex flex-col gap-2">
                         <Label htmlFor="password">Mot de passe</Label>
@@ -99,7 +111,8 @@ export default function InscriptionForm() {
                             name="password"
                             type="password"
                             placeholder="Mot de passe"
-                            className="bg-white"
+                            
+                            required
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             onFocus={() => setPasswordFocused(true)}
@@ -129,7 +142,8 @@ export default function InscriptionForm() {
                             name="confirmPassword"
                             type="password"
                             placeholder="Confirmer le mot de passe"
-                            className="bg-white"
+                            
+                            required
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
                         />
