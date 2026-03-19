@@ -1,8 +1,8 @@
 "use client"
 
-import Color from "@/components/charte_graphique/color"
+import Color from "@/components/charte-graphique/color"
 import Logo, { LogoVariants } from "@/components/general/logo"
-import { ColorVariants } from "@/components/charte_graphique/color.types"
+import { ColorVariants } from "@/components/charte-graphique/color.types"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -18,7 +18,6 @@ import {
 import LockIcon from '@mui/icons-material/Lock';
 import { Badge } from "@/components/ui/badge";
 import {
-    Command,
     CommandDialog,
     CommandEmpty,
     CommandGroup,
