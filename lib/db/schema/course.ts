@@ -1,4 +1,7 @@
 import * as lib from './lib';
+import * as index from './index'
+
+const teacherTable = index.TeacherTable.table
 
 export const table = lib.pgTable('course', {
     ...lib.baseAttributes,
@@ -9,7 +12,9 @@ export const table = lib.pgTable('course', {
     subject: lib.varchar("subject", { length: 50 }).notNull()
 });
 
-export const relations = lib.relations(table, () => ({}))
+export const relations = lib.relations(table, ({many}) => ({
+    teachers: many(teacherTable)
+}))
 
 export type Select = typeof table.$inferSelect;
 export type Insert = typeof table.$inferInsert;
