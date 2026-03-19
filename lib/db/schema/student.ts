@@ -1,11 +1,11 @@
 import * as lib from './lib'
 
-export const student = lib.pgTable('student', {
+export const table = lib.pgTable('student', {
     ...lib.userAttributes,
     picture: lib.text("picture")
 })
 
-export const relations = lib.relations(student, () => ({}))
+export const relations = lib.relations(table, () => ({}))
 
-export type Select = typeof student.$inferSelect
-export type Insert = typeof student.$inferInsert
+export type Select = typeof table.$inferSelect
+export type Insert = typeof table.$inferInsert
