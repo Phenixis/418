@@ -14,14 +14,16 @@ export const StudentCard: React.FC<StudentCardProps> = ({
     photoAlt = `${firstName} ${lastName}`,
 }) => {
     return (
-        <div className="student-card w-fit bg-white rounded-lg  overflow-hidden m-5 p-4">
-            <img 
-                src={photoUrl} 
-                alt={photoAlt} 
-                className="student-card__photo"
+        <div className="w-full max-w-60 overflow-hidden rounded-xl border border-faded bg-background-alternative p-4 shadow-sm transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-md">
+            <img
+                src={photoUrl}
+                alt={photoAlt}
+                loading="lazy"
+                className="h-44 w-full rounded-lg object-cover"
             />
-            <div className="student-card__info">
-                <h3 className="student-card__name">{firstName} {lastName}</h3>
+            <div className="mt-3 space-y-1">
+                <h3 className="h3 leading-tight">{firstName} {lastName}</h3>
+
             </div>
         </div>
     );
