@@ -2,6 +2,7 @@ import * as lib from './lib';
 import * as index from './index';
 
 const studentTable = index.StudentTable.table;
+const courseTable = index.CourseTable.table;
 
 export const table = lib.pgTable('group', {
     ...lib.baseAttributes,
@@ -15,7 +16,8 @@ export const table = lib.pgTable('group', {
 });
 
 export const relations = lib.relations(table, ({many}) => ({
-    students: many(studentTable)
+    students: many(studentTable),
+    courses: many(courseTable)
 }))
 
 export type Select = typeof table.$inferSelect;
