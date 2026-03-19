@@ -26,9 +26,11 @@ export default function QRCode({
 
     return (
         <button
+            type="button"
             className={cn("group/qr-code relative bg-white shadow-md transition-all duration-200 hover:shadow-xl cursor-pointer hover:p-3 hover:rounded-lg", className)}
-            onClick={() => openImagePopup()}
+            onClick={openImagePopup}
             title="Ouvrir dans une nouvelle fenêtre"
+            aria-label="Ouvrir le QR code dans une nouvelle fenêtre"
         >
             {/* Animation à améliorer */}
             <span className="pointer-events-none absolute left-4 top-4 size-6 rounded-tl-lg border-l-4 border-t-4 border-black opacity-0 transition-all duration-200 group-hover/qr-code:left-1 group-hover/qr-code:top-1 group-hover/qr-code:opacity-100" />
