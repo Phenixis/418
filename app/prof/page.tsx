@@ -1,7 +1,7 @@
 'use client';
 
 
-import QRCode from '@/components/appel/qr-code';
+import QRCode from '@/components/appel/QrCode';
 
 const ENT_PAGE_URL = 'https://ent.univ-rennes1.fr/f/bureau/normal/render.uP';
 
