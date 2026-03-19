@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -27,6 +28,8 @@ interface Student {
 const TD_GROUP_OPTIONS = ['A', 'B', 'C', 'D', 'E'];
 const TP_GROUP_OPTIONS = ['1', '2'];
 const YEAR_LABELS = ['1ère année', '2ème année', '3ème année'];
+
+// Génère toutes les combinaisons possibles de groupes TD/TP (A1, A2, B1... E2)
 const GROUP_COMBINATIONS = TD_GROUP_OPTIONS.flatMap(tdGroup =>
     TP_GROUP_OPTIONS.map(tpGroup => ({
         tdGroup,
@@ -313,14 +316,20 @@ const STUDENTS: Student[] = [
 ];
 
 export default function TrombinoscopePage() {
+    // État pour la requête de recherche d'étudiant
     const [searchQuery, setSearchQuery] = useState('');
+
+    // État pour contrôler l'ouverture/fermeture de chaque section année
     const [openYears, setOpenYears] = useState<Record<string, boolean>>({
         '1ère année': false,
         '2ème année': false,
         '3ème année': false,
     });
+
+    // État pour contrôler l'ouverture/fermeture de chaque groupe TD/TP
     const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
 
+    // Filtre les étudiants selon l'année, le groupe TD/TP et la requête de recherche
     const getStudentsByYearAndGroup = (yearLabel: string, tdGroup: string, tpGroup: string) =>
         STUDENTS.filter(student => {
             const matchesYear = student.year === yearLabel;
@@ -333,17 +342,19 @@ export default function TrombinoscopePage() {
             return matchesYear && matchesTdGroup && matchesTpGroup && matchesSearch;
         });
 
+    // Bascule l'état d'ouverture/fermeture d'un collapsible année
     const toggleYear = (yearLabel: string) => {
         setOpenYears(prev => ({
-            ...prev,
+            ...prev,                                //passe de l'état ouvert à fermé ou inversement pour l'année spécifiée
             [yearLabel]: !prev[yearLabel],
         }));
     };
 
+    // Bascule l'état d'ouverture/fermeture d'un collapsible groupe TD/TP
     const toggleGroup = (groupLabel: string) => {
         setOpenGroups(prev => ({
             ...prev,
-            [groupLabel]: !prev[groupLabel],
+            [groupLabel]: !prev[groupLabel],        //passe de l'état ouvert à fermé ou inversement pour le groupe spécifié
         }));
     };
 
@@ -380,9 +391,12 @@ export default function TrombinoscopePage() {
                     />
                 </div>
 
+                {/* Liste des années avec leurs groupes et étudiants */}
                 <div className="space-y-3">
+                    {/* Itère sur chaque année (1ère, 2ème, 3ème) */}
                     {YEAR_LABELS.map(yearLabel => {
                         return (
+                            /* Collapsible pour chaque année avec ses groupes */
                             <Collapsible
                                 key={yearLabel}
                                 open={openYears[yearLabel]}
@@ -393,12 +407,15 @@ export default function TrombinoscopePage() {
                                     {yearLabel}
                                 </CollapsibleTrigger>
 
+                                {/* Contenu du collapsible année : tous les groupes TD/TP */}
                                 <CollapsibleContent className="mt-3 space-y-2 pl-4">
+                                    {/* Itère sur toutes les combinaisons TD/TP pour cette année */}
                                     {GROUP_COMBINATIONS.map(({ tdGroup, tpGroup, label }) => {
                                         const studentsByGroup = getStudentsByYearAndGroup(yearLabel, tdGroup, tpGroup);
                                         const groupKey = `${yearLabel}-${label}`;
 
                                         return (
+                                            /* Collapsible pour chaque groupe (A1, A2, B1... E2) */
                                             <Collapsible
                                                 key={label}
                                                 open={openGroups[groupKey]}
@@ -409,8 +426,10 @@ export default function TrombinoscopePage() {
                                                     {label}
                                                 </CollapsibleTrigger>
 
+                                                {/* Affiche les cartes d'étudiants du groupe */}
                                                 <CollapsibleContent className="mt-3 grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                                                     {studentsByGroup.length > 0 ? (
+                                                        /* Affiche chaque étudiant du groupe */
                                                         studentsByGroup.map(student => (
                                                             <StudentCard
                                                                 key={student.id}
@@ -420,6 +439,7 @@ export default function TrombinoscopePage() {
                                                             />
                                                         ))
                                                     ) : (
+                                                        /* Message si aucun étudiant correspond aux critères */
                                                         <p className="font-faded">Aucun étudiant dans ce groupe.</p>
                                                     )}
                                                 </CollapsibleContent>
