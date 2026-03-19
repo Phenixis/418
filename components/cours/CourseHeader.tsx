@@ -1,31 +1,25 @@
-"use client"
+'use client';
 
-import { Button } from "@/components/ui/button"
-import { CourseStatus } from "@/components/cours/course.types"
-import Vignette from "@/components/ui/Vignette"
+import { Button } from '@/components/ui/button';
+import { CourseStatus } from '@/components/cours/course.types';
+import Vignette from '@/components/ui/Vignette';
 
-export { CourseStatus }
+export { CourseStatus };
 
 export interface CourseHeaderProps {
     /** Code de la matière (ex: R5.A.10) */
-    code: string
+    code: string;
     /** Nom de la matière (ex: Management) */
-    matiere: string
+    matiere: string;
     /** Statut actuel du cours */
-    status: CourseStatus
+    status: CourseStatus;
     /** Callback déclenché au clic sur "Modifier" */
-    onModifier?: () => void
+    onModifier?: () => void;
     /** Callback déclenché au clic sur "Terminer" */
-    onTerminer?: () => void
+    onTerminer?: () => void;
 }
 
-export default function CourseHeader({
-    code,
-    matiere,
-    status,
-    onModifier,
-    onTerminer,
-}: CourseHeaderProps) {
+export default function CourseHeader({ code, matiere, status, onModifier, onTerminer }: CourseHeaderProps) {
     return (
         <div className="flex items-center justify-between">
             {/* Titre et vignette de statut */}
@@ -52,5 +46,5 @@ export default function CourseHeader({
                 </div>
             )}
         </div>
-    )
+    );
 }

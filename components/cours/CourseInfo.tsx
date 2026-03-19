@@ -1,30 +1,30 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 
 export interface CourseInfoProps {
     /** Date du cours */
-    date: Date
+    date: Date;
     /** Heure de début (ex: 08h00) */
-    heureDebut: string
+    heureDebut: string;
     /** Heure de fin (ex: 10h00) */
-    heureFin: string
+    heureFin: string;
     /** Classe concernée (ex: 3A) */
-    classe: string
+    classe: string;
     /** Nombre total d'étudiants */
-    total: number
+    total: number;
     /** Nombre d'étudiants présents */
-    presents: number
+    presents: number;
     /** Nombre d'étudiants non scannés */
-    nonScannes: number
+    nonScannes: number;
 }
 
 // Formatte une date en "18 mars 2026"
 function formatDate(date: Date): string {
-    return date.toLocaleDateString("fr-FR", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-    })
+    return date.toLocaleDateString('fr-FR', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+    });
 }
 
 // Champ d'information individuel (label + valeur)
@@ -34,7 +34,7 @@ function InfoField({ label, value }: { label: string; value: string }) {
             <span className="font-faded">{label}</span>
             <span>{value}</span>
         </div>
-    )
+    );
 }
 
 export default function CourseInfo({
@@ -44,14 +44,13 @@ export default function CourseInfo({
     classe,
     total,
     presents,
-    nonScannes,
+    nonScannes
 }: CourseInfoProps) {
-    const dateFormatee = formatDate(date)
-    const horaireFormate = `${heureDebut} — ${heureFin}`
+    const dateFormatee = formatDate(date);
+    const horaireFormate = `${heureDebut} — ${heureFin}`;
 
     return (
         <div className="flex items-stretch gap-4">
-
             {/* Rectangle principal d'informations */}
             <Card className="flex-1 max-w-full">
                 <CardHeader>
@@ -78,7 +77,6 @@ export default function CourseInfo({
             <div className="self-stretch w-36 shrink-0 rounded-xl border border-dashed border-faded bg-background-alternative flex items-center justify-center">
                 <span className="font-faded text-xs">QR Code</span>
             </div>
-
         </div>
-    )
+    );
 }
