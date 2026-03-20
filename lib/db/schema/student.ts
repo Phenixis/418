@@ -1,21 +1,19 @@
 import * as lib from './lib'
-import * as index from './index';
-
-const groupTable = index.GroupTable.table;
-const attendanceTable = index.AttendanceTable.table
+import * as GroupTable from './group';
+import * as AttendanceTable from './attendance';
 
 export const table = lib.pgTable('student', {
     ...lib.userAttributes,
     picture: lib.text("picture"),
-    groupId: lib.integer("group_id").references(() => groupTable.groupId)
+    groupId: lib.integer("group_id").references(() => GroupTable.table.groupId)
 })
 
 export const relations = lib.relations(table, ({one, many}) => ({
-    group: one(groupTable, {
+    group: one(GroupTable.table, {
         fields: [table.groupId],
-        references: [groupTable.groupId]
+        references: [GroupTable.table.groupId]
     }),
-    attendances: many(attendanceTable)
+    attendances: many(AttendanceTable.table)
 }))
 
 export type Select = typeof table.$inferSelect
