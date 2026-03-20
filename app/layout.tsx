@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Gilda_Display, Inter } from "next/font/google";
 import "./globals.css";
-import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/sonner"; 
 
 const gildaDisplay = Gilda_Display({
   variable: "--font-gilda-display",
@@ -11,7 +11,7 @@ const gildaDisplay = Gilda_Display({
 
 const inter = Inter({
   variable: "--font-inter",
-  subsets:["latin"],
+  subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
@@ -29,8 +29,14 @@ export default function RootLayout({
         className={`${gildaDisplay.variable} ${inter.variable} antialiased bg-background`}
       >
         {children}
-        <Toaster position="top-center" />
+        
+        <Toaster 
+          position="top-center" 
+          richColors={true} 
+          closeButton={true} 
+        />
+        
       </body>
     </html>
   );
-} 
+}
