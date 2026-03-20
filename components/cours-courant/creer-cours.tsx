@@ -70,7 +70,7 @@ export default function CreerCours() {
 
     useEffect(() => {
         if ("success" in state) {
-            // globalThis.location.href = "/professeur/cours/" + state.course.id
+            globalThis.location.href = "/professeur/cours/" + state.course.id
             setLabel("");
             setDate(new Date());
             setHeureDebut("");
