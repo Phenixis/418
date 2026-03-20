@@ -1,6 +1,4 @@
 import * as lib from './lib';
-import * as GroupTable from './group';
-import * as TeacherTable from './teacher';
 import * as AttendanceTable from './attendance';
 
 export const table = lib.pgTable('course', {
@@ -13,8 +11,6 @@ export const table = lib.pgTable('course', {
 });
 
 export const relations = lib.relations(table, ({many}) => ({
-    groups: many(GroupTable.table),
-    teachers: many(TeacherTable.table),
     attendances: many(AttendanceTable.table)
 }))
 
