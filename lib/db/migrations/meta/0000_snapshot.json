@@ -1,5 +1,5 @@
 {
-  "id": "3dc73e0f-89a2-49b4-95b2-4e3d939ace15",
+  "id": "af9299a8-0a04-4af2-b138-35d77fbb63cb",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -54,6 +54,122 @@
           "tableTo": "student",
           "columnsFrom": [
             "student_mail"
+          ],
+          "columnsTo": [
+            "user_mail"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.course_group": {
+      "name": "course_group",
+      "schema": "",
+      "columns": {
+        "course_group_id": {
+          "name": "course_group_id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "course_id": {
+          "name": "course_id",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "group_id": {
+          "name": "group_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "course_group_course_id_course_course_id_fk": {
+          "name": "course_group_course_id_course_course_id_fk",
+          "tableFrom": "course_group",
+          "tableTo": "course",
+          "columnsFrom": [
+            "course_id"
+          ],
+          "columnsTo": [
+            "course_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "course_group_group_id_group_group_id_fk": {
+          "name": "course_group_group_id_group_group_id_fk",
+          "tableFrom": "course_group",
+          "tableTo": "group",
+          "columnsFrom": [
+            "group_id"
+          ],
+          "columnsTo": [
+            "group_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.course_teacher": {
+      "name": "course_teacher",
+      "schema": "",
+      "columns": {
+        "course_teacher_id": {
+          "name": "course_teacher_id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "course_id": {
+          "name": "course_id",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "teacher_mail": {
+          "name": "teacher_mail",
+          "type": "varchar(60)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "course_teacher_course_id_course_course_id_fk": {
+          "name": "course_teacher_course_id_course_course_id_fk",
+          "tableFrom": "course_teacher",
+          "tableTo": "course",
+          "columnsFrom": [
+            "course_id"
+          ],
+          "columnsTo": [
+            "course_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "course_teacher_teacher_mail_teacher_user_mail_fk": {
+          "name": "course_teacher_teacher_mail_teacher_user_mail_fk",
+          "tableFrom": "course_teacher",
+          "tableTo": "teacher",
+          "columnsFrom": [
+            "teacher_mail"
           ],
           "columnsTo": [
             "user_mail"
@@ -155,8 +271,8 @@
           "primaryKey": false,
           "notNull": false
         },
-        "groupId": {
-          "name": "groupId",
+        "group_id": {
+          "name": "group_id",
           "type": "serial",
           "primaryKey": true,
           "notNull": true
@@ -234,8 +350,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "isTeacher": {
-          "name": "isTeacher",
+        "is_teacher": {
+          "name": "is_teacher",
           "type": "boolean",
           "primaryKey": false,
           "notNull": true,
@@ -276,15 +392,15 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "student_group_id_group_groupId_fk": {
-          "name": "student_group_id_group_groupId_fk",
+        "student_group_id_group_group_id_fk": {
+          "name": "student_group_id_group_group_id_fk",
           "tableFrom": "student",
           "tableTo": "group",
           "columnsFrom": [
             "group_id"
           ],
           "columnsTo": [
-            "groupId"
+            "group_id"
           ],
           "onDelete": "no action",
           "onUpdate": "no action"
@@ -324,8 +440,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "isTeacher": {
-          "name": "isTeacher",
+        "is_teacher": {
+          "name": "is_teacher",
           "type": "boolean",
           "primaryKey": false,
           "notNull": true,

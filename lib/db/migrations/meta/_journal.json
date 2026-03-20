@@ -5,15 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1774000714296,
-      "tag": "0000_chubby_deathbird",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1774003700669,
-      "tag": "0001_big_miracleman",
+      "when": 1774004250023,
+      "tag": "0000_plain_rawhide_kid",
       "breakpoints": true
     }
   ]
