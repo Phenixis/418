@@ -9,7 +9,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { DatePicker } from "../ui/date-picker";
 import { Input } from "../ui/input";
@@ -120,9 +120,9 @@ export default function CreerCours() {
                         </div>
                         <div className="flex items-center justify-between gap-4 mb-2">
                             <div className="flex-1 flex flex-col gap-1">
-                                <Label htmlFor="start-date">Date de début</Label>
+                                <Label id="start-date-label">Date de début</Label>
                                 <DatePicker
-                                    id="start-date"
+                                    aria-labelledby="start-date-label"
                                     value={date}
                                     onChange={setDate}
                                 />
@@ -165,7 +165,15 @@ export default function CreerCours() {
                             </div>
                         </div>
                         <div className="w-full flex flex-col gap-2 mb-2">
-                            <input type="text" id="groups-hidden" name="groups" className="hidden" value={groupsSelected.join(",")} readOnly />
+                            {groupsSelected.map((groupValue) => (
+                                <input
+                                    key={groupValue}
+                                    type="hidden"
+                                    name="groups"
+                                    value={groupValue}
+                                    readOnly
+                                />
+                            ))}
                             <Label htmlFor="groups">Groupes</Label>
                             <Combobox
                                 items={groupsFlat}
