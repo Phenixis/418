@@ -2,8 +2,8 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { CheckCircle2 } from "lucide-react";
 
-// --- Imports de la charte graphique ---
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,33 +15,31 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner"; // Pop-ups de notification modernes
+import { toast } from "sonner";
 
-// --- MOCKS (Simulation de la Base de Données) ---
-const mockCours =[
+// Donnees mock pour simuler la validation du cours et de l'etudiant
+const mockCours = [
     { id: "1", nom: "Développement Web - TP2", actif: true },
-    { id: "2", nom: "Architecture Logicielle - TD1", actif: false }, // Cours terminé
+    { id: "2", nom: "Architecture Logicielle - TD1", actif: false },
 ];
 
-const mockEtudiants =[
+const mockEtudiants = [
     { email: "jean.dupont@etu.iut.fr", password: "mdp", attenduDans: ["1"] },
-    { email: "intrus@etu.iut.fr", password: "mdp", attenduDans:[] }, // Étudiant non autorisé
+    { email: "intrus@etu.iut.fr", password: "mdp", attenduDans: [] },
 ];
-// --------------------------------------------------------------------
 
+// Composant principal du parcours de pointage etudiant
 function PresenceForm() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const coursId = searchParams.get('cours_id');
 
-    // États du processus de connexion
     const [step, setStep] = useState<'LOADING' | 'EMAIL' | 'PASSWORD' | 'SUCCESS'>('LOADING');
-    const[email, setEmail] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const[courseName, setCourseName] = useState<string>('');
+    const [courseName, setCourseName] = useState<string>('');
 
-    // CA 1 : Vérification de la validité du cours au chargement
+    // Initialisation du flux a partir du cours transmis par QR code
     useEffect(() => {
         if (!coursId) {
             toast.error("Action requise", {
@@ -57,20 +55,19 @@ function PresenceForm() {
                 description: "Cours non reconnu (ID invalide).",
             });
             setStep('LOADING');
-        } else if (!cours.actif) {
+        } else if (cours.actif === false) {
             toast.error("Cours terminé", {
                 description: "La connexion à ce cours est terminée.",
             });
             setStep('LOADING');
         } else {
             setCourseName(cours.nom);
-            setStep('EMAIL'); // Le cours est valide, on passe à l'étape Email
+            setStep('EMAIL');
         }
     }, [coursId]);
 
-    // Validation de l'étape 1 : Email
-    const handleEmailSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
+    // Etape 1: validation de l'email
+    const handleEmailSubmit = () => {
         if (!email.includes('@')) {
             toast.error("Format invalide", {
                 description: "Veuillez entrer une adresse email valide.",
@@ -80,13 +77,11 @@ function PresenceForm() {
         setStep('PASSWORD');
     };
 
-    // Validation de l'étape 2 : Mot de passe et vérification d'appartenance au cours
-    const handlePasswordSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-
+    // Etape 2: validation mot de passe + autorisation sur le cours
+    const handlePasswordSubmit = () => {
         const etudiant = mockEtudiants.find(etu => etu.email === email);
 
-        if (!etudiant || etudiant.password !== password) {
+        if (etudiant?.password !== password) {
             toast.error("Accès refusé", {
                 description: "Email ou mot de passe incorrect.",
             });
@@ -100,30 +95,47 @@ function PresenceForm() {
             return;
         }
 
-        // Si tout est bon, on affiche l'écran de succès
         setStep('SUCCESS');
     };
 
-    // --- RENDUS DE L'INTERFACE ---
-
-    // 1. Écran de succès (CA 5)
+    // Ecran de confirmation apres validation complete
     if (step === 'SUCCESS') {
         return (
-            <Card className="max-w-md w-full border-t-4 border-t-green-500 shadow-lg">
-                <CardHeader className="text-center pb-2">
-                    <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl">
-                        ✓
+            <Card className="max-w-md w-full bg-white shadow-xl border-t-8 border-t-green-500 overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+                <CardHeader className="text-center pt-10 pb-6 bg-green-50/50 border-b border-green-100">
+                    <div className="flex justify-center mb-6">
+                        <div className="rounded-full bg-green-100 p-4 shadow-sm">
+                            <CheckCircle2 className="w-16 h-16 text-green-600" strokeWidth={2.5} />
+                        </div>
                     </div>
-                    <CardTitle className="h2 text-green-600">Présence validée</CardTitle>
+                    <CardTitle className="h1 text-green-700">Présence validée</CardTitle>
                 </CardHeader>
-                <CardContent className="text-center mt-4">
-                    <p className="text-lg">Vous avez bien été connecté au cours :</p>
-                    <Badge variant="default" className="mt-4 text-base px-4 py-1.5 font-medium">
-                        {courseName}
-                    </Badge>
+
+                <CardContent className="text-center pt-8 pb-8 space-y-6 bg-white">
+                    <p className="text-lg text-gray-600">
+                        Vous avez bien été enregistré pour le cours :
+                    </p>
+
+                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-5 mx-2 shadow-inner">
+                        <span className="h3 font-semibold text-gray-800 break-words leading-tight">
+                            {courseName}
+                        </span>
+                    </div>
+
+                    <p className="text-sm font-faded text-gray-400 mt-6 px-4">
+                        Vous pouvez maintenant verrouiller votre téléphone.
+                    </p>
                 </CardContent>
-                <CardFooter className="justify-center mt-6">
-                    <Button variant="link" className="font-action" onClick={() => router.push('/etudiant')}>
+
+                <CardFooter className="bg-gray-50 p-6 border-t border-gray-100 flex justify-center">
+                    <Button
+                        variant="outline"
+                        className="w-full font-action text-gray-600 bg-white hover:bg-gray-100"
+                        onClick={() => {
+                            setStep('LOADING');
+                            router.push('/etudiant');
+                        }}
+                    >
                         Simuler un autre scan
                     </Button>
                 </CardFooter>
@@ -131,12 +143,11 @@ function PresenceForm() {
         );
     }
 
-    // 2. Écran principal (Menu Dev ou Formulaire)
+    // Ecran principal: menu de test (dev) + formulaire de presence
     return (
         <div className="max-w-md w-full space-y-6">
-            
-            {/* 🛠️ MENU DE TEST (Caché si un cours est détecté via l'URL) */}
             {!coursId && (
+                // Bloc de simulation rapide pour tester les cas du flux
                 <Card className="border-dashed border-2 border-blue-300 bg-blue-50/50 shadow-none">
                     <CardHeader className="pb-2">
                         <CardTitle className="h3 text-blue-800">🛠️ Mode Développeur</CardTitle>
@@ -160,22 +171,30 @@ function PresenceForm() {
                 </Card>
             )}
 
-            {/* FORMULAIRE DE PRÉSENCE */}
-            <Card className="shadow-lg border-gray-100">
+            {/* Bloc principal de saisie et d'authentification */}
+            <Card className="bg-white shadow-lg border-gray-100">
                 <CardHeader className="text-center">
                     <CardTitle className="h1">Présence</CardTitle>
                     <CardDescription className="text-base mt-2">
-                        {coursId && step !== 'LOADING' 
-                            ? `Inscription au cours : ${courseName}` 
+                        {coursId && step !== 'LOADING'
+                            ? `Inscription au cours : ${courseName}`
                             : "Scannez le QR code du professeur pour commencer."}
                     </CardDescription>
                 </CardHeader>
 
                 <CardContent>
                     {(step === 'EMAIL' || step === 'PASSWORD') && (
-                        <form onSubmit={step === 'EMAIL' ? handleEmailSubmit : handlePasswordSubmit} className="space-y-4">
-                            
-                            {/* ÉTAPE 1 : Champ Email */}
+                        <form
+                            onSubmit={(e) => {
+                                e.preventDefault();
+                                if (step === 'EMAIL') {
+                                    handleEmailSubmit();
+                                    return;
+                                }
+                                handlePasswordSubmit();
+                            }}
+                            className="space-y-4"
+                        >
                             <div className="space-y-2">
                                 <Label htmlFor="email" className="font-semibold text-gray-700">Adresse email IUT</Label>
                                 <Input
@@ -190,7 +209,6 @@ function PresenceForm() {
                                 />
                             </div>
 
-                            {/* Bouton de soumission Étape 1 */}
                             {step === 'EMAIL' && (
                                 <div className="pt-4">
                                     <Button type="submit" variant="big" className="w-full">
@@ -199,7 +217,6 @@ function PresenceForm() {
                                 </div>
                             )}
 
-                            {/* ÉTAPE 2 : Champ Mot de passe (Apparaît avec animation) */}
                             {step === 'PASSWORD' && (
                                 <div className="space-y-5 pt-2 animate-in fade-in slide-in-from-top-2 duration-300">
                                     <div className="space-y-2">
@@ -214,15 +231,14 @@ function PresenceForm() {
                                         />
                                     </div>
 
-                                    {/* Boutons de soumission et retour (Étape 2) */}
                                     <div className="pt-2 space-y-3">
                                         <Button type="submit" variant="big" className="w-full">
                                             Se connecter
                                         </Button>
-                                        <Button 
-                                            type="button" 
-                                            variant="link" 
-                                            className="w-full text-sm font-action text-gray-500 hover:text-gray-800" 
+                                        <Button
+                                            type="button"
+                                            variant="link"
+                                            className="w-full text-sm font-action text-gray-500 hover:text-gray-800"
                                             onClick={() => setStep('EMAIL')}
                                         >
                                             Modifier l'adresse email
@@ -238,10 +254,10 @@ function PresenceForm() {
     );
 }
 
-// Layout de base enveloppant le formulaire
+// Page wrapper: centrage, fond global, chargement suspense
 export default function EtudiantPage() {
     return (
-        <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
+        <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
             <Suspense fallback={<div className="font-faded text-gray-500 uppercase">Chargement du cours...</div>}>
                 <PresenceForm />
             </Suspense>
