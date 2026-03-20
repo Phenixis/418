@@ -21,31 +21,31 @@ export class QueryModel<NewEntityModel extends { [x: string]: any; }, ExistingEn
         return { success: "Created successfully.", createdEntity: result[0] as ExistingEntityModel };
     }
 
-    async getByIds(ids: number[], with_deleted: boolean = false): Promise<{ success: string; entities: ExistingEntityModel[] } | { error: string }> {
-        const result = await lib.db
-            .select()
-            .from(this.table)
-            .where(lib.and(
-                lib.inArray(this.table.id, ids),
-                with_deleted ? lib.sql`true` : lib.isNull(this.table.deleted_at)
-            ));
+    // async getByIds(ids: number[], with_deleted: boolean = false): Promise<{ success: string; entities: ExistingEntityModel[] } | { error: string }> {
+    //     const result = await lib.db
+    //         .select()
+    //         .from(this.table)
+    //         .where(lib.and(
+    //             lib.inArray(this.table.id, ids),
+    //             with_deleted ? lib.sql`true` : lib.isNull(this.table.deleted_at)
+    //         ));
 
-        if (lib.resultEmpty(result)) {
-            return { error: "No data found for the provided IDs." };
-        }
+    //     if (lib.resultEmpty(result)) {
+    //         return { error: "No data found for the provided IDs." };
+    //     }
 
-        return { success: "Data retrieved successfully.", entities: result };
-    }
+    //     return { success: "Data retrieved successfully.", entities: result };
+    // }
 
-    async getById(id: number, with_deleted: boolean = false): Promise<{ success: string; entity: ExistingEntityModel } | { error: string }> {
-        const result = await this.getByIds([id], with_deleted);
+    // async getById(id: number, with_deleted: boolean = false): Promise<{ success: string; entity: ExistingEntityModel } | { error: string }> {
+    //     const result = await this.getByIds([id], with_deleted);
 
-        if ("error" in result) {
-            return { error: result.error };
-        }
+    //     if ("error" in result) {
+    //         return { error: result.error };
+    //     }
 
-        return { success: "Data retrieved successfully.", entity: result.entities[0] };
-    }
+    //     return { success: "Data retrieved successfully.", entity: result.entities[0] };
+    // }
 
     async update(id: number, data: Partial<NewEntityModel>): Promise<{ success: string; updatedEntity: ExistingEntityModel } | { error: string }> {
         const result = await lib.db
