@@ -1,6 +1,8 @@
+"use client";
+
 import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 
 interface DateTimePickerProps {
     date: Date;
@@ -31,7 +33,7 @@ export function DateTimePicker({
     disableFuture = false,
     disablePast = false,
 }: Readonly<DateTimePickerProps>) {
-    const now = new Date();
+    const now = useMemo(() => new Date(), []);
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     
     // Calculate effective min/max dates
