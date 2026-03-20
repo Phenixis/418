@@ -1,22 +1,20 @@
 import * as lib from './lib';
-import { CourseTable, StudentTable } from './index';
-
-const studentTable = StudentTable.table
-const courseTable = CourseTable.table
+import * as CourseTable from './course';
+import * as StudentTable from './student'
 
 // Classe association entre un étudiant et un cours
 export const table = lib.pgTable('attendance', {
     attendanceId: lib.serial("attendance_id").primaryKey(),
     hourDate: lib.timestamp("hour_date"),
     courseId: lib.varchar("course_id", { length: 10 })
-        .references(() => courseTable.courseId).notNull(),
+        .references(() => CourseTable.table.courseId).notNull(),
     studentMail: lib.varchar("student_mail", { length: 60 }).notNull()
-        .references(() => studentTable.userMail),
+        .references(() => StudentTable.table.userMail),
 });
 
 export const relations = lib.relations(table, ({many}) => ({
-    students: many(studentTable),
-    courses: many(studentTable)
+    students: many(StudentTable.table),
+    courses: many(StudentTable.table)
 }))
 
 export type Select = typeof table.$inferSelect;
