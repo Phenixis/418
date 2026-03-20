@@ -4,7 +4,7 @@ import * as CourseTable from './course';
 
 export const table = lib.pgTable('group', {
     ...lib.baseAttributes,
-    groupId: lib.serial("groupId").primaryKey(),
+    groupId: lib.serial("group_id").primaryKey(),
     promo: lib.char("promo", { length: 1 }).notNull(),
     td: lib.char("td", { length: 1 }).notNull(),
     tp: lib.char("tp", { length: 1 }).notNull(),

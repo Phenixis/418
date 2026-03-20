@@ -7,7 +7,7 @@ export const table = lib.pgTable('course_group', {
     courseGroupId: lib.serial("course_group_id").primaryKey(),
     courseId: lib.varchar("course_id", { length: 10 })
         .references(() => CourseTable.table.courseId).notNull(),
-    groupId: lib.varchar("group_id", { length: 60 }).notNull()
+    groupId: lib.integer("group_id").notNull()
         .references(() => GroupTable.table.groupId),
 });
 
