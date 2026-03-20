@@ -1,17 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import Logo from '@/components/general/logo';
+import Logo, { LogoSizes } from '@/components/general/logo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import SettingsIcon from '@mui/icons-material/Settings';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { StudentCard } from '@/components/general/Card';
-import {
-    Collapsible,
-    CollapsibleTrigger,
-    CollapsibleContent,
-} from '@/components/ui/collapsible';
+import ChevronDownIcon from '@mui/icons-material/ExpandMore';
+import ChevronUpIcon from '@mui/icons-material/ExpandLess';
+
+import EtudiantCard from '@/components/cours/EtudiantCard';
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
 
 // Interface pour représenter un étudiant
 interface Student {
@@ -41,6 +39,46 @@ const GROUP_COMBINATIONS = TD_GROUP_OPTIONS.flatMap(tdGroup =>
 // Liste des étudiants avec leurs infos
 const STUDENTS: Student[] = [
     {
+        id: 1,
+        firstName: 'Jean',
+        lastName: 'Dupont',
+        photoUrl: 'https://randomuser.me/api/portraits/men/1.jpg',
+        year: '1ère année',
+        tdGroup: 'A',
+        tpGroup: '1'
+    },{
+        id: 1,
+        firstName: 'Jean',
+        lastName: 'Dupont',
+        photoUrl: 'https://randomuser.me/api/portraits/men/1.jpg',
+        year: '1ère année',
+        tdGroup: 'A',
+        tpGroup: '1'
+    },{
+        id: 1,
+        firstName: 'Jean',
+        lastName: 'Dupont',
+        photoUrl: 'https://randomuser.me/api/portraits/men/1.jpg',
+        year: '1ère année',
+        tdGroup: 'A',
+        tpGroup: '1'
+    },{
+        id: 1,
+        firstName: 'Jean',
+        lastName: 'Dupont',
+        photoUrl: 'https://randomuser.me/api/portraits/men/1.jpg',
+        year: '1ère année',
+        tdGroup: 'A',
+        tpGroup: '1'
+    },{
+        id: 1,
+        firstName: 'Jean',
+        lastName: 'Dupont',
+        photoUrl: 'https://randomuser.me/api/portraits/men/1.jpg',
+        year: '1ère année',
+        tdGroup: 'A',
+        tpGroup: '1'
+    },{
         id: 1,
         firstName: 'Jean',
         lastName: 'Dupont',
@@ -323,7 +361,7 @@ export default function TrombinoscopePage() {
     const [openYears, setOpenYears] = useState<Record<string, boolean>>({
         '1ère année': true,
         '2ème année': false,
-        '3ème année': false,
+        '3ème année': false
     });
 
     // État pour contrôler l'ouverture/fermeture de chaque groupe TD/TP
@@ -345,8 +383,8 @@ export default function TrombinoscopePage() {
     // Bascule l'état d'ouverture/fermeture d'un collapsible année
     const toggleYear = (yearLabel: string) => {
         setOpenYears(prev => ({
-            ...prev,                                //passe de l'état ouvert à fermé ou inversement pour l'année spécifiée
-            [yearLabel]: !prev[yearLabel],
+            ...prev, //passe de l'état ouvert à fermé ou inversement pour l'année spécifiée
+            [yearLabel]: !prev[yearLabel]
         }));
     };
 
@@ -354,16 +392,16 @@ export default function TrombinoscopePage() {
     const toggleGroup = (groupLabel: string) => {
         setOpenGroups(prev => ({
             ...prev,
-            [groupLabel]: !prev[groupLabel],        //passe de l'état ouvert à fermé ou inversement pour le groupe spécifié
+            [groupLabel]: !prev[groupLabel] //passe de l'état ouvert à fermé ou inversement pour le groupe spécifié
         }));
     };
 
     return (
         <div className="flex flex-col min-h-screen">
             {/* Header avec logo et navigation */}
-            <div className="flex p-3 m-5">
-                <Logo className="w-12 h-12 absolute left-15" />
-                <nav className="flex-1 flex justify-start items-center gap-2 ml-20 md:ml-40 lg:ml-110">
+            <div className="flex items-center justify-between p-3 m-5 ">
+                <Logo size={LogoSizes.LARGE} />
+                <nav className="flex justify-start items-center gap-2">
                     <Button variant="link" className="text-sm md:text-base">
                         Dashboard
                     </Button>
@@ -403,8 +441,13 @@ export default function TrombinoscopePage() {
                                 onOpenChange={() => toggleYear(yearLabel)}
                                 className="px-2"
                             >
-                                <CollapsibleTrigger className="w-full text-2xl font-display text-left">
-                                    {yearLabel}
+                                <CollapsibleTrigger className="cursor-pointer flex w-full items-center gap-2 text-2xl font-display text-left">
+                                    {openYears[yearLabel] ? (
+                                        <ChevronUpIcon className="shrink-0" />
+                                    ) : (
+                                        <ChevronDownIcon className="shrink-0" />
+                                    )}
+                                    <span>{yearLabel}</span>
                                 </CollapsibleTrigger>
 
                                 {/* Contenu du collapsible année : tous les groupes TD/TP */}
@@ -422,20 +465,28 @@ export default function TrombinoscopePage() {
                                                 onOpenChange={() => toggleGroup(groupKey)}
                                                 className="px-1"
                                             >
-                                                <CollapsibleTrigger className="w-full text-lg font-medium text-left">
-                                                    {label}
+                                                <CollapsibleTrigger className="cursor-pointer flex w-full items-center gap-2 text-lg font-medium text-left">
+                                                    {openGroups[groupKey] ? (
+                                                        <ChevronUpIcon className="shrink-0" />
+                                                    ) : (
+                                                        <ChevronDownIcon className="shrink-0" />
+                                                    )}
+                                                    <span>{label}</span>
                                                 </CollapsibleTrigger>
 
                                                 {/* Affiche les cartes d'étudiants du groupe */}
-                                                <CollapsibleContent className="mt-3 grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                                                <CollapsibleContent className="mt-3 grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
                                                     {studentsByGroup.length > 0 ? (
                                                         /* Affiche chaque étudiant du groupe */
                                                         studentsByGroup.map(student => (
-                                                            <StudentCard
+                                                            <EtudiantCard
                                                                 key={student.id}
-                                                                firstName={student.firstName}
-                                                                lastName={student.lastName}
-                                                                photoUrl={student.photoUrl}
+                                                                etudiant={{
+                                                                    id: String(student.id),
+                                                                    prenom: student.firstName,
+                                                                    nom: student.lastName,
+                                                                    photoUrl: student.photoUrl ?? null
+                                                                }}
                                                             />
                                                         ))
                                                     ) : (
