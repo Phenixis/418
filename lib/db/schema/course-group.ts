@@ -12,7 +12,7 @@ export const table = lib.pgTable('course_group', {
 });
 
 export const relations = lib.relations(table, ({many}) => ({
-    Groups: many(GroupTable.table),
+    groups: many(GroupTable.table),
     courses: many(GroupTable.table)
 }))
 
