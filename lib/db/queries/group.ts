@@ -1,11 +1,10 @@
 import { QueryModel } from './model'
 import * as lib from './lib'
-import { InferInsertModel, InferSelectModel } from 'drizzle-orm'
 
 const groupeTable = lib.Schema.GroupTable.table
 
-type NewGroup = InferInsertModel<typeof groupeTable>
-type Group = InferSelectModel<typeof groupeTable>
+type NewGroup = lib.Schema.GroupTable.Insert
+type Group = lib.Schema.GroupTable.Select
 
 class GroupQueries extends QueryModel<NewGroup, Group> {
     constructor() {

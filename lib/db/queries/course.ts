@@ -1,11 +1,10 @@
 import { QueryModel } from './model'
 import * as lib from './lib'
-import { InferInsertModel, InferSelectModel } from 'drizzle-orm'
 
 const courseTable = lib.Schema.CourseTable.table
 
-type NewCourse = InferInsertModel<typeof courseTable>
-type Course = InferSelectModel<typeof courseTable>
+type NewCourse = lib.Schema.CourseTable.Insert
+type Course = lib.Schema.CourseTable.Select
 
 class CourseQueries extends QueryModel<NewCourse, Course> {
     constructor() {

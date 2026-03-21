@@ -1,11 +1,10 @@
 import { QueryModel } from './model'
 import * as lib from './lib'
-import { InferInsertModel, InferSelectModel } from 'drizzle-orm'
 
 const attendanceTable = lib.Schema.AttendanceTable.table
 
-type NewAttendance = InferInsertModel<typeof attendanceTable>
-type Attendance = InferSelectModel<typeof attendanceTable>
+type NewAttendance = lib.Schema.AttendanceTable.Insert
+type Attendance = lib.Schema.AttendanceTable.Select
 
 class AttendanceQueries extends QueryModel<NewAttendance, Attendance> {
     constructor() {
