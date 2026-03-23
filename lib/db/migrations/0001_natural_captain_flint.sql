@@ -1,0 +1,1 @@
+ALTER TABLE "course" ALTER COLUMN "course_id" SET DATA TYPE varchar(36);

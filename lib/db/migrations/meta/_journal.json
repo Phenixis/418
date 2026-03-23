@@ -8,6 +8,20 @@
       "when": 1774004250023,
       "tag": "0000_plain_rawhide_kid",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1774260353005,
+      "tag": "0001_natural_captain_flint",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1774260418106,
+      "tag": "0002_living_young_avengers",
+      "breakpoints": true
     }
   ]
 }
