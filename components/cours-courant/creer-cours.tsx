@@ -122,6 +122,7 @@ export default function CreerCours() {
                             <div className="flex-1 flex flex-col gap-1">
                                 <Label id="start-date-label">Date de début</Label>
                                 <DatePicker
+                                    id="start-date"
                                     aria-labelledby="start-date-label"
                                     value={date}
                                     onChange={setDate}
@@ -136,14 +137,14 @@ export default function CreerCours() {
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectGroup>
-                                            <SelectItem value="0815">8h15</SelectItem>
-                                            <SelectItem value="0915">9h15</SelectItem>
-                                            <SelectItem value="1030">10h30</SelectItem>
-                                            <SelectItem value="1130">11h30</SelectItem>
-                                            <SelectItem value="1330">13h30</SelectItem>
-                                            <SelectItem value="1430">14h30</SelectItem>
-                                            <SelectItem value="1545">15h45</SelectItem>
-                                            <SelectItem value="1645">16h45</SelectItem>
+                                            <SelectItem value="09:15">8h15</SelectItem>
+                                            <SelectItem value="10:15">9h15</SelectItem>
+                                            <SelectItem value="11:30">10h30</SelectItem>
+                                            <SelectItem value="12:30">11h30</SelectItem>
+                                            <SelectItem value="14:30">13h30</SelectItem>
+                                            <SelectItem value="15:30">14h30</SelectItem>
+                                            <SelectItem value="16:45">15h45</SelectItem>
+                                            <SelectItem value="17:45">16h45</SelectItem>
                                         </SelectGroup>
                                     </SelectContent>
                                 </Select>
@@ -219,7 +220,14 @@ export default function CreerCours() {
                             </Combobox>
                         </div>
 
-                        <DialogFooter>
+                        <DialogFooter className="flex-col sm:flex-col">
+                            {
+                                "error" in state && (
+                                    <p className="text-sm text-red-500">
+                                        {state.message}
+                                    </p>
+                                )
+                            }
                             <Button type="submit" variant="big" className="w-full" disabled={pending || !isFormValid}>
                                 Créer le cours
                             </Button>

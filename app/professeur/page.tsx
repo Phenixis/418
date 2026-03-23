@@ -1,4 +1,5 @@
 import QRCode from '@/components/appel/QrCode';
+import CreerCours from '@/components/cours-courant/creer-cours';
 
 const ENT_PAGE_URL = 'https://ent.univ-rennes1.fr/f/bureau/normal/render.uP';
 
@@ -9,6 +10,7 @@ export default function ProfPage() {
 
             <div className="flex flex-col items-start gap-4 relative">
                 <QRCode codePin={ENT_PAGE_URL} />
+                <CreerCours />
             </div>
         </div>
     );
