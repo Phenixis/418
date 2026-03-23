@@ -1,4 +1,4 @@
-import { QueryModel } from './model'
+import { QueryModel, QueryResult } from './model'
 import * as lib from './lib'
 
 const groupeTable = lib.Schema.GroupTable.table
@@ -22,6 +22,18 @@ class GroupQueries extends QueryModel<NewGroup, Group> {
         }
 
         return { success: "Groupe trouvé.", entity: result[0] as Group }
+    }
+
+    async getAll(): Promise<QueryResult> {
+        const result = await lib.db
+            .select()
+            .from(this.table)
+
+        if (lib.resultEmpty(result)) {
+            return { error: "Aucun groupe trouvé." }
+        }
+
+        return { success: "Groupes trouvés.", entity: result as Group[] }
     }
 }
 

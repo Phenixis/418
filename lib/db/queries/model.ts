@@ -1,6 +1,8 @@
 import { PgTableWithColumns } from "drizzle-orm/pg-core";
 import * as lib from "./lib";
 
+export type QueryResult = { success: string; entity: any } | { error: string };
+
 export class QueryModel<NewEntityModel extends { [x: string]: any; }, ExistingEntityModel extends { [x: string]: any; }> {
     table: PgTableWithColumns<any>;
 
@@ -20,6 +22,18 @@ export class QueryModel<NewEntityModel extends { [x: string]: any; }, ExistingEn
 
         return { success: "Created successfully.", createdEntity: result[0] as ExistingEntityModel };
     }
+    
+        async getAll(): Promise<QueryResult> {
+            const result = await lib.db
+                .select()
+                .from(this.table)
+    
+            if (lib.resultEmpty(result)) {
+                return { error: "Aucune data trouvée." }
+            }
+    
+            return { success: "Data trouvées.", entity: result as ExistingEntityModel[] }
+        }
 
     // async getByIds(ids: number[], with_deleted: boolean = false): Promise<{ success: string; entities: ExistingEntityModel[] } | { error: string }> {
     //     const result = await lib.db
