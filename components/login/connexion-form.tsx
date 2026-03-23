@@ -15,15 +15,11 @@ import { login } from "@/lib/actions/authentication";
 import { ActionResult } from "@/lib/actions/types";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { Checkbox } from "../ui/checkbox";
-import { passwordRules } from "./rules";
 
 export default function ConnexionForm() {
-  const formRef = useRef<HTMLFormElement>(null)
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [passwordFocused, setPasswordFocused] = useState(false);
 
-  const passwordValid = passwordRules.every((rule) => rule.test(password));
   const formValid = email.trim() !== "" && password.trim() !== "";
 
   const [state, formAction, pending] = useActionState<ActionResult, FormData>(async (prevState, formData) => {
@@ -37,7 +33,7 @@ export default function ConnexionForm() {
   }, [state]);
 
   return (
-    <form className="h-screen w-screen flex items-center justify-center" action={formAction} ref={formRef}>
+    <form className="h-screen w-screen flex items-center justify-center" action={formAction}>
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="h2 font-normal">Connexion</CardTitle>
@@ -49,21 +45,21 @@ export default function ConnexionForm() {
           <div className="w-full flex flex-col gap-2">
             <Label htmlFor="email">Email</Label>
             <div className="flex items-center gap-2">
-              <Input 
-              id="email" 
-              name="email" 
-              type="text" 
-              placeholder="Email"
-              required
-              value={email} 
-              onChange={(e) => setEmail(e.target.value)}
-              onBlur={() => {
-                const emailWithoutDomain = email.split("@")[0];
-                setEmail(emailWithoutDomain);
-              }}
+              <Input
+                id="email"
+                name="email"
+                type="text"
+                placeholder="Email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                onBlur={() => {
+                  const emailWithoutDomain = email.split("@")[0];
+                  setEmail(emailWithoutDomain);
+                }}
               />
               <p className="text-faded shrink-0">
-              @univ-rennes.fr
+                @univ-rennes.fr
               </p>
             </div>
           </div>
@@ -78,24 +74,7 @@ export default function ConnexionForm() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              onFocus={() => setPasswordFocused(true)}
-              onBlur={() => setPasswordFocused(false)}
             />
-            {passwordFocused && (
-              <ul className="flex flex-col gap-1">
-                {passwordRules.filter(rule => !rule.test(password)).map((rule) => {
-                  return (
-                    <li
-                      key={rule.label}
-                      className={`text-xs flex items-center gap-1 text-red-500`}
-                    >
-                      <span>✗</span>
-                      {rule.label}
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
           </div>
         </CardContent>
         <CardFooter className="gap-4 flex-col-reverse justify-end">
