@@ -20,11 +20,10 @@ export async function creerCours(prevState: ActionResult, formData: FormData): P
     const uuid = crypto.randomUUID()
 
     const result = await courseQueries.create({
-        courseId: uuid.slice(0, 8), // TODO: remove this when the courseId will be a uuid in the database
+        courseId: uuid,
         subject: label,
         startAt: startDateDate,
         endAt: endTimeDate,
-        hours: "02:00",
     })
 
     if ("error" in result) {
