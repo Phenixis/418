@@ -25,7 +25,11 @@ export default function CourseHeader({ code, matiere, status, onModifier, onTerm
             {/* Titre et vignette de statut */}
             <div className="flex items-center gap-3">
                 <h1 className="h1 uppercase">
-                    {code} - {matiere}
+                    {/* 
+                        Je pensais qu'il était séparé en bdd 
+                        Je laisse au cas où (ici+props+query) ça soit en effet nécessaire pour le sprint soutenance
+                        {code} - {matiere} */}
+                    {matiere}
                 </h1>
                 <Vignette status={status} />
             </div>

@@ -1,63 +1,68 @@
-'use client';
+import CourseHeader from "@/components/cours/CourseHeader"
+import CourseInfo from "@/components/cours/CourseInfo"
+import ListeEtudiants from "@/components/cours/ListeEtudiants"
+import { CourseStatus } from "@/components/cours/course.types"
+import { fetchCoursActuel } from "@/lib/actions/cours-actuel"
 
-import { useState } from 'react';
-import CourseHeader, { CourseStatus } from '@/components/cours/CourseHeader';
-import CourseInfo from '@/components/cours/CourseInfo';
-import ListeEtudiants from '@/components/cours/ListeEtudiants';
+// TODO : remplacer par le vrai courseId une fois la sélection de cours implémentée
+const COURSE_ID_PLACEHOLDER = "123456789"
 
-// --- Données mockées (à remplacer par les interfaces ORM une fois établies) ---
-const mockCours = {
-    code: 'R5.A.10',
-    matiere: 'Management',
-    status: CourseStatus.EN_COURS,
-    date: new Date(2026, 2, 18), // 18 mars 2026
-    heureDebut: '08h00',
-    heureFin: '10h00',
-    classe: '3A',
-    total: 27,
-    presents: 25,
-    nonScannes: 2
-};
-// ----------------------------------------------------------------------------
+// Détermine le statut du cours selon les dates de début et de fin
+function resolveCourseStatus(dateDebut: Date, dateFin: Date): CourseStatus {
+    const now = new Date()
+    if (now < dateDebut) return CourseStatus.A_VENIR
+    if (now > dateFin)   return CourseStatus.TERMINE
+    return CourseStatus.EN_COURS
+}
 
-export default function AppelPage() {
-    const [isEnCours, setIsEnCours] = useState(true);
+// Formate un objet Date en "08h00"
+function formatHeure(date: Date): string {
+    const heures = date.getHours().toString().padStart(2, "0")
+    const minutes = date.getMinutes().toString().padStart(2, "0")
+    return `${heures}h${minutes}`
+}
 
-    function handleModifier() {
-        // TODO : ouvrir la modale d'édition du cours
-        console.log('Modifier le cours');
+export default async function AppelPage() {
+    const result = await fetchCoursActuel(COURSE_ID_PLACEHOLDER)
+
+    // Affichage d'une erreur si les données sont inaccessibles
+    if (!result.success) {
+        return (
+            <section className="container mx-auto flex flex-col py-10 gap-6">
+                <p className="font-faded text-red">
+                    Impossible de charger le cours : {result.error}
+                </p>
+            </section>
+        )
     }
 
-    function handleTerminer() {
-        // TODO : déclencher la fin du cours
-        setIsEnCours(false);
-        console.log('Terminer le cours');
-    }
+    const { data } = result
+    const status = resolveCourseStatus(data.dateDebut, data.dateFin)
 
     return (
         <section className="container mx-auto flex flex-col py-10 gap-6">
+
             {/* En-tête : matière, statut et actions */}
             <CourseHeader
-                code={mockCours.code}
-                matiere={mockCours.matiere}
-                status={isEnCours ? CourseStatus.EN_COURS : CourseStatus.TERMINE}
-                onModifier={handleModifier}
-                onTerminer={isEnCours ? handleTerminer : undefined}
+                code={data.code}
+                matiere={data.matiere}
+                status={status}
             />
 
             {/* Rectangle d'informations du cours */}
             <CourseInfo
-                date={mockCours.date}
-                heureDebut={mockCours.heureDebut}
-                heureFin={mockCours.heureFin}
-                classe={mockCours.classe}
-                total={mockCours.total}
-                presents={mockCours.presents}
-                nonScannes={mockCours.nonScannes}
+                date={data.dateDebut}
+                heureDebut={formatHeure(data.dateDebut)}
+                heureFin={formatHeure(data.dateFin)}
+                classe={data.classe}
+                total={data.total}
+                presents={data.presents}
+                nonScannes={data.nonScannes}
             />
 
             {/* Liste des étudiants du cours */}
-            <ListeEtudiants />
+            <ListeEtudiants etudiants={data.etudiants} />
+
         </section>
-    );
+    )
 }

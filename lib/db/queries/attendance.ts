@@ -23,6 +23,17 @@ class AttendanceQueries extends QueryModel<NewAttendance, Attendance> {
 
         return { success: "Présence trouvée.", entity: result[0] as Attendance }
     }
+
+    // Récupère toutes les présences pour un cours donné
+    async getByCourseId(courseId: string) {
+        const result = await lib.db
+            .select()
+            .from(this.table)
+            .where(lib.eq(this.table.courseId, courseId))
+
+        // Un cours sans aucune présence enregistrée est valide — on retourne un tableau vide
+        return { success: "Présences récupérées.", entity: result as Attendance[] }
+    }
 }
 
 export const attendanceQueries = new AttendanceQueries()

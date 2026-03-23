@@ -1,4 +1,5 @@
-import PersonIcon from "@mui/icons-material/Person"
+"use client"
+
 import CheckIcon from "@mui/icons-material/Check"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
@@ -23,7 +24,13 @@ function PhotoEtudiant({ photoUrl, prenom, nom }: { photoUrl: string | null; pre
     if (!photoUrl) {
         return (
             <div className="w-full aspect-square rounded-[6px] bg-faded/20 flex items-center justify-center">
-                <PersonIcon className="text-faded" style={{ fontSize: "4rem" }} />
+                <img
+                    src="/icons/silhouette.svg"
+                    alt="Photo non disponible"
+                    width={64}
+                    height={64}
+                    className="opacity-40"
+                />
             </div>
         )
     }
@@ -44,13 +51,13 @@ function PhotoEtudiant({ photoUrl, prenom, nom }: { photoUrl: string | null; pre
 function ZoneNom({ prenom, nom, isPresent }: { prenom: string; nom: string; isPresent: boolean }) {
     return (
         <div className={cn(
-            "w-full flex items-center gap-2 border border-faded rounded-[6px] py-1 px-2",
+            "w-full flex items-center gap-3 border border-faded rounded-[6px] py-1 px-2",
             isPresent && "bg-green border-green"
         )}>
             {isPresent && <CheckIcon className="shrink-0 text-black" style={{ fontSize: "1.1rem" }} />}
             <div className="flex flex-col gap-[3px] min-w-0">
-                <p className="text-base truncate">{prenom}</p>
-                <p className="text-base truncate">{nom}</p>
+                <p className="truncate">{prenom}</p>
+                <p className="truncate">{nom}</p>
             </div>
         </div>
     )
