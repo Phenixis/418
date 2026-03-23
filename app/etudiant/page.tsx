@@ -36,7 +36,7 @@ import { passwordRules } from "@/components/login/rules";
 
 const STUDENT_EMAIL_DOMAIN = "etudiant.univ-rennes.fr";
 
-// Composant principal du parcours de pointage etudiant
+// Flux de pointage etudiant pilote par cours_id.
 function PresenceForm() {
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -51,7 +51,7 @@ function PresenceForm() {
     const [courseName, setCourseName] = useState<string>('');
     const [isSubmittingForm, setIsSubmittingForm] = useState(false);
 
-    // Initialisation du flux a partir du cours transmis par QR code
+    // Initialisation du cours scanne (validation en base puis passage a l'etape email).
     useEffect(() => {
         if (!coursId) {
             toast.error("Action requise", {
@@ -89,7 +89,7 @@ function PresenceForm() {
         };
     }, [coursId]);
 
-    // Etape 1: validation de l'email
+    // Etape 1: verification de l'identite et choix du prochain ecran.
     const handleEmailSubmit = async () => {
         if (email.trim() === '') {
             toast.error("Format invalide", {
@@ -127,7 +127,7 @@ function PresenceForm() {
         setStep('PASSWORD');
     };
 
-    // Etape 2: validation mot de passe + autorisation sur le cours
+    // Etape 2: authentification et enregistrement de presence.
     const handlePasswordSubmit = async () => {
         if (!coursId) {
             toast.error("Accès refusé", {
@@ -152,7 +152,7 @@ function PresenceForm() {
         setStep('SUCCESS');
     };
 
-    // Variante inscription: compte existant mais mot de passe non cree
+    // Etape d'activation: creation du premier mot de passe.
     const handleCreatePasswordSubmit = async () => {
         if (!coursId) {
             toast.error("Accès refusé", {
@@ -176,7 +176,7 @@ function PresenceForm() {
         setStep('SUCCESS');
     };
 
-    // Ecran de confirmation apres validation complete
+    // Ecran de succes apres validation de la presence.
     if (step === 'SUCCESS') {
         return (
             <Card className="max-w-md w-full bg-white shadow-lg border border-gray-200 overflow-hidden animate-in fade-in zoom-in-95 duration-300">
@@ -228,34 +228,10 @@ function PresenceForm() {
         formDescription = `Inscription au cours : ${courseName}`;
     }
 
-    // Ecran principal: menu de test (dev) + formulaire de presence
+    // Formulaire principal de connexion etudiant.
     return (
         <div className="max-w-md w-full space-y-6">
-            {!coursId && (
-                // Bloc de simulation rapide pour tester les cas du flux
-                <Card className="border-dashed border-2 border-blue-300 bg-blue-50/50 shadow-none">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="h3 text-blue-800">🛠️ Mode Développeur</CardTitle>
-                        <CardDescription className="text-blue-600 font-medium">
-                            Simulez le scan d&apos;un QR code pour tester le flux.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="flex flex-col gap-2">
-                        <Button variant="outline" className="justify-start border-blue-300 text-blue-800 hover:bg-blue-100" onClick={() => router.push('?cours_id=1')}>
-                            ➡️ Cours Valide (ID: 1)
-                        </Button>
-                        <Button variant="outline" className="justify-start border-blue-300 text-blue-800 hover:bg-blue-100" onClick={() => router.push('?cours_id=2')}>
-                            ➡️ Cours Terminé (ID: 2)
-                        </Button>
-                        <div className="mt-4 text-sm text-blue-800 p-3 bg-white/60 rounded border border-blue-200">
-                            <strong>Mode simulation :</strong><br />
-                            utilisez un <code>cours_id</code> existant en base de données.
-                        </div>
-                    </CardContent>
-                </Card>
-            )}
-
-            {/* Bloc principal de saisie et d&apos;authentification */}
+            {/* Carte de connexion */}
             <Card className="bg-white shadow-lg border-gray-100">
                 <CardHeader className="text-center">
                     <CardTitle className="h1">Présence</CardTitle>
@@ -474,7 +450,7 @@ function PresenceForm() {
     );
 }
 
-// Page wrapper: centrage, fond global, chargement suspense
+// Enveloppe de page avec fallback de chargement.
 export default function EtudiantPage() {
     return (
         <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
