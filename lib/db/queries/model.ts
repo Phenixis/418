@@ -22,6 +22,18 @@ export class QueryModel<NewEntityModel extends { [x: string]: any; }, ExistingEn
 
         return { success: "Created successfully.", createdEntity: result[0] as ExistingEntityModel };
     }
+    
+        async getAll(): Promise<QueryResult> {
+            const result = await lib.db
+                .select()
+                .from(this.table)
+    
+            if (lib.resultEmpty(result)) {
+                return { error: "Aucune data trouvée." }
+            }
+    
+            return { success: "Data trouvées.", entity: result as ExistingEntityModel[] }
+        }
 
     // async getByIds(ids: number[], with_deleted: boolean = false): Promise<{ success: string; entities: ExistingEntityModel[] } | { error: string }> {
     //     const result = await lib.db
