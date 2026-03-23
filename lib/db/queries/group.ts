@@ -11,6 +11,25 @@ class GroupQueries extends QueryModel<NewGroup, Group> {
         super(groupeTable)
     }
 
+    async getByPromoTdTp(promo: string, td: string, tp: string) {
+        const result = await lib.db
+            .select()
+            .from(this.table)
+            .where(
+                lib.and(
+                    lib.eq(this.table.promo, promo),
+                    lib.eq(this.table.td, td),
+                    lib.eq(this.table.tp, tp)
+                )
+            )
+
+        if (lib.resultEmpty(result)) {
+            return { error: "Groupe introuvable avec cette promotion/TD/TP." }
+        }
+
+        return { success: "Groupe trouvé.", entity: result[0] as Group }
+    }
+
     async getById(id: number) {
         const result = await lib.db
             .select()
