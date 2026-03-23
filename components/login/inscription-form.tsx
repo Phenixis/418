@@ -62,7 +62,7 @@ export default function InscriptionForm() {
                                 name="first-name"
                                 type="text"
                                 placeholder="Prénom"
-                                
+
                                 required
                                 value={firstName}
                                 onChange={(e) => setFirstName(e.target.value)}
@@ -75,7 +75,7 @@ export default function InscriptionForm() {
                                 name="last-name"
                                 type="text"
                                 placeholder="Nom"
-                                
+
                                 required
                                 value={lastName}
                                 onChange={(e) => setLastName(e.target.value)}
@@ -90,7 +90,7 @@ export default function InscriptionForm() {
                                 name="email"
                                 type="text"
                                 placeholder="Email"
-                                
+
                                 required
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
@@ -111,7 +111,7 @@ export default function InscriptionForm() {
                             name="password"
                             type="password"
                             placeholder="Mot de passe"
-                            
+
                             required
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
@@ -142,7 +142,7 @@ export default function InscriptionForm() {
                             name="confirmPassword"
                             type="password"
                             placeholder="Confirmer le mot de passe"
-                            
+
                             required
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
@@ -153,6 +153,13 @@ export default function InscriptionForm() {
                     </div>
                 </CardContent>
                 <CardFooter className="gap-4 flex-col-reverse justify-end">
+                    {
+                        "error" in state && (
+                            <p className="text-red-500 text-sm">
+                                {state.message}
+                            </p>
+                        )
+                    }
                     <Link href="/professeur/connexion" className="text-sm text-faded hover:underline">
                         Déjà un compte ?
                     </Link>

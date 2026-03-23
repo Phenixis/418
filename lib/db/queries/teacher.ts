@@ -11,6 +11,22 @@ class TeacherQueries extends QueryModel<NewTeacher, Teacher> {
         super(teacherTable)
     }
 
+    async verifyCredentials(email: string, password: string) {
+        const result = await lib.db
+            .select()
+            .from(this.table)
+            .where(lib.and(
+                lib.eq(this.table.userMail, email),
+                lib.eq(this.table.password, password)
+            ))
+
+        if (lib.resultEmpty(result)) {
+            return { error: "Email ou mot de passe incorrect." }
+        }
+
+        return { success: "Enseignant trouvé.", entity: result[0] as Teacher }
+    }
+
     async getByEmail(email: string) {
         const result = await lib.db
             .select()

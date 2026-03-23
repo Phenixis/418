@@ -99,6 +99,13 @@ export default function ConnexionForm() {
           </div>
         </CardContent>
         <CardFooter className="gap-4 flex-col-reverse justify-end">
+          {
+            "error" in state && (
+              <p className="text-red-500 text-sm">
+                {state.message}
+              </p>
+            )
+          }
           <div className="flex items-center">
             <Checkbox id="remember" name="remember" />
             <Label htmlFor="remember" className="ml-2">Rester connecté</Label>
