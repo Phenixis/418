@@ -15,4 +15,10 @@ if !pnpm build; then
     exit 1
 fi
 
+echo "Running tests..."
+if !pnpm test:playwright; then
+    echo "Tests failed. Please fix the issues before pushing."
+    exit 1
+fi
+
 echo "Everything is good, push proceeded."
