@@ -137,6 +137,7 @@ export default function CreerCours() {
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectGroup>
+                                            {/* Heures + 1 pour matcher l'UTC depuis l'heure française */}
                                             <SelectItem value="09:15">8h15</SelectItem>
                                             <SelectItem value="10:15">9h15</SelectItem>
                                             <SelectItem value="11:30">10h30</SelectItem>
