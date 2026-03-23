@@ -3,6 +3,12 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { CheckCircle2 } from "lucide-react";
+import {
+    authenticateStudentAction,
+    checkStudentEmailAction,
+    createStudentPasswordAction,
+    getCourseStatusAction,
+} from './actions';
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,17 +34,7 @@ import {
 import { toast } from "sonner";
 import { passwordRules } from "@/components/login/rules";
 
-// Donnees mock pour simuler la validation du cours et de l'etudiant
-const mockCours = [
-    { id: "1", nom: "Développement Web - TP2", actif: true },
-    { id: "2", nom: "Architecture Logicielle - TD1", actif: false },
-];
-
-const mockEtudiants = [
-    { email: "jean.dupont@etu.iut.fr", password: "mdp", attenduDans: ["1"] },
-    { email: "intrus@etu.iut.fr", password: "mdp", attenduDans: [] },
-    { email: "emma.nouveau@etu.iut.fr", password: "", attenduDans: ["1"] },
-];
+const STUDENT_EMAIL_DOMAIN = "etudiant.univ-rennes.fr";
 
 // Composant principal du parcours de pointage etudiant
 function PresenceForm() {
@@ -53,6 +49,7 @@ function PresenceForm() {
     const [shouldRememberSession, setShouldRememberSession] = useState(false);
     const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
     const [courseName, setCourseName] = useState<string>('');
+    const [isSubmittingForm, setIsSubmittingForm] = useState(false);
 
     // Initialisation du flux a partir du cours transmis par QR code
     useEffect(() => {
@@ -60,45 +57,69 @@ function PresenceForm() {
             toast.error("Action requise", {
                 description: "Aucun cours détecté. Veuillez scanner un QR Code.",
             });
-            setStep('LOADING');
             return;
         }
 
-        const cours = mockCours.find(c => c.id === coursId);
-        if (!cours) {
-            toast.error("Erreur de QR Code", {
-                description: "Cours non reconnu (ID invalide).",
-            });
-            setStep('LOADING');
-        } else if (cours.actif === false) {
-            toast.error("Cours terminé", {
-                description: "La connexion à ce cours est terminée.",
-            });
-            setStep('LOADING');
-        } else {
-            setCourseName(cours.nom);
+        const courseId = coursId;
+
+        let shouldIgnoreResult = false;
+
+        async function initializeCourseFlow() {
+            const result = await getCourseStatusAction(courseId);
+            if (shouldIgnoreResult) {
+                return;
+            }
+
+            if (!result.success) {
+                toast.error("Erreur de QR Code", {
+                    description: result.error,
+                });
+                setStep('LOADING');
+                return;
+            }
+
+            setCourseName(result.data.courseName);
             setStep('EMAIL');
         }
+
+        void initializeCourseFlow();
+
+        return () => {
+            shouldIgnoreResult = true;
+        };
     }, [coursId]);
 
     // Etape 1: validation de l'email
-    const handleEmailSubmit = () => {
-        if (!email.includes('@')) {
+    const handleEmailSubmit = async () => {
+        if (email.trim() === '') {
             toast.error("Format invalide", {
                 description: "Veuillez entrer une adresse email valide.",
             });
             return;
         }
 
-        const etudiant = mockEtudiants.find((etu) => etu.email === email);
-        if (!etudiant) {
+        if (!coursId) {
             toast.error("Accès refusé", {
-                description: "Email ou mot de passe incorrect.",
+                description: "Aucun cours détecté. Veuillez scanner un QR Code.",
             });
             return;
         }
 
-        if (etudiant.password.trim() === "") {
+        setIsSubmittingForm(true);
+
+        const result = await checkStudentEmailAction(email, coursId);
+        setIsSubmittingForm(false);
+
+        if (!result.success) {
+            toast.error("Accès refusé", {
+                description: result.error,
+            });
+            return;
+        }
+
+        setCourseName(result.data.courseName);
+
+        if (result.data.nextStep === 'CREATE_PASSWORD') {
             setStep('CREATE_PASSWORD');
             return;
         }
@@ -107,59 +128,51 @@ function PresenceForm() {
     };
 
     // Etape 2: validation mot de passe + autorisation sur le cours
-    const handlePasswordSubmit = () => {
-        const etudiant = mockEtudiants.find(etu => etu.email === email);
-
-        if (etudiant?.password !== password) {
+    const handlePasswordSubmit = async () => {
+        if (!coursId) {
             toast.error("Accès refusé", {
-                description: "Email ou mot de passe incorrect.",
+                description: "Aucun cours détecté. Veuillez scanner un QR Code.",
             });
             return;
         }
 
-        if (!etudiant.attenduDans.includes(coursId!)) {
-            toast.error("Non autorisé", {
-                description: "Personne non attendue dans ce cours.",
+        setIsSubmittingForm(true);
+        const result = await authenticateStudentAction(email, password, coursId);
+        setIsSubmittingForm(false);
+
+        if (!result.success) {
+            toast.error("Accès refusé", {
+                description: result.error,
             });
             return;
         }
+
+        setCourseName(result.data.courseName);
 
         setStep('SUCCESS');
     };
 
     // Variante inscription: compte existant mais mot de passe non cree
-    const handleCreatePasswordSubmit = () => {
-        const etudiant = mockEtudiants.find((etu) => etu.email === email);
-        if (!etudiant) {
+    const handleCreatePasswordSubmit = async () => {
+        if (!coursId) {
             toast.error("Accès refusé", {
-                description: "Compte introuvable.",
+                description: "Aucun cours détecté. Veuillez scanner un QR Code.",
             });
             return;
         }
 
-        const isPasswordValid = passwordRules.every((rule) => rule.test(password));
-        if (!isPasswordValid) {
-            toast.error("Mot de passe invalide", {
-                description: "Le mot de passe ne respecte pas les regles de securite.",
+        setIsSubmittingForm(true);
+        const result = await createStudentPasswordAction(email, password, confirmPassword, coursId);
+        setIsSubmittingForm(false);
+
+        if (!result.success) {
+            toast.error("Accès refusé", {
+                description: result.error,
             });
             return;
         }
 
-        if (password !== confirmPassword) {
-            toast.error("Confirmation invalide", {
-                description: "Les deux mots de passe ne correspondent pas.",
-            });
-            return;
-        }
-
-        if (!etudiant.attenduDans.includes(coursId!)) {
-            toast.error("Non autorisé", {
-                description: "Personne non attendue dans ce cours.",
-            });
-            return;
-        }
-
-        etudiant.password = password;
+        setCourseName(result.data.courseName);
         setStep('SUCCESS');
     };
 
@@ -224,7 +237,7 @@ function PresenceForm() {
                     <CardHeader className="pb-2">
                         <CardTitle className="h3 text-blue-800">🛠️ Mode Développeur</CardTitle>
                         <CardDescription className="text-blue-600 font-medium">
-                            Simulez le scan d'un QR code pour tester le flux.
+                            Simulez le scan d&apos;un QR code pour tester le flux.
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="flex flex-col gap-2">
@@ -235,15 +248,14 @@ function PresenceForm() {
                             ➡️ Cours Terminé (ID: 2)
                         </Button>
                         <div className="mt-4 text-sm text-blue-800 p-3 bg-white/60 rounded border border-blue-200">
-                            <strong>Comptes de test :</strong><br />
-                            ✅ jean.dupont@etu.iut.fr (mdp: mdp)<br />
-                            ❌ intrus@etu.iut.fr (mdp: mdp)
+                            <strong>Mode simulation :</strong><br />
+                            utilisez un <code>cours_id</code> existant en base de données.
                         </div>
                     </CardContent>
                 </Card>
             )}
 
-            {/* Bloc principal de saisie et d'authentification */}
+            {/* Bloc principal de saisie et d&apos;authentification */}
             <Card className="bg-white shadow-lg border-gray-100">
                 <CardHeader className="text-center">
                     <CardTitle className="h1">Présence</CardTitle>
@@ -269,22 +281,30 @@ function PresenceForm() {
                         >
                             <div className="space-y-2">
                                 <Label htmlFor="email" className="font-semibold text-gray-700">Adresse email IUT</Label>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    disabled={step === 'PASSWORD' || step === 'CREATE_PASSWORD'}
-                                    placeholder="prenom.nom@etu.iut.fr"
-                                    required
-                                    className={step === 'PASSWORD' || step === 'CREATE_PASSWORD' ? "bg-gray-100 text-gray-500 cursor-not-allowed" : ""}
-                                />
+                                <div className="flex items-center gap-2">
+                                    <Input
+                                        id="email"
+                                        name="email"
+                                        type="text"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        onBlur={() => {
+                                            const emailWithoutDomain = email.split("@")[0]?.trim().toLowerCase() ?? "";
+                                            setEmail(emailWithoutDomain);
+                                        }}
+                                        disabled={step === 'PASSWORD' || step === 'CREATE_PASSWORD'}
+                                        placeholder="prenom.nom"
+                                        required
+                                        className={step === 'PASSWORD' || step === 'CREATE_PASSWORD' ? "bg-gray-100 text-gray-500 cursor-not-allowed" : ""}
+                                    />
+                                    <p className="text-faded shrink-0">@{STUDENT_EMAIL_DOMAIN}</p>
+                                </div>
                             </div>
 
                             {step === 'EMAIL' && (
                                 <div className="pt-4">
-                                    <Button type="submit" variant="big" className="w-full">
-                                        Suivant
+                                    <Button type="submit" variant="big" className="w-full" disabled={isSubmittingForm}>
+                                        {isSubmittingForm ? 'Chargement...' : 'Suivant'}
                                     </Button>
                                 </div>
                             )}
@@ -360,16 +380,17 @@ function PresenceForm() {
                                     </div>
 
                                     <div className="pt-2 space-y-3">
-                                        <Button type="submit" variant="big" className="w-full">
-                                            Se connecter
+                                        <Button type="submit" variant="big" className="w-full" disabled={isSubmittingForm}>
+                                            {isSubmittingForm ? 'Connexion...' : 'Se connecter'}
                                         </Button>
                                         <Button
                                             type="button"
                                             variant="link"
                                             className="w-full text-sm font-action text-gray-500 hover:text-gray-800"
+                                            disabled={isSubmittingForm}
                                             onClick={() => setStep('EMAIL')}
                                         >
-                                            Modifier l'adresse email
+                                            Modifier l&apos;adresse email
                                         </Button>
                                     </div>
                                 </div>
@@ -379,7 +400,7 @@ function PresenceForm() {
                                 <div className="space-y-5 pt-2 animate-in fade-in slide-in-from-top-2 duration-300">
                                     <div className="rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-left">
                                         <p className="text-xs font-semibold uppercase tracking-wide text-blue-800">Activation du compte</p>
-                                        <p className="text-sm text-blue-700">Votre email est reconnu. Définissez votre mot de passe pour finaliser l'accès.</p>
+                                        <p className="text-sm text-blue-700">Votre email est reconnu. Définissez votre mot de passe pour finaliser l&apos;accès.</p>
                                     </div>
 
                                     <div className="space-y-2">
@@ -426,13 +447,14 @@ function PresenceForm() {
                                     </ul>
 
                                     <div className="pt-2 space-y-3">
-                                        <Button type="submit" variant="big" className="w-full">
-                                            Créer mon mot de passe
+                                        <Button type="submit" variant="big" className="w-full" disabled={isSubmittingForm}>
+                                            {isSubmittingForm ? 'Validation...' : 'Créer mon mot de passe'}
                                         </Button>
                                         <Button
                                             type="button"
                                             variant="link"
                                             className="w-full text-sm font-action text-gray-500 hover:text-gray-800"
+                                            disabled={isSubmittingForm}
                                             onClick={() => {
                                                 setPassword('');
                                                 setConfirmPassword('');
