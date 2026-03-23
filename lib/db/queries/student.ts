@@ -1,4 +1,4 @@
-import { QueryModel } from './model'
+import { QueryModel, QueryResult } from './model'
 import * as lib from './lib'
 
 const studentTable = lib.Schema.StudentTable.table
@@ -11,7 +11,7 @@ class StudentQueries extends QueryModel<NewStudent, Student> {
         super(studentTable)
     }
 
-    async getByEmail(email: string) {
+    async getByEmail(email: string): Promise<QueryResult> {
         const result = await lib.db
             .select()
             .from(this.table)
@@ -22,6 +22,18 @@ class StudentQueries extends QueryModel<NewStudent, Student> {
         }
 
         return { success: "Étudiant trouvé.", entity: result[0] as Student }
+    }
+
+    async getAll(): Promise<QueryResult> {
+        const result = await lib.db
+            .select()
+            .from(this.table)
+
+        if (lib.resultEmpty(result)) {
+            return { error: "Aucun étudiant trouvé." }
+        }
+
+        return { success: "Étudiants trouvés.", entity: result as Student[] }
     }
 }
 

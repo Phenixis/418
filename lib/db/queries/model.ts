@@ -1,6 +1,8 @@
 import { PgTableWithColumns } from "drizzle-orm/pg-core";
 import * as lib from "./lib";
 
+export type QueryResult = { success: string; entity: any } | { error: string };
+
 export class QueryModel<NewEntityModel extends { [x: string]: any; }, ExistingEntityModel extends { [x: string]: any; }> {
     table: PgTableWithColumns<any>;
 
