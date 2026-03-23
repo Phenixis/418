@@ -88,6 +88,7 @@ export default function ConnexionForm() {
         </CardHeader>
         <form action={formAction}>
           <CardContent>
+            {/* Identifiants utilisateur */}
             <div className="w-full flex flex-col gap-2 mb-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -130,6 +131,8 @@ export default function ConnexionForm() {
                 </ul>
               )}
             </div>
+
+            {/* Options de session */}
             <div className="mt-4 flex items-center gap-2">
               <div className="flex items-center gap-2">
                 <Checkbox
@@ -143,6 +146,7 @@ export default function ConnexionForm() {
               </div>
             </div>
 
+            {/* Raccourci de recuperation via popup */}
             <div className="mt-2 flex items-center justify-between gap-2">
               <p className="text-xs text-faded">
                 L&apos;option de session persistante sera activee prochainement.

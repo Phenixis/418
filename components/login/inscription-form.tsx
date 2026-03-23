@@ -39,6 +39,7 @@ export default function InscriptionForm() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-4">
+                    {/* Informations personnelles */}
                     <div className="w-full flex flex-col gap-2">
                         <Label htmlFor="name">Nom</Label>
                         <Input
@@ -61,6 +62,8 @@ export default function InscriptionForm() {
                             onChange={(e) => setEmail(e.target.value)}
                         />
                     </div>
+
+                    {/* Saisie et verification du mot de passe */}
                     <div className="w-full flex flex-col gap-2">
                         <Label htmlFor="password">Mot de passe</Label>
                         <Input
