@@ -87,7 +87,7 @@ export async function fetchCoursActuel(courseId: string): Promise<
             matiere: cours.subject,
             dateDebut: new Date(cours.startAt),
             dateFin: new Date(cours.endAt),
-            classe: groupe.promo,
+            classe: `${groupe.promo}${groupe.td}`,
             total: etudiants.length,
             presents: nombrePresents,
             nonScannes: etudiants.length - nombrePresents,
