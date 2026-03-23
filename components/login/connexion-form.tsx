@@ -24,7 +24,7 @@ export default function ConnexionForm() {
   const [passwordFocused, setPasswordFocused] = useState(false);
 
   const passwordValid = passwordRules.every((rule) => rule.test(password));
-  const formValid = email.trim() !== "" && passwordValid;
+  const formValid = email.trim() !== "" && password.trim() !== "";
 
   const [state, formAction, pending] = useActionState<ActionResult, FormData>(async (prevState, formData) => {
     return await login(prevState, formData)

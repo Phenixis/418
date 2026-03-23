@@ -67,7 +67,7 @@ export async function register(_prevState: ActionResult, formData: FormData): Pr
     if ("success" in existingTeacher) {
         return {
             error: true,
-            message: "Un compte existe deja avec cet email.",
+            message: "Un compte existe déjà avec cet email.",
         };
     }
 
