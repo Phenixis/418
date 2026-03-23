@@ -1,13 +1,9 @@
 import { test, expect } from '@playwright/test';
-import dotenv from 'dotenv';
-
-dotenv.config({ quiet: true });
-const BASE_URL = process.env.BASE_URL || 'https://418.maximeduhamel.com';
 
 test.describe('Connexion page', () => {
 
     test.beforeEach(async ({ page }) => {
-        await page.goto(BASE_URL + '/professeur/connexion');
+        await page.goto('/professeur/connexion');
     });
 
     test('should display the connexion form', async ({ page }) => {
@@ -40,7 +36,7 @@ test.describe('Connexion page', () => {
         await passwordInput.fill('Totoro123');
         await submitButton.click();
 
-        await expect(page).toHaveURL(BASE_URL + '/professeur/dashboard');
+        await expect(page).toHaveURL('/professeur/dashboard');
     });
 
     test('should remove mail domain if user enters it', async ({ page }) => {const emailInput = page.getByLabel('Email');

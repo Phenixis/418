@@ -1,16 +1,14 @@
 import { passwordRules } from '@/components/login/rules';
 import { expect, test } from '@playwright/test';
 
-const BASE_URL = 'http://localhost:3005';
-
 test.describe('Inscription page', () => {
 
     test.beforeEach(async ({ page }) => {
-        await page.goto(BASE_URL + '/professeur/inscription?invite_id=123');
+        await page.goto('/professeur/inscription?invite_id=123');
     });
 
     test("should show Not found if the invite_id is empty", async ({ page }) => {
-        await page.goto(BASE_URL + '/professeur/inscription');
+        await page.goto('/professeur/inscription');
 
         const notFoundText = page.getByText('This page could not be found.');
         await expect(notFoundText).toBeVisible();
