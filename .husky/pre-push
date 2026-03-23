@@ -10,13 +10,13 @@ if [ ! -f ".env" ]; then
 fi
 
 echo "Verifying build..."
-if !pnpm build; then
+if !(pnpm build); then
     echo "Build failed. Please fix the issues before pushing."
     exit 1
 fi
 
 echo "Running tests..."
-if !pnpm test:playwright; then
+if !(pnpm test:playwright); then
     echo "Tests failed. Please fix the issues before pushing."
     exit 1
 fi
