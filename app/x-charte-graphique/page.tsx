@@ -1,22 +1,19 @@
 "use client"
 
 import Color from "@/components/charte-graphique/color"
-import Logo, { LogoVariants } from "@/components/general/logo"
 import { ColorVariants } from "@/components/charte-graphique/color.types"
+import Logo, { LogoVariants } from "@/components/general/logo"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Label } from "@/components/ui/label"
 import {
-    Select,
-    SelectContent,
-    SelectGroup,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
-import LockIcon from '@mui/icons-material/Lock';
-import { Badge } from "@/components/ui/badge";
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle
+} from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
     CommandDialog,
     CommandEmpty,
@@ -26,18 +23,20 @@ import {
     CommandList,
     CommandSeparator
 } from "@/components/ui/command"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+    Select,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+import LockIcon from '@mui/icons-material/Lock'
 import {
     useState
 } from "react"
-import {
-    Card,
-    CardAction,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card"
 
 export default function Page() {
     const [commandDialogOpen, setCommandDialogOpen] = useState(false);
