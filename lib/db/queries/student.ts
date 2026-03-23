@@ -35,6 +35,19 @@ class StudentQueries extends QueryModel<NewStudent, Student> {
 
         return { success: "Étudiants trouvés.", entity: result as Student[] }
     }
+
+    async getByGroup(group: number): Promise<QueryResult> {
+        const result = await lib.db
+            .select()
+            .from(this.table)
+            .where(lib.eq(this.table.groupId, group))
+
+        if (lib.resultEmpty(result)) {
+            return { error: "Aucun étudiant trouvé pour ce groupe." }
+        }
+
+        return { success: "Étudiants trouvés pour le groupe.", entity: result as Student[] }
+    }
 }
 
 export const studentQueries = new StudentQueries()
