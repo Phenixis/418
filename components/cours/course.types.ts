@@ -1,6 +1,12 @@
 // Statuts possibles d'un cours
 export enum CourseStatus {
-    EN_COURS = 'en-cours',
-    TERMINE = 'termine',
-    A_VENIR = 'a-venir'
+    EN_COURS = "en-cours",
+    TERMINE = "termine",
+    A_VENIR = "a-venir",
+}
+
+// Statuts possibles d'un étudiant pour un cours donné
+export enum StatutEtudiant {
+    PRESENT = "present",
+    ABSENT = "absent",
 }

@@ -1,5 +1,8 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import QRCode from './QrCode';
+
+const ENT_PAGE_URL = 'https://ent.univ-rennes1.fr/f/bureau/normal/render.uP';
 
 export interface CourseInfoProps {
     /** Date du cours */
@@ -74,8 +77,8 @@ export default function CourseInfo({
             </Card>
 
             {/* Placeholder QR Code — carré de même hauteur que le rectangle d'informations */}
-            <div className="self-stretch w-36 shrink-0 rounded-xl border border-dashed border-faded bg-background-alternative flex items-center justify-center">
-                <span className="font-faded text-xs">QR Code</span>
+            <div className="self-stretch shrink-0 flex items-center justify-center">
+                <QRCode codePin={ENT_PAGE_URL}/>
             </div>
         </div>
     );
