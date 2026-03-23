@@ -8,7 +8,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import ChevronDownIcon from '@mui/icons-material/ExpandMore';
 import ChevronUpIcon from '@mui/icons-material/ExpandLess';
 
-import EtudiantCard from '@/components/cours/EtudiantCard';
+import EtudiantCard from '@/components/trombinoscope/etudiant_trombi';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
 
 // Interface pour représenter un étudiant
