@@ -26,7 +26,7 @@ export default async function Trombinoscope() {
 
     return (
         <div className="space-y-4">
-            {Object.entries(yearsToGroups).map(([year, groups]) => (
+            {Object.entries(yearsToGroups).sort(([yearA], [yearB]) => Number.parseInt(yearA, 10) - Number.parseInt(yearB, 10)).map(([year, groups]) => (
                 <CollapsibleYear key={year} label={YEAR_LABELS[Number.parseInt(year)] || year} groups={groups} />
             ))}
         </div>

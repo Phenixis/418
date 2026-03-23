@@ -1,3 +1,5 @@
+"use client";
+
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import type { Select as Group } from "@/lib/db/schema/group";
 import type { Select as Student } from "@/lib/db/schema/student";
@@ -61,11 +63,9 @@ export default function CollapsibleGroup({
                     <ChevronDownIcon className="shrink-0" />
                 )}
                 {group.td}{group.tp}
-                <span>
-                </span>
             </CollapsibleTrigger>
             <CollapsibleContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap2 md:gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 md:gap-4">
                     {isLoadingStudents && (
                         <>
                             {Array.from({ length: 12 }).map((_, index) => (
@@ -74,7 +74,7 @@ export default function CollapsibleGroup({
                         </>
                     )}
                     {studentsError && <p>{studentsError}</p>}
-                    {students.toSorted((a, b) => a.lastName.localeCompare(b.lastName)).map((student) => (
+                    {students.slice().sort((a, b) => a.lastName.localeCompare(b.lastName)).map((student) => (
                         <EtudiantCard key={student.userMail} etudiant={student} />
                     ))}
                 </div>
