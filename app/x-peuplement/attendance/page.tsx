@@ -9,7 +9,7 @@ export default async function AttendancePage() {
                 "success" in attendances ? (
                     <ul>
                         {(attendances.entity as any[]).map((attendance) => (
-                            <li key={attendance.id}>{JSON.stringify(attendance, null, 2)}</li>
+                            <li key={attendance.attendanceId}>{JSON.stringify(attendance, null, 2)}</li>
                         ))}
                     </ul>
                 ) : (

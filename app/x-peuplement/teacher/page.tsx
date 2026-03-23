@@ -9,7 +9,7 @@ export default async function TeacherPage() {
                 "success" in teachers ? (
                     <ul>
                         {(teachers.entity as any[]).map((teacher) => (
-                            <li key={teacher.id}>{JSON.stringify(teacher, null, 2)}</li>
+                            <li key={teacher.userMail}>{JSON.stringify(teacher, null, 2)}</li>
                         ))}
                     </ul>
                 ) : (

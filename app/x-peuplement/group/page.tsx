@@ -9,7 +9,7 @@ export default async function GroupPage() {
                 "success" in groups ? (
                     <ul>
                         {(groups.entity as any[]).map((group) => (
-                            <li key={group.id}>{JSON.stringify(group, null, 2)}</li>
+                            <li key={group.groupId}>{JSON.stringify(group, null, 2)}</li>
                         ))}
                     </ul>
                 ) : (

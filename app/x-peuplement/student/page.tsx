@@ -9,7 +9,7 @@ export default async function StudentPage() {
                 "success" in students ? (
                     <ul>
                         {(students.entity as any[]).map((student) => (
-                            <li key={student.id}>{JSON.stringify(student, null, 2)}</li>
+                            <li key={student.userMail}>{JSON.stringify(student, null, 2)}</li>
                         ))}
                     </ul>
                 ) : (
