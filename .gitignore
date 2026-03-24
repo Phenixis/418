@@ -51,3 +51,4 @@ node_modules/
 /.playwright-mcp
 
 /lib/etudiants.json
+/lib/db/saves/*

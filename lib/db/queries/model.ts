@@ -10,7 +10,7 @@ export class QueryModel<NewEntityModel extends { [x: string]: any; }, ExistingEn
         this.table = table;
     }
 
-    async create(data: NewEntityModel): Promise<{ success: string; createdEntity: ExistingEntityModel } | { error: string }> {
+    async create(data: NewEntityModel): Promise<QueryResult> {
         const result = await lib.db
             .insert(this.table)
             .values(data)
@@ -20,7 +20,7 @@ export class QueryModel<NewEntityModel extends { [x: string]: any; }, ExistingEn
             return { error: "Failed to create." };
         }
 
-        return { success: "Created successfully.", createdEntity: result[0] as ExistingEntityModel };
+        return { success: "Created successfully.", entity: result[0] as ExistingEntityModel };
     }
     
     async getAll(): Promise<QueryResult> {
@@ -41,7 +41,7 @@ export class QueryModel<NewEntityModel extends { [x: string]: any; }, ExistingEn
     //         .from(this.table)
     //         .where(lib.and(
     //             lib.inArray(this.table.id, ids),
-    //             with_deleted ? lib.sql`true` : lib.isNull(this.table.deleted_at)
+    //             with_deleted ? lib.sql`true` : lib.isNull(this.table.deletedAt)
     //         ));
 
     //     if (lib.resultEmpty(result)) {
@@ -61,12 +61,12 @@ export class QueryModel<NewEntityModel extends { [x: string]: any; }, ExistingEn
     //     return { success: "Data retrieved successfully.", entity: result.entities[0] };
     // }
 
-    async update(id: number, data: Partial<NewEntityModel>): Promise<{ success: string; updatedEntity: ExistingEntityModel } | { error: string }> {
+    async update(id: number, data: Partial<NewEntityModel>): Promise<QueryResult> {
         const result = await lib.db
             .update(this.table)
             .set({
                 ...data,
-                updated_at: new Date(),
+                updatedAt: new Date(),
             })
             .where(lib.eq(this.table.id, id))
             .returning();
@@ -75,13 +75,13 @@ export class QueryModel<NewEntityModel extends { [x: string]: any; }, ExistingEn
             return { error: "Failed to update." };
         }
 
-        return { success: "Updated successfully.", updatedEntity: result[0] as ExistingEntityModel };
+        return { success: "Updated successfully.", entity: result[0] as ExistingEntityModel };
     }
 
-    async delete(id: number): Promise<{ success: string } | { error: string }> {
+    async delete(id: number): Promise<QueryResult> {
         const result = await lib.db
             .update(this.table)
-            .set({ deleted_at: new Date() })
+            .set({ deletedAt: new Date() })
             .where(lib.eq(this.table.id, id))
             .returning();
 
@@ -89,10 +89,23 @@ export class QueryModel<NewEntityModel extends { [x: string]: any; }, ExistingEn
             return { error: "Failed to delete." };
         }
 
-        return { success: "Deleted successfully." };
+        return { success: "Deleted successfully.", entity: result[0] as ExistingEntityModel };
     }
 
-    async hardDelete(id: number): Promise<{ success: string } | { error: string }> {
+    async deleteAll(confirm?: boolean): Promise<QueryResult> {
+        if (!confirm) {
+            return { error: "Are you really sure you want to delete all entities? Pass 'true' as the confirm parameter to proceed." };
+        }
+
+        const result = await lib.db
+            .update(this.table)
+            .set({ deletedAt: new Date() })
+            .returning();
+
+        return { success: "All entities deleted successfully.", entity: result as ExistingEntityModel[] };
+    }
+
+    async hardDelete(id: number): Promise<QueryResult> {
         // First check if the addiction is soft-deleted
         const existingEntity = await lib.db
             .select()
@@ -105,7 +118,7 @@ export class QueryModel<NewEntityModel extends { [x: string]: any; }, ExistingEn
         }
 
         const entity = existingEntity[0] as any;
-        if ("deleted_at" in entity && entity.deleted_at === null) {
+        if ("deletedAt" in entity && entity.deletedAt === null) {
             return { error: "Cannot hard delete: must be soft-deleted first." };
         }
 
@@ -118,6 +131,18 @@ export class QueryModel<NewEntityModel extends { [x: string]: any; }, ExistingEn
             return { error: "Failed to hard delete." };
         }
 
-        return { success: "Hard deleted successfully." };
+        return { success: "Hard deleted successfully.", entity: id };
+    }
+
+    async hardDeleteAll(confirm?: boolean): Promise<QueryResult> {
+        if (!confirm) {
+            return { error: "Are you really sure you want to hard delete all entities? Pass 'true' as the confirm parameter to proceed." };
+        }
+
+        await lib.db
+            .delete(this.table)
+            .returning();
+
+        return { success: "All entities hard deleted successfully.", entity: -1 };
     }
 }
