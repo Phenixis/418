@@ -9,7 +9,7 @@ const vignetteBackgrounds: Record<CourseStatus, string> = {
 };
 
 // Libellés affichés selon le statut
-const vignetteLabels: Record<CourseStatus, string> = {
+export const vignetteLabels: Record<CourseStatus, string> = {
     [CourseStatus.EN_COURS]: 'En cours',
     [CourseStatus.TERMINE]: 'Terminé',
     [CourseStatus.A_VENIR]: 'À venir'

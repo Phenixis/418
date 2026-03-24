@@ -9,6 +9,7 @@ import type { Select as Course } from '@/lib/db/schema/course';
 import type { Select as CourseGroup } from '@/lib/db/schema/course-group';
 import type { Select as Group } from '@/lib/db/schema/group';
 import Link from 'next/dist/client/link';
+import Vignette from '@/components/ui/Vignette';
 
 export default async function DashboardPage() {
     const coursesQueryResults = await courseQueries.getAll();
@@ -56,14 +57,15 @@ export default async function DashboardPage() {
                 <CreerCours />
             </div>
             {'success' in coursesQueryResults && (
-                <Table className="rounded-lg border overflow-hidden border-separate border-spacing-0">
+                <Table className="">
                     <TableHeader>
                         <TableRow>
                             <TableHead>Cours</TableHead>
                             <TableHead>Début</TableHead>
                             <TableHead>Fin</TableHead>
-                            <TableHead>Créé le</TableHead>
+                            <TableHead>Statut</TableHead>
                             <TableHead>Groupes</TableHead>
+                            
                         </TableRow>
                     </TableHeader>
                     <TableBody className="rounded-lg overflow-hidden">
