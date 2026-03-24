@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { CheckCircle2 } from "lucide-react";
 import {
     authenticateStudentAction,
@@ -27,7 +27,6 @@ import {
     Card,
     CardContent,
     CardDescription,
-    CardFooter,
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
@@ -39,7 +38,6 @@ const STUDENT_EMAIL_DOMAIN = "etudiant.univ-rennes.fr";
 // Flux de pointage etudiant pilote par cours_id.
 function PresenceForm() {
     const searchParams = useSearchParams();
-    const router = useRouter();
     const coursId = searchParams.get('cours_id');
 
     const [step, setStep] = useState<'LOADING' | 'EMAIL' | 'PASSWORD' | 'CREATE_PASSWORD' | 'SUCCESS'>('LOADING');
@@ -204,19 +202,6 @@ function PresenceForm() {
                         Vous pouvez maintenant verrouiller votre téléphone.
                     </p>
                 </CardContent>
-
-                <CardFooter className="bg-white px-6 pb-6 pt-2 border-t border-gray-100 flex justify-center">
-                    <Button
-                        variant="outline"
-                        className="w-full font-action text-gray-700 bg-white hover:bg-gray-50"
-                        onClick={() => {
-                            setStep('LOADING');
-                            router.push('/etudiant');
-                        }}
-                    >
-                        Simuler un autre scan
-                    </Button>
-                </CardFooter>
             </Card>
         );
     }
@@ -230,7 +215,7 @@ function PresenceForm() {
 
     // Formulaire principal de connexion etudiant.
     return (
-        <div className="max-w-md w-full space-y-6">
+        <div className="w-11/12 sm:w-full sm:max-w-md space-y-6">
             {/* Carte de connexion */}
             <Card className="bg-white shadow-lg border-gray-100">
                 <CardHeader className="text-center">
@@ -257,7 +242,7 @@ function PresenceForm() {
                         >
                             <div className="space-y-2">
                                 <Label htmlFor="email" className="font-semibold text-gray-700">Adresse email IUT</Label>
-                                <div className="flex items-center gap-2">
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                                     <Input
                                         id="email"
                                         name="email"
@@ -271,9 +256,9 @@ function PresenceForm() {
                                         disabled={step === 'PASSWORD' || step === 'CREATE_PASSWORD'}
                                         placeholder="prenom.nom"
                                         required
-                                        className={step === 'PASSWORD' || step === 'CREATE_PASSWORD' ? "bg-gray-100 text-gray-500 cursor-not-allowed" : ""}
+                                        className={`sm:flex-1 ${step === 'PASSWORD' || step === 'CREATE_PASSWORD' ? "bg-gray-100 text-gray-500 cursor-not-allowed" : ""}`}
                                     />
-                                    <p className="text-faded shrink-0">@{STUDENT_EMAIL_DOMAIN}</p>
+                                    <p className="text-faded text-xs sm:text-sm whitespace-nowrap">@etudiant.univ-rennes.fr</p>
                                 </div>
                             </div>
 
@@ -294,7 +279,7 @@ function PresenceForm() {
                                             type="password"
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
-                                            placeholder="••••••••"
+                                            placeholder="Mot de passe"
                                             required
                                         />
                                     </div>
@@ -320,7 +305,7 @@ function PresenceForm() {
                                                     Mot de passe oublié ?
                                                 </Button>
                                             </DialogTrigger>
-                                            <DialogContent>
+                                            <DialogContent className="w-11/12 sm:w-full">
                                                 <DialogHeader>
                                                     <DialogTitle>Récupération du mot de passe</DialogTitle>
                                                     <DialogDescription>
@@ -344,7 +329,7 @@ function PresenceForm() {
                                                         type="button"
                                                         onClick={() => {
                                                             toast.info("Fonctionnalité à venir", {
-                                                                description: "Le formulaire de récupération n'est pas encore connecté au backend.",
+                                                                description: "La fonctionnalité n'est pas encore fonctionnelle.",
                                                             });
                                                         }}
                                                     >
@@ -386,7 +371,7 @@ function PresenceForm() {
                                             type="password"
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
-                                            placeholder="••••••••"
+                                            placeholder="Mot de passe"
                                             required
                                         />
                                     </div>
@@ -402,7 +387,7 @@ function PresenceForm() {
                                             type="password"
                                             value={confirmPassword}
                                             onChange={(e) => setConfirmPassword(e.target.value)}
-                                            placeholder="••••••••"
+                                            placeholder="Mot de passe"
                                             required
                                         />
                                     </div>
