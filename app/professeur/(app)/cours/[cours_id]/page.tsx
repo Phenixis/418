@@ -20,19 +20,9 @@ function formatHeure(date: Date): string {
 }
 
 export default async function AppelPage({ params }: { params: Promise<{ cours_id: string }> }) {
-    const { cours_id: cours_id_unsecured } = await params;
+    const { cours_id } = await params;
 
-    if (!cours_id_unsecured || Number.isNaN(Number(cours_id_unsecured))) {
-        return (
-            <section className="container mx-auto flex flex-col py-10 gap-6">
-                <p className="text-red">Cours invalide.</p>
-            </section>
-        );
-    }
-
-    const cours_id = Number(cours_id_unsecured);
-
-    const result = await fetchCoursActuel(""+cours_id);
+    const result = await fetchCoursActuel(cours_id);
 
     // Affichage d'une erreur si les données sont inaccessibles
     if (!result.success) {
