@@ -8,6 +8,7 @@
     "start": "next start",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "npx tsx lib/db/migrate.ts",
+    "db:migrate:main": "npx tsx lib/db/migrate-main.ts",
     "lint": "eslint",
     "prepare": "husky",
     "test:playwright": "playwright test",
