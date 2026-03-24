@@ -277,13 +277,15 @@ export async function authenticateStudentAction(
       )
       .limit(1);
 
-    if (existingAttendance.length === 0) {
-      await db.insert(schema.AttendanceTable.table).values({
-        courseId: validCourse.data.courseId,
-        studentMail: normalizedEmail,
-        hourDate: new Date(),
-      });
+    if (existingAttendance.length > 0) {
+      return { success: false, error: "Vous êtes déjà présent à ce cours." };
     }
+
+    await db.insert(schema.AttendanceTable.table).values({
+      courseId: validCourse.data.courseId,
+      studentMail: normalizedEmail,
+      hourDate: new Date(),
+    });
 
     return { success: true, data: { courseName: validCourse.data.courseName } };
   } catch (error: unknown) {
