@@ -37,12 +37,11 @@ export async function login(_prevState: ActionResult, formData: FormData): Promi
 			message: "Email ou mot de passe incorrect.",
 		};
 	}
-	if (remember) {
-		await setSession({
-			expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-			teacherEmail: teacherResult.entity.userMail
-		})
-	}
+
+	await setSession({
+		teacherEmail: teacherResult.entity.userMail,
+		isPersistentSession: remember,
+	})
 
 	return {
 		success: true,
@@ -108,13 +107,20 @@ const STORAGE_KEY = "teacher_session"
 type TeacherSessionData = {
 	expires: string
 	teacherEmail: string
+	isPersistentSession: boolean
 }
 
 export async function signToken(payload: TeacherSessionData) {
+	const expirationTimestamp = Math.floor(new Date(payload.expires).getTime() / 1000)
+	const fallbackExpirationTimestamp = Math.floor(Date.now() / 1000) + 24 * 60 * 60
+	const validatedExpirationTimestamp = Number.isFinite(expirationTimestamp)
+		? expirationTimestamp
+		: fallbackExpirationTimestamp
+
 	return await new SignJWT(payload)
 		.setProtectedHeader({ alg: "HS256" })
 		.setIssuedAt()
-		.setExpirationTime("1 day from now")
+		.setExpirationTime(validatedExpirationTimestamp)
 		.sign(key)
 }
 
@@ -123,7 +129,22 @@ export async function verifyToken(input: string) {
 		const { payload } = await jwtVerify(input, key, {
 			algorithms: ["HS256"],
 		})
-		return payload as TeacherSessionData
+
+		const typedPayload = payload as Record<string, unknown>
+		const tokenExpirationInSeconds =
+			typeof typedPayload.exp === "number" ? typedPayload.exp : Math.floor(Date.now() / 1000)
+		const expirationFromPayload =
+			typeof typedPayload.expires === "string"
+				? typedPayload.expires
+				: new Date(
+					tokenExpirationInSeconds * 1000,
+				).toISOString()
+
+		return {
+			expires: expirationFromPayload,
+			teacherEmail: typeof typedPayload.teacherEmail === "string" ? typedPayload.teacherEmail : "",
+			isPersistentSession: typedPayload.isPersistentSession !== false,
+		} as TeacherSessionData
 	} catch (error) {
 		console.error("Token verification failed:", error)
 		return null
@@ -173,7 +194,10 @@ export async function getServerSession() {
 		}
 
 		// Extend the session expiration by reusing setSession
-		await setSession(parsed)
+		await setSession({
+			teacherEmail: parsed.teacherEmail,
+			isPersistentSession: parsed.isPersistentSession,
+		})
 
 		return parsed
 	} catch (error) {
@@ -198,23 +222,37 @@ export async function verifySession(sessionCookie: string | undefined) {
 	}
 }
 
-export async function setSession(session?: TeacherSessionData) {
+type SetSessionInput = {
+	teacherEmail: string
+	isPersistentSession: boolean
+}
+
+export async function setSession(session: SetSessionInput) {
 	const expiresInOneDay = new Date(Date.now() + 24 * 60 * 60 * 1000)
-	const sessionData: TeacherSessionData = session || {
+	const sessionData: TeacherSessionData = {
 		expires: expiresInOneDay.toISOString(),
-		teacherEmail: "" // Default empty string if no userId provided
+		teacherEmail: session.teacherEmail,
+		isPersistentSession: session.isPersistentSession,
 	}
 	const encryptedSession = await signToken(sessionData);
 
-	(await cookies()).set({
+	const cookieOptions = {
 		name: STORAGE_KEY,
 		value: encryptedSession,
-		expires: expiresInOneDay,
 		httpOnly: true,
 		secure: process.env.NODE_ENV === "production",
-		sameSite: "lax",
+		sameSite: "lax" as const,
 		path: "/",
-	})
+	}
+
+	if (session.isPersistentSession) {
+		(await cookies()).set({
+			...cookieOptions,
+			expires: expiresInOneDay,
+		})
+	} else {
+		(await cookies()).set(cookieOptions)
+	}
 
 	return encryptedSession
 }

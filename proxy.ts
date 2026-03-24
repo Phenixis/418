@@ -37,21 +37,30 @@ export async function proxy(request: NextRequest) {
 		const sessionData = {
 			expires: expiresInOneDay.toISOString(),
 			teacherEmail: session.teacherEmail,
+			isPersistentSession: session.isPersistentSession,
 		}
 
 		// Sign a new token
 		const newToken = await signToken(sessionData)
 
 		// Set the new cookie in the response
-		response.cookies.set({
+		const cookieOptions = {
 			name: "teacher_session",
 			value: newToken,
-			expires: expiresInOneDay,
 			httpOnly: true,
-			secure: true,
-			sameSite: "lax",
+			secure: process.env.NODE_ENV === "production",
+			sameSite: "lax" as const,
 			path: "/",
-		})
+		}
+
+		if (session.isPersistentSession) {
+			response.cookies.set({
+				...cookieOptions,
+				expires: expiresInOneDay,
+			})
+		} else {
+			response.cookies.set(cookieOptions)
+		}
 
 		return response
 	}

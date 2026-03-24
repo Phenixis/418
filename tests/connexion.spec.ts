@@ -9,11 +9,21 @@ test.describe('Connexion page', () => {
     test('should display the connexion form', async ({ page }) => {
         const emailInput = page.getByLabel('Email');
         const passwordInput = page.getByLabel('Mot de passe');
+        const rememberCheckbox = page.getByLabel('Rester connecté');
         const submitButton = page.getByRole('button', { name: 'Se connecter' });
 
         await expect(emailInput).toBeVisible();
         await expect(passwordInput).toBeVisible();
+        await expect(rememberCheckbox).toBeVisible();
         await expect(submitButton).toBeVisible();
+    });
+
+    test('should allow toggling remember checkbox', async ({ page }) => {
+        const rememberCheckbox = page.getByLabel('Rester connecté');
+
+        await expect(rememberCheckbox).toBeChecked();
+        await rememberCheckbox.click();
+        await expect(rememberCheckbox).not.toBeChecked();
     });
 
     test('should show error message on invalid credentials', async ({ page }) => {const emailInput = page.getByLabel('Email');
