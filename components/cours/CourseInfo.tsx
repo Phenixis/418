@@ -2,7 +2,6 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import QRCode from './QrCode';
 
-const ENT_PAGE_URL = 'https://ent.univ-rennes1.fr/f/bureau/normal/render.uP';
 
 export interface CourseInfoProps {
     /** Date du cours */
@@ -19,6 +18,8 @@ export interface CourseInfoProps {
     presents: number;
     /** Nombre d'étudiants non scannés */
     nonScannes: number;
+    /** ID du cours pour le lien du QRCode */
+    idCours: number;
 }
 
 // Formatte une date en "18 mars 2026"
@@ -47,10 +48,14 @@ export default function CourseInfo({
     classe,
     total,
     presents,
-    nonScannes
+    nonScannes,
+    idCours
 }: CourseInfoProps) {
     const dateFormatee = formatDate(date);
     const horaireFormate = `${heureDebut} — ${heureFin}`;
+    const ENT_PAGE_URL = 'https://418.maximeduhamel.com/etudiant?cours_id=' + idCours;
+
+    console.log("!LIEN:", ENT_PAGE_URL);
 
     return (
         <div className="flex items-stretch gap-4">
