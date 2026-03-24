@@ -47,6 +47,7 @@ function PresenceForm() {
     const [shouldRememberSession, setShouldRememberSession] = useState(false);
     const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
     const [courseName, setCourseName] = useState<string>('');
+    const [isAlreadyPresent, setIsAlreadyPresent] = useState(false);
     const [isSubmittingForm, setIsSubmittingForm] = useState(false);
 
     // Initialisation du cours scanne (validation en base puis passage a l'etape email).
@@ -146,6 +147,7 @@ function PresenceForm() {
         }
 
         setCourseName(result.data.courseName);
+        setIsAlreadyPresent(result.data.alreadyPresent ?? false);
 
         setStep('SUCCESS');
     };
@@ -184,12 +186,16 @@ function PresenceForm() {
                             <CheckCircle2 className="w-12 h-12 text-green-600" strokeWidth={2.25} />
                         </div>
                     </div>
-                    <CardTitle className="h2 text-gray-900">Présence validée</CardTitle>
+                    <CardTitle className="h2 text-gray-900">
+                        {isAlreadyPresent ? "Déjà enregistré" : "Présence validée"}
+                    </CardTitle>
                 </CardHeader>
 
                 <CardContent className="text-center py-6 space-y-4 bg-white">
                     <p className="text-base text-gray-600">
-                        Vous avez bien été enregistré pour le cours :
+                        {isAlreadyPresent
+                            ? "Votre présence avait déjà été enregistrée pour le cours :"
+                            : "Vous avez bien été enregistré pour le cours :"}
                     </p>
 
                     <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">

@@ -239,7 +239,7 @@ export async function authenticateStudentAction(
   email: string,
   password: string,
   courseId: string
-): Promise<ServerActionResult<{ courseName: string }>> {
+): Promise<ServerActionResult<{ courseName: string; alreadyPresent?: boolean }>> {
   try {
     const normalizedEmail = getValidatedStudentEmail(email);
     if (!normalizedEmail || !password.trim()) {
@@ -278,7 +278,7 @@ export async function authenticateStudentAction(
       .limit(1);
 
     if (existingAttendance.length > 0) {
-      return { success: false, error: "Vous êtes déjà présent à ce cours." };
+      return { success: true, data: { courseName: validCourse.data.courseName, alreadyPresent: true } };
     }
 
     await db.insert(schema.AttendanceTable.table).values({
