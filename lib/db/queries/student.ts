@@ -36,7 +36,7 @@ class StudentQueries extends QueryModel<NewStudent, Student> {
         return { success: "Étudiants trouvés.", entity: result as Student[] }
     }
 
-    async getByGroup(group: number): Promise<QueryResult> {
+    async getByGroupId(group: number): Promise<QueryResult> {
         const result = await lib.db
             .select()
             .from(this.table)
@@ -47,6 +47,19 @@ class StudentQueries extends QueryModel<NewStudent, Student> {
         }
 
         return { success: "Étudiants trouvés pour le groupe.", entity: result as Student[] }
+    }
+
+    async getByGroupIds(groups: number[]): Promise<QueryResult> {
+        const result = await lib.db
+            .select()
+            .from(this.table)
+            .where(lib.inArray(this.table.groupId, groups))
+
+        if (lib.resultEmpty(result)) {
+            return { error: "Aucun étudiant trouvé pour ces groupes." }
+        }
+
+        return { success: "Étudiants trouvés pour les groupes.", entity: result as Student[] }
     }
 }
 
