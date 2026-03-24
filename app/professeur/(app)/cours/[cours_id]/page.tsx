@@ -47,7 +47,7 @@ export default async function AppelPage({ params }: { params: Promise<{ cours_id
     const status = resolveCourseStatus(data.dateDebut, data.dateFin);
 
     return (
-        <section className="container mx-auto flex flex-col py-10 gap-6">
+        <section className="flex flex-col py-10 gap-6">
             {/* En-tête : matière, statut et actions */}
             <CourseHeader code={data.code} matiere={data.matiere} status={status} />
 
