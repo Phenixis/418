@@ -26,7 +26,7 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body
-        className={`${gildaDisplay.variable} ${inter.variable} antialiased bg-background`}
+        className={`${gildaDisplay.variable} ${inter.variable} antialiased bg-background text-[18px]`}
       >
         {children}
         

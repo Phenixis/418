@@ -57,14 +57,15 @@ export default async function DashboardPage() {
                 <CreerCours />
             </div>
             {'success' in coursesQueryResults && (
-                <Table className="">
+                <Table className="text-center">
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Cours</TableHead>
+                            <TableHead className="text-xl">Cours</TableHead>
+                            <TableHead>Jours</TableHead>
                             <TableHead>Début</TableHead>
                             <TableHead>Fin</TableHead>
-                            <TableHead>Statut</TableHead>
                             <TableHead>Groupes</TableHead>
+                            <TableHead>Statut</TableHead>
                             
                         </TableRow>
                     </TableHeader>
