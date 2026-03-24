@@ -181,8 +181,8 @@ async function hasStudentAccessToCourse(studentMail: string, courseId: string): 
       .limit(1);
 
     return matchingCourseGroup.length > 0;
-  } catch {
-    return false;
+  } catch (error) {
+    throw error;
   }
 }
 
