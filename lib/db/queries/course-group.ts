@@ -23,6 +23,20 @@ class CourseGroupQueries extends QueryModel<NewCourseGroup, CourseGroup> {
 
         return { success: "Lien Cours-Groupe trouvé.", entity: result[0] as CourseGroup }
     }
+
+    // Récupère le lien cours-groupe pour un cours donné
+    async getByCourseId(courseId: string) {
+        const result = await lib.db
+            .select()
+            .from(this.table)
+            .where(lib.eq(this.table.courseId, courseId))
+
+        if (lib.resultEmpty(result)) {
+            return { error: "Aucun groupe trouvé pour ce cours." }
+        }
+
+        return { success: "Lien Cours-Groupe trouvé.", entity: result[0] as CourseGroup }
+    }
 }
 
 export const courseGroupQueries = new CourseGroupQueries()
