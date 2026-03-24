@@ -4,9 +4,6 @@ import ListeEtudiants from '@/components/cours/ListeEtudiants';
 import { CourseStatus } from '@/components/cours/course.types';
 import { fetchCoursActuel } from '@/lib/actions/cours-actuel';
 
-// TODO : remplacer par le vrai courseId une fois la sélection de cours implémentée
-const COURSE_ID_PLACEHOLDER = '123456789';
-
 // Détermine le statut du cours selon les dates de début et de fin
 function resolveCourseStatus(dateDebut: Date, dateFin: Date): CourseStatus {
     const now = new Date();
@@ -22,14 +19,26 @@ function formatHeure(date: Date): string {
     return `${heures}h${minutes}`;
 }
 
-export default async function AppelPage() {
-    const result = await fetchCoursActuel(COURSE_ID_PLACEHOLDER);
+export default async function AppelPage({ params }: { params: Promise<{ cours_id: string }> }) {
+    const { cours_id: cours_id_unsecured } = await params;
+
+    if (!cours_id_unsecured || Number.isNaN(Number(cours_id_unsecured))) {
+        return (
+            <section className="container mx-auto flex flex-col py-10 gap-6">
+                <p className="text-red">Cours invalide.</p>
+            </section>
+        );
+    }
+
+    const cours_id = Number(cours_id_unsecured);
+
+    const result = await fetchCoursActuel(""+cours_id);
 
     // Affichage d'une erreur si les données sont inaccessibles
     if (!result.success) {
         return (
             <section className="container mx-auto flex flex-col py-10 gap-6">
-                <p className="font-faded text-red">Impossible de charger le cours : {result.error}</p>
+                <p className="text-red">Impossible de charger le cours : {result.error}</p>
             </section>
         );
     }
@@ -44,7 +53,7 @@ export default async function AppelPage() {
 
             {/* Rectangle d'informations du cours */}
             <CourseInfo
-                idCours={123456789}
+                idCours={cours_id}
                 date={data.dateDebut}
                 heureDebut={formatHeure(data.dateDebut)}
                 heureFin={formatHeure(data.dateFin)}
