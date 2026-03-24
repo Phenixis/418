@@ -68,6 +68,7 @@ export default async function DashboardPage() {
                     </TableHeader>
                     <TableBody className="rounded-lg overflow-hidden">
                         {(coursesQueryResults.entity as Course[]).map(course => (
+                            <Link key={course.courseId} href={`/professeur/cours/${course.courseId}`} className="block">    
                             <TableDemo
                                 key={course.courseId}
                                 cours={course}
@@ -79,8 +80,10 @@ export default async function DashboardPage() {
                                     )
                                 )}
                             />
+                            </Link>
                         ))}
                     </TableBody>
+                    
                 </Table>
             )}
         </>
