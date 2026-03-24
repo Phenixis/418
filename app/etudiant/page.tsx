@@ -258,7 +258,7 @@ function PresenceForm() {
                                         required
                                         className={`sm:flex-1 ${step === 'PASSWORD' || step === 'CREATE_PASSWORD' ? "bg-gray-100 text-gray-500 cursor-not-allowed" : ""}`}
                                     />
-                                    <p className="text-faded text-xs sm:text-sm whitespace-nowrap">@etudiant.univ-rennes.fr</p>
+                                    <p className="text-faded text-xs sm:text-sm whitespace-nowrap">@{STUDENT_EMAIL_DOMAIN}</p>
                                 </div>
                             </div>
 
