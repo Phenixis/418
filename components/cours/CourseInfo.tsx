@@ -55,8 +55,6 @@ export default function CourseInfo({
     const horaireFormate = `${heureDebut} — ${heureFin}`;
     const ENT_PAGE_URL = 'https://418.maximeduhamel.com/etudiant?cours_id=' + idCours;
 
-    console.log("!LIEN:", ENT_PAGE_URL);
-
     return (
         <div className="flex items-stretch gap-4">
             {/* Rectangle principal d'informations */}
