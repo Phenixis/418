@@ -14,7 +14,7 @@ import { studentQueries } from "./queries/student";
 import { teacherQueries } from "./queries/teacher";
 import { QueryModel } from "./queries/model";
 
-const SAVES_FOLDER_PATH = normalize(__dirname + "/saves/")
+export const SAVES_FOLDER_PATH = normalize(__dirname + "/saves/")
 
 const SEED_ORDER = [
     "groups",
@@ -51,11 +51,10 @@ function parseSaveContent(fileContent: string): Data {
 }
 
 function getLatestSaveFilePath(): string | null {
-    const files = readdirSync(SAVES_FOLDER_PATH);
-
-    if (files.length === 0) {
+    if (!readdirSync(SAVES_FOLDER_PATH).length) {
         return null;
     }
+    const files = readdirSync(SAVES_FOLDER_PATH);
 
     const latestFile = files.reduce((latest, current) => {
         const latestTimestamp = Number.parseInt(latest.split(".")[0]);
@@ -101,23 +100,23 @@ async function seed() {
     const filePath = getLatestSaveFilePath();
 
     if (!filePath) {
-        console.log("Aucun fichier de sauvegarde trouvé. Créez une sauvegarde avant de lancer le seed, ou récupérez-en une auprès de votre administrateur et placez la dans [" + normalize(__dirname + SAVES_FOLDER_PATH) + "].");
+        console.log("Aucun fichier de sauvegarde trouvé. Créez une sauvegarde avant de lancer le seed, ou récupérez-en une auprès de votre administrateur et placez la dans [" + SAVES_FOLDER_PATH + "].");
         return;
     }
 
     const fileContent = readFileSync(filePath, "utf-8");
 
-    if (fileContent.length == 0) {
-        console.log("Fichier vide");
-        return;
-    }
+     if (fileContent.length === 0) {  
+        console.log("Fichier vide");  
+        return;  
+    }  
 
-    if (JSON.parse(fileContent).length == 0) {
-        console.log("Aucun étudiant à ajouter");
-        return;
-    }
+    const fileContentParsed = parseSaveContent(fileContent);  
 
-    const fileContentParsed = parseSaveContent(fileContent);
+    if (!fileContentParsed.students || fileContentParsed.students.length === 0) {  
+        console.log("Aucun étudiant à ajouter");  
+        return;  
+    }  
 
     for (const [key, value] of Object.entries(fileContentParsed).sort(([a], [b]) => {
         const indexA = SEED_ORDER.indexOf(a);

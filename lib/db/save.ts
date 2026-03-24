@@ -1,4 +1,4 @@
-import { writeFileSync } from "fs";
+import { writeFileSync, mkdirSync } from "node:fs";
 import { attendanceQueries } from "./queries/attendance";
 import { courseQueries } from "./queries/course";
 import { courseGroupQueries } from "./queries/course-group";
@@ -7,6 +7,7 @@ import { groupQueries } from "./queries/group";
 import { studentQueries } from "./queries/student";
 import { teacherQueries } from "./queries/teacher";
 import { Data } from "./save.types";
+import { SAVES_FOLDER_PATH } from "./seed";
 
 async function save() {
     const attendances = await attendanceQueries.getAll();
@@ -68,7 +69,15 @@ async function save() {
         teachers: teachers.entity
     } as Data;
 
-    writeFileSync(__dirname + "/saves/" + Date.now() + ".json", JSON.stringify(data, null, 2));
+    // Ensure the saves folder exists
+    try {
+        mkdirSync(SAVES_FOLDER_PATH, { recursive: true });
+    } catch (error) {
+        console.error("Error creating saves folder:", error);
+        return;
+    }
+
+    writeFileSync(SAVES_FOLDER_PATH + Date.now() + ".json", JSON.stringify(data, null, 2));
 
     return;
 }
