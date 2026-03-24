@@ -101,7 +101,11 @@ export async function register(_prevState: ActionResult, formData: FormData): Pr
 
 }
 
-const key = new TextEncoder().encode(process.env.AUTH_SECRET)
+const authSecret = process.env.AUTH_SECRET
+if (!authSecret) {
+	throw new Error("AUTH_SECRET environment variable is not set")
+}
+const key = new TextEncoder().encode(authSecret)
 const STORAGE_KEY = "teacher_session"
 
 type TeacherSessionData = {

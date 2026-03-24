@@ -31,12 +31,12 @@ export function TeacherProvider({
     children: ReactNode;
     teacherPromise: Promise<Teacher | null>;
 }>) {
-    let initialUser = use(teacherPromise)
-    const [teacher, setTeacher] = useState<Teacher | null>(initialUser)
+    let initialTeacher = use(teacherPromise)
+    const [teacher, setTeacher] = useState<Teacher | null>(initialTeacher)
 
     useEffect(() => {
-        setTeacher(initialUser)
-    }, [initialUser])
+        setTeacher(initialTeacher)
+    }, [initialTeacher])
 
     return (
         <TeacherContext.Provider value={{ teacher }}>

@@ -39,8 +39,8 @@ class TeacherQueries extends QueryModel<NewTeacher, Teacher> {
         return session.teacherEmail;
     }
 
-    async getTeacher(id?: string): Promise<Teacher | null> {
-        const teacherEmail = id || await this.getTeacherEmailFromSession();
+    async getTeacher(email?: string): Promise<Teacher | null> {
+        const teacherEmail = email || await this.getTeacherEmailFromSession();
 
         if (!teacherEmail) {
             return null
