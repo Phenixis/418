@@ -22,6 +22,20 @@
       "when": 1774260418106,
       "tag": "0002_living_young_avengers",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1774350488784,
+      "tag": "0003_curly_power_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1774351031079,
+      "tag": "0004_jittery_moon_knight",
+      "breakpoints": true
     }
   ]
 }

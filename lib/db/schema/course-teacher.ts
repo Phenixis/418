@@ -6,9 +6,10 @@ import * as TeacherTable from './teacher'
 export const table = lib.pgTable('course_teacher', {
     courseTeacherId: lib.serial("course_teacher_id").primaryKey(),
     courseId: lib.varchar("course_id", { length: 10 })
-        .references(() => CourseTable.table.courseId).notNull(),
+        .references(() => CourseTable.table.courseId, { onDelete: 'cascade', onUpdate: 'cascade' }).notNull(),
     teacherMail: lib.varchar("teacher_mail", { length: 60 }).notNull()
-        .references(() => TeacherTable.table.userMail),
+        .references(() => TeacherTable.table.userMail, { onDelete: 'cascade', onUpdate: 'cascade' }),
+            ...lib.baseAttributes,
 });
 
 export const relations = lib.relations(table, ({many}) => ({
