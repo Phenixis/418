@@ -17,7 +17,6 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import { Checkbox } from "../ui/checkbox";
 
 export default function ConnexionForm() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
