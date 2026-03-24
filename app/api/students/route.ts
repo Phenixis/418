@@ -15,7 +15,7 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: "Le paramètre groupId doit être un entier positif." }, { status: 400 });
     }
 
-    const studentsResult = await studentQueries.getByGroup(groupId);
+    const studentsResult = await studentQueries.getByGroupId(groupId);
 
     if ("error" in studentsResult) {
         return NextResponse.json([], { status: 200 });

@@ -1,5 +1,7 @@
 import { QueryModel, QueryResult } from './model'
 import * as lib from './lib'
+import { courseGroupQueries } from './course-group'
+import { Select as CourseGroup } from '../schema/course-group'
 
 const groupeTable = lib.Schema.GroupTable.table
 
@@ -43,6 +45,19 @@ class GroupQueries extends QueryModel<NewGroup, Group> {
         return { success: "Groupe trouvé.", entity: result[0] as Group }
     }
 
+    async getByIds(ids: number[]): Promise<QueryResult> {
+        const result = await lib.db
+            .select()
+            .from(this.table)
+            .where(lib.inArray(this.table.groupId, ids))
+
+        if (lib.resultEmpty(result)) {
+            return { error: "Aucun groupe trouvé pour ces IDs." }
+        }
+
+        return { success: "Groupes trouvés pour ces IDs.", entity: result as Group[] }
+    }
+
     async getAll(): Promise<QueryResult> {
         const result = await lib.db
             .select()
@@ -53,6 +68,27 @@ class GroupQueries extends QueryModel<NewGroup, Group> {
         }
 
         return { success: "Groupes trouvés.", entity: result as Group[] }
+    }
+
+    async getByCourseId(courseId: string): Promise<QueryResult> {
+        const groupsIds = await courseGroupQueries.getByCourseId(courseId)
+
+        if ('error' in groupsIds) {
+            return { error: "Aucun groupe trouvé pour ce cours." }
+        }
+
+        const groupIdsArray = groupsIds.entity.map((cg) => cg.groupId)
+
+        const result = await lib.db
+            .select()
+            .from(this.table)
+            .where(lib.inArray(this.table.groupId, groupIdsArray))
+
+        if (lib.resultEmpty(result)) {
+            return { error: "Aucun groupe trouvé pour ce cours." }
+        }
+
+        return { success: "Groupes trouvés pour ce cours.", entity: result as Group[] }
     }
 }
 
