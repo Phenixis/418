@@ -5,7 +5,7 @@ import { CourseStatus } from "@/components/cours/course.types"
 import { fetchCoursActuel } from "@/lib/actions/cours-actuel"
 
 // TODO : remplacer par le vrai courseId une fois la sélection de cours implémentée
-const COURSE_ID_PLACEHOLDER = "1"
+const COURSE_ID_PLACEHOLDER = "123456789"
 
 // Détermine le statut du cours selon les dates de début et de fin
 function resolveCourseStatus(dateDebut: Date, dateFin: Date): CourseStatus {
@@ -58,7 +58,6 @@ export default async function AppelPage() {
                 total={data.total}
                 presents={data.presents}
                 nonScannes={data.nonScannes}
-                idCours={Number(COURSE_ID_PLACEHOLDER)}
             />
 
             {/* Liste des étudiants du cours */}

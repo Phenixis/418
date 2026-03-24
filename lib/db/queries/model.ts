@@ -23,7 +23,7 @@ export class QueryModel<NewEntityModel extends { [x: string]: any; }, ExistingEn
         return { success: "Created successfully.", createdEntity: result[0] as ExistingEntityModel };
     }
     
-        async getAll(): Promise<QueryResult> {
+    async getAll(): Promise<QueryResult> {
             const result = await lib.db
                 .select()
                 .from(this.table)
