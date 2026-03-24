@@ -344,24 +344,19 @@ export async function createStudentPasswordAction(
       })
       .where(eq(schema.StudentTable.table.userMail, normalizedEmail));
 
-    const existingAttendance = await db
-      .select({ attendanceId: schema.AttendanceTable.table.attendanceId })
-      .from(schema.AttendanceTable.table)
-      .where(
-        and(
-          eq(schema.AttendanceTable.table.courseId, validCourse.data.courseId),
-          eq(schema.AttendanceTable.table.studentMail, normalizedEmail)
-        )
-      )
-      .limit(1);
-
-    if (existingAttendance.length === 0) {
-      await db.insert(schema.AttendanceTable.table).values({
+    await db
+      .insert(schema.AttendanceTable.table)
+      .values({
         courseId: validCourse.data.courseId,
         studentMail: normalizedEmail,
         hourDate: new Date(),
+      })
+      .onConflictDoNothing({
+        target: [
+          schema.AttendanceTable.table.courseId,
+          schema.AttendanceTable.table.studentMail,
+        ],
       });
-    }
 
     return { success: true, data: { courseName: validCourse.data.courseName } };
   } catch (error: unknown) {
