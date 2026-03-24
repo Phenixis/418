@@ -88,10 +88,9 @@ function getActionErrorMessage(error: unknown): string {
     if (loweredMessage.includes("fetch failed") || loweredMessage.includes("error connecting to database")) {
       return DATABASE_CONNECTION_ERROR_MESSAGE;
     }
-
-    return error.message;
   }
 
+  console.error("[getActionErrorMessage] Unexpected server error:", error);
   return "Une erreur inattendue est survenue.";
 }
 
