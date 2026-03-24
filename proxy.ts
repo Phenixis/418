@@ -5,6 +5,10 @@ const PROTECTED_ROUTES = [
 	/^\/professeur(?!\/(connexion|inscription)).*$/gm,
 ]
 
+const UNACCESSIBLE_ROUTES_WHEN_CONNECTEd = [
+	/^\/professeur\/(connexion|inscription)$/gm,
+]
+
 export async function proxy(request: NextRequest) {
 	const { pathname } = request.nextUrl
 
@@ -16,6 +20,12 @@ export async function proxy(request: NextRequest) {
 
 	if (isProtectedRoute && !session) {
 		return NextResponse.redirect(new URL("/professeur/connexion", request.nextUrl))
+	}
+
+	const isUnaccessibleWhenConnected = UNACCESSIBLE_ROUTES_WHEN_CONNECTEd.some(route => new RegExp(route).exec(pathname))
+
+	if (isUnaccessibleWhenConnected && session) {
+		return NextResponse.redirect(new URL("/professeur/dashboard", request.nextUrl))
 	}
 
 	if (session) {
