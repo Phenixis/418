@@ -1,11 +1,7 @@
+"use client";
+
 import {
-    Table,
-    TableBody,
-    TableCaption,
     TableCell,
-    TableFooter,
-    TableHead,
-    TableHeader,
     TableRow
 } from '@/components/ui/table';
 
@@ -20,7 +16,9 @@ interface CoursProps {
 
 export default function CourseTableRow({ cours, groups }: CoursProps) {
     return (
-        <TableRow className="bg-white rounded-lg overflow-hidden last:*:first:rounded-bl-lg last:*:last:rounded-br-lg">
+        <TableRow className="bg-white outline-2 outline-transparent hover:bg-white/50 hover:outline-primary rounded-lg overflow-hidden cursor-pointer last:*:first:rounded-bl-lg last:*:last:rounded-br-lg" onClick={() => {
+            globalThis.location.href = `/professeur/cours/${cours.courseId}`;
+        }}>
             <TableCell>{cours.subject}</TableCell>
             <TableCell>{format(cours.startAt, 'dd/MM/yyyy HH:mm')}</TableCell>
             <TableCell>{format(cours.endAt, 'dd/MM/yyyy HH:mm')}</TableCell>
