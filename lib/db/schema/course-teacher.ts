@@ -5,7 +5,7 @@ import * as TeacherTable from './teacher'
 // Classe association entre un étudiant et un cours
 export const table = lib.pgTable('course_teacher', {
     courseTeacherId: lib.serial("course_teacher_id").primaryKey(),
-    courseId: lib.varchar("course_id", { length: 10 })
+    courseId: lib.varchar("course_id", { length: 36 })
         .references(() => CourseTable.table.courseId, { onDelete: 'cascade', onUpdate: 'cascade' }).notNull(),
     teacherMail: lib.varchar("teacher_mail", { length: 60 }).notNull()
         .references(() => TeacherTable.table.userMail, { onDelete: 'cascade', onUpdate: 'cascade' }),
