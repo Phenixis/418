@@ -51,6 +51,7 @@ export default async function AppelPage() {
 
             {/* Rectangle d'informations du cours */}
             <CourseInfo
+            idCours={123456789}
                 date={data.dateDebut}
                 heureDebut={formatHeure(data.dateDebut)}
                 heureFin={formatHeure(data.dateFin)}
