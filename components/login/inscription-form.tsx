@@ -104,8 +104,6 @@ export default function InscriptionForm() {
                             </p>
                         </div>
                     </div>
-
-                    {/* Saisie et verification du mot de passe */}
                     <div className="w-full flex flex-col gap-2">
                         <Label htmlFor="password">Mot de passe</Label>
                         <Input
