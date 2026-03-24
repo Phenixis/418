@@ -1,5 +1,7 @@
 "use client"
 
+import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
     Dialog,
     DialogContent,
@@ -9,48 +11,13 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { useActionState, useEffect, useState } from "react";
-import { Button } from "../ui/button";
-import { DatePicker } from "../ui/date-picker";
-import { Input } from "../ui/input";
-import { Label } from "../ui/label";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-import {
-    Combobox,
-    ComboboxChip,
-    ComboboxChips,
-    ComboboxChipsInput,
-    ComboboxContent,
-    ComboboxEmpty,
-    ComboboxGroup,
-    ComboboxItem,
-    ComboboxLabel,
-    ComboboxList,
-    ComboboxSeparator,
-    ComboboxValue,
-    useComboboxAnchor,
-} from "@/components/ui/combobox"
-import { ActionResult } from "@/lib/actions/types";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { creerCours } from "@/lib/actions/cours";
-
-const groups = [
-    {
-        value: "1ère année",
-        groups: ["A1", "A2", "B1", "B2", "C1", "C2", "D1", "D2"],
-    },
-    {
-        value: "2ème année",
-        groups: ["A1", "A2", "B1", "B2", "C1", "C2", "D1", "D2"],
-    },
-    {
-        value: "3ème année",
-        groups: ["A1", "A2", "B1", "B2", "C1", "C2", "D1", "D2"],
-    },
-]
-
-const groupsFlat = groups.flatMap(({ value: yearValue, groups: yearGroups }) =>
-    yearGroups.map((groupValue) => `${yearValue.charAt(0)}${groupValue}`)
-)
+import { ActionResult } from "@/lib/actions/types";
+import { useActionState, useEffect, useState } from "react";
+import SelectGroupComponent from "./select-group";
 
 export default function CreerCours() {
     const [isCreateCourseDialogOpen, setIsCreateCourseDialogOpen] = useState(false);
@@ -60,10 +27,9 @@ export default function CreerCours() {
     const [heureDebut, setHeureDebut] = useState("");
     const [duration, setDuration] = useState("");
     const [label, setLabel] = useState("");
-    
-    const chipsAnchor = useComboboxAnchor();
+
     const [isFormValid, setIsFormValid] = useState(false);
-    
+
     const [state, formAction, pending] = useActionState<ActionResult, FormData>(async (prevState, formData) => {
         return await creerCours(prevState, formData)
     }, { pending: true })
@@ -116,7 +82,15 @@ export default function CreerCours() {
                     <form action={formAction} className="w-full">
                         <div className="w-full flex flex-col gap-2 mb-2">
                             <Label htmlFor="label">Nom du cours</Label>
-                            <Input id="label" name="label" type="text" placeholder="Nom du cours" value={label} onChange={(e) => setLabel(e.target.value)} />
+                            <Input 
+                                id="label" 
+                                name="label" 
+                                type="text" 
+                                placeholder="Nom du cours" 
+                                value={label} 
+                                onChange={(e) => setLabel(e.target.value.slice(0, 50))}
+                                maxLength={50}
+                            />
                         </div>
                         <div className="flex items-center justify-between gap-4 mb-2">
                             <div className="flex-1 flex flex-col gap-1">
@@ -166,60 +140,7 @@ export default function CreerCours() {
                                 </Select>
                             </div>
                         </div>
-                        <div className="w-full flex flex-col gap-2 mb-2">
-                            {groupsSelected.map((groupValue) => (
-                                <input
-                                    key={groupValue}
-                                    type="hidden"
-                                    name="groups"
-                                    value={groupValue}
-                                    readOnly
-                                />
-                            ))}
-                            <Label htmlFor="groups">Groupes</Label>
-                            <Combobox
-                                items={groupsFlat}
-                                multiple
-                                value={groupsSelected}
-                                onValueChange={setGroupsSelected}
-                            >
-                                <ComboboxChips ref={chipsAnchor} className="items-start">
-                                    <ComboboxValue>
-                                        <div className="flex w-full flex-wrap gap-1.5">
-                                            {groupsSelected.map((item) => (
-                                                <ComboboxChip key={item}>{item}</ComboboxChip>
-                                            ))}
-                                        </div>
-                                    </ComboboxValue>
-                                    <ComboboxChipsInput
-                                        className="mt-1 w-full min-w-0 basis-full"
-                                        placeholder="Choisir les groupes"
-                                    />
-                                </ComboboxChips>
-                                <ComboboxContent anchor={chipsAnchor}>
-                                    <ComboboxEmpty>Aucune classe trouvée.</ComboboxEmpty>
-                                    <ComboboxList>
-                                        {groups.map(({ value: yearValue, groups: yearGroups }, index) => (
-                                            <div key={yearValue}>
-                                                <ComboboxGroup>
-                                                    <ComboboxLabel>{yearValue}</ComboboxLabel>
-                                                    {yearGroups.map((groupValue) => {
-                                                        const fullGroupValue = `${yearValue} - ${groupValue}`
-
-                                                        return (
-                                                            <ComboboxItem key={fullGroupValue} value={fullGroupValue}>
-                                                                {fullGroupValue}
-                                                            </ComboboxItem>
-                                                        )
-                                                    })}
-                                                </ComboboxGroup>
-                                                {index < groups.length - 1 && <ComboboxSeparator />}
-                                            </div>
-                                        ))}
-                                    </ComboboxList>
-                                </ComboboxContent>
-                            </Combobox>
-                        </div>
+                        <SelectGroupComponent groupsSelected={groupsSelected} setGroupsSelected={setGroupsSelected} />
 
                         <DialogFooter className="flex-col sm:flex-col">
                             {
