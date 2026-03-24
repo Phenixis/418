@@ -1,14 +1,21 @@
+"use client";
+
 import Link from 'next/link';
 import Logo, { LogoSizes, LogoVariants } from '@/components/general/logo';
 import { Button } from '@/components/ui/button';
 import SearchIcon from '@mui/icons-material/Search';
 import SettingsIcon from '@mui/icons-material/Settings';
 import ProfilBadge from '@/components/general/ProfilBadge';
+import { useTeacher } from '@/lib/hooks/UseTeacher';
 
 export const Header = () => {
+    const { teacher } = useTeacher();
+    
     return (
         <div className="flex flex-column p-4 gap-4 items-center justify-between">
-            <Logo variant={LogoVariants.NAME_RIGHT} size={LogoSizes.LARGE} />
+            <Link href="/professeur/dashboard">
+                <Logo variant={LogoVariants.NAME_RIGHT} size={LogoSizes.LARGE} />
+            </Link>
             <div className="flex items-center gap-4">
                 {/* TODO: etat qui se base sur le pathname */}
                 <Link href="/professeur/dashboard">
@@ -26,7 +33,7 @@ export const Header = () => {
                     <p>Rechercher</p>
                 </div>
                 <SettingsIcon className="m-4" />
-                <ProfilBadge firstName="Benoit" lastName="Tottereau" />
+                <ProfilBadge firstName={teacher?.firstName || "Benoit"} lastName={teacher?.lastName || "Tottereau"} />
             </div>
         </div>
     );
