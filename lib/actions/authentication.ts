@@ -7,96 +7,98 @@ import { cookies } from "next/headers"
 import { SignJWT, jwtVerify } from "jose"
 
 export async function login(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
-    const email = formData.get("email");
-    const password = formData.get("password");
+	const email = formData.get("email");
+	const password = formData.get("password");
+	const remember = formData.get("remember") === "on";
 
-    if (typeof email !== "string" || typeof password !== "string") {
-        return {
-            error: true,
-            message: "Veuillez fournir un email et un mot de passe valides.",
-        };
-    }
+	if (typeof email !== "string" || typeof password !== "string") {
+		return {
+			error: true,
+			message: "Veuillez fournir un email et un mot de passe valides.",
+		};
+	}
 
-    const completeEmail = email + "@univ-rennes.fr";
+	const completeEmail = email + "@univ-rennes.fr";
 
-    const teacherResult = await teacherQueries.getByEmail(completeEmail);
+	const teacherResult = await teacherQueries.getByEmail(completeEmail);
 
-    if ("error" in teacherResult) {
-        return {
-            error: true,
-            message: "Email ou mot de passe incorrect.",
-        };
-    }
+	if ("error" in teacherResult) {
+		return {
+			error: true,
+			message: "Email ou mot de passe incorrect.",
+		};
+	}
 
-    const isPasswordValid = await bcrypt.compare(password, teacherResult.entity.password);
+	const isPasswordValid = await bcrypt.compare(password, teacherResult.entity.password);
 
-    if (!isPasswordValid) {
-        return {
-            error: true,
-            message: "Email ou mot de passe incorrect.",
-        };
-    }
+	if (!isPasswordValid) {
+		return {
+			error: true,
+			message: "Email ou mot de passe incorrect.",
+		};
+	}
+	if (remember) {
+		await setSession({
+			expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+			teacherEmail: teacherResult.entity.userMail
+		})
+	}
 
-    await setSession({
-        expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-        teacherEmail: teacherResult.entity.userMail
-    })
-
-    return {
-        success: true,
-        redirectTo: "/professeur/dashboard",
-    };
+	return {
+		success: true,
+		redirectTo: "/professeur/dashboard",
+	};
 }
 
 export async function register(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
-    const firstName = formData.get("first-name");
-    const lastName = formData.get("last-name");
-    const email = formData.get("email");
-    const password = formData.get("password");
+	const firstName = formData.get("first-name");
+	const lastName = formData.get("last-name");
+	const email = formData.get("email");
+	const password = formData.get("password");
 
-    if (
-        typeof firstName !== "string" ||
-        typeof lastName !== "string" ||
-        typeof email !== "string" ||
-        typeof password !== "string"
-    ) {
-        return {
-            error: true,
-            message: "Veuillez remplir correctement tous les champs.",
-        };
-    }
+	if (
+		typeof firstName !== "string" ||
+		typeof lastName !== "string" ||
+		typeof email !== "string" ||
+		typeof password !== "string"
+	) {
+		return {
+			error: true,
+			message: "Veuillez remplir correctement tous les champs.",
+		};
+	}
 
-    const completeEmail = email + "@univ-rennes.fr";
+	const completeEmail = email + "@univ-rennes.fr";
 
-    const existingTeacher = await teacherQueries.getByEmail(completeEmail);
+	const existingTeacher = await teacherQueries.getByEmail(completeEmail);
 
-    if ("success" in existingTeacher) {
-        return {
-            error: true,
-            message: "Un compte existe déjà avec cet email.",
-        };
-    }
+	if ("success" in existingTeacher) {
+		return {
+			error: true,
+			message: "Un compte existe déjà avec cet email.",
+		};
+	}
 
-    const hashedPassword = await bcrypt.hash(password, 12);
-    const creationResult = await teacherQueries.create({
-        firstName,
-        lastName,
-        userMail: completeEmail,
-        password: hashedPassword,
-        isTeacher: true,
-    });
+	const hashedPassword = await bcrypt.hash(password, 12);
+	const creationResult = await teacherQueries.create({
+		firstName,
+		lastName,
+		userMail: completeEmail,
+		password: hashedPassword,
+		isTeacher: true,
+	});
 
-    if ("error" in creationResult) {
-        return {
-            error: true,
-            message: "Une erreur est survenue lors de l'inscription.",
-        };
-    }
+	if ("error" in creationResult) {
+		return {
+			error: true,
+			message: "Une erreur est survenue lors de l'inscription.",
+		};
+	}
 
-    return {
-        success: true,
-        redirectTo: "/professeur/dashboard?onboarding=true",
-    };
+	return {
+		success: true,
+		redirectTo: "/professeur/dashboard?onboarding=true",
+	};
 
 }
 
@@ -203,16 +205,16 @@ export async function setSession(session?: TeacherSessionData) {
 		teacherEmail: "" // Default empty string if no userId provided
 	}
 	const encryptedSession = await signToken(sessionData);
-	
+
 	(await cookies()).set({
-			name: STORAGE_KEY,
-			value: encryptedSession,
-			expires: expiresInOneDay,
-			httpOnly: true,
-			secure: process.env.NODE_ENV === "production",
-			sameSite: "lax",
-			path: "/",
-		})
+		name: STORAGE_KEY,
+		value: encryptedSession,
+		expires: expiresInOneDay,
+		httpOnly: true,
+		secure: process.env.NODE_ENV === "production",
+		sameSite: "lax",
+		path: "/",
+	})
 
 	return encryptedSession
 }

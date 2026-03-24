@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { login } from "@/lib/actions/authentication";
 import { ActionResult } from "@/lib/actions/types";
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { Checkbox } from "../ui/checkbox";
 
 export default function ConnexionForm() {
@@ -86,7 +86,7 @@ export default function ConnexionForm() {
             )
           }
           <div className="flex items-center">
-            <Checkbox id="remember" name="remember" />
+            <Checkbox id="remember" name="remember" checked={true} aria-readonly />
             <Label htmlFor="remember" className="ml-2">Rester connecté</Label>
           </div>
           <Button variant="big" className="w-full" disabled={pending || !formValid} type="submit">
