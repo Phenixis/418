@@ -9,7 +9,6 @@ import type { Select as Course } from '@/lib/db/schema/course';
 import type { Select as CourseGroup } from '@/lib/db/schema/course-group';
 import type { Select as Group } from '@/lib/db/schema/group';
 import Link from 'next/dist/client/link';
-import Vignette from '@/components/ui/Vignette';
 
 export default async function DashboardPage() {
     const coursesQueryResults = await courseQueries.getAll();

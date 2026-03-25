@@ -5,7 +5,7 @@ import { TableCell, TableRow } from '@/components/ui/table';
 import { Select as Course } from '@/lib/db/schema/course';
 import { Select as Group } from '@/lib/db/schema/group';
 import { format } from 'date-fns';
-import Vignette, { vignetteLabels } from '@/components/ui/Vignette';
+import Vignette from '@/components/ui/Vignette';
 import { CourseStatus } from '@/components/cours/course.types';
 import { fr } from 'date-fns/locale/fr';
 
@@ -29,8 +29,8 @@ export default function CourseTableRow({ cours, groups }: CoursProps) {
         >
             <TableCell className="font-bold text-left">{cours.subject}</TableCell>
             <TableCell>{format(cours.startAt, 'EEEE', { locale: fr })}</TableCell>
-            <TableCell className="font-lg">{format(cours.startAt, 'HH:mm', { locale: fr })}</TableCell>
-            <TableCell className="font-lg">{format(cours.endAt, 'HH:mm', { locale: fr })}</TableCell>
+            <TableCell className="text-lg">{format(cours.startAt, 'HH:mm', { locale: fr })}</TableCell>
+            <TableCell className="text-lg">{format(cours.endAt, 'HH:mm', { locale: fr })}</TableCell>
             <TableCell className="flex flex-row text-center justify-center gap-1">
                 {groups.map((group, index) => (
                     <span key={group.groupId}>
