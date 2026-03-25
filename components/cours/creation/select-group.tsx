@@ -42,7 +42,7 @@ export default function SelectGroup({
             setGroupsError(null);
 
             try {
-                const response = await fetch("/api/groups");
+                const response = await fetch("/api/teacher/groups");
 
                 if (!response.ok) {
                     throw new Error("Impossible de charger les groupes.");

@@ -28,10 +28,6 @@ export class QueryModel<NewEntityModel extends { [x: string]: any; }, ExistingEn
                 .select()
                 .from(this.table)
     
-            if (lib.resultEmpty(result)) {
-                return { error: "Aucune data trouvée." }
-            }
-    
             return { success: "Data trouvées.", entity: result as ExistingEntityModel[] }
         }
 

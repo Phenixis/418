@@ -5,6 +5,7 @@ import { teacherQueries } from "../db/queries/teacher";
 import { ActionResult } from "./types";
 import { cookies } from "next/headers"
 import { SignJWT, jwtVerify } from "jose"
+import { redirect } from "next/navigation";
 
 export async function login(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
 	const email = formData.get("email");
@@ -54,6 +55,7 @@ export async function register(_prevState: ActionResult, formData: FormData): Pr
 	const lastName = formData.get("last-name");
 	const email = formData.get("email");
 	const password = formData.get("password");
+	const remember = formData.get("remember") === "on";
 
 	if (
 		typeof firstName !== "string" ||
@@ -93,6 +95,11 @@ export async function register(_prevState: ActionResult, formData: FormData): Pr
 			message: "Une erreur est survenue lors de l'inscription.",
 		};
 	}
+
+	await setSession({
+		teacherEmail: creationResult.entity.userMail,
+		isPersistentSession: remember,
+	})
 
 	return {
 		success: true,
@@ -280,4 +287,13 @@ export async function getUser() {
 	return {
 		id: session.teacherEmail
 	}
+}
+
+
+export async function logout() {
+    "use server"
+
+    await removeSession();
+
+    redirect('/professeur/connexion');
 }
