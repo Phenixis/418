@@ -51,6 +51,17 @@ function PresenceForm() {
     const [courseName, setCourseName] = useState<string>('');
     const [isSubmittingForm, setIsSubmittingForm] = useState(false);
 
+    // Re-masque les champs sensibles a chaque changement d'etape.
+    useEffect(() => {
+        setIsPasswordVisible(false);
+        setIsConfirmPasswordVisible(false);
+
+        if (step !== 'PASSWORD' && step !== 'CREATE_PASSWORD') {
+            setPassword('');
+            setConfirmPassword('');
+        }
+    }, [step]);
+
     // Initialisation du cours scanne (validation en base puis passage a l'etape email).
     useEffect(() => {
         if (!coursId) {
@@ -427,7 +438,8 @@ function PresenceForm() {
                                                 variant="ghost"
                                                 size="icon"
                                                 className="absolute inset-y-0 right-0 my-1 mr-1 h-10 w-10"
-                                                aria-label={isConfirmPasswordVisible ? 'Cacher le mot de passe' : 'Afficher le mot de passe'}
+                                                aria-label={isConfirmPasswordVisible ? 'Cacher le mot de passe de confirmation' : 'Afficher le mot de passe de confirmation'}
+                                                aria-controls="confirmPassword"
                                                 aria-pressed={isConfirmPasswordVisible}
                                                 onClick={() => setIsConfirmPasswordVisible((current) => !current)}
                                             >
