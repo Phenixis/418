@@ -51,10 +51,6 @@ class GroupQueries extends QueryModel<NewGroup, Group> {
             .from(this.table)
             .where(lib.inArray(this.table.groupId, ids))
 
-        if (lib.resultEmpty(result)) {
-            return { error: "Aucun groupe trouvé pour ces IDs." }
-        }
-
         return { success: "Groupes trouvés pour ces IDs.", entity: result as Group[] }
     }
 
