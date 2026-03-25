@@ -1,16 +1,18 @@
 import { Select as Course } from '@/lib/db/schema/course';
-import { format } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
+
+const PARIS_TIME_ZONE = 'Europe/Paris';
 
 interface CoursProps {
     cours: Course;
 }
 
-export default function Cours({ cours }: CoursProps) {
+export default function Cours({ cours }: Readonly<CoursProps>) {
     return (
         <div>
             <h1>Cours : {cours.subject}</h1>
-            <p>commence le {format(cours.startAt, 'dd/MM/yyyy HH:mm')}</p>
-            <p>se termine le {format(cours.endAt, 'dd/MM/yyyy HH:mm')}</p>
+            <p>commence le {formatInTimeZone(cours.startAt, PARIS_TIME_ZONE, 'dd/MM/yyyy HH:mm')}</p>
+            <p>se termine le {formatInTimeZone(cours.endAt, PARIS_TIME_ZONE, 'dd/MM/yyyy HH:mm')}</p>
             <br></br>
         </div>
     );

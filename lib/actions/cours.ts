@@ -3,6 +3,9 @@
 import { courseGroupQueries } from "../db/queries/course-group";
 import { courseQueries } from "../db/queries/course";
 import { ActionResult } from "./types";
+import { fromZonedTime } from "date-fns-tz";
+
+const PARIS_TIME_ZONE = "Europe/Paris";
 
 export async function creerCours(prevState: ActionResult, formData: FormData): Promise<ActionResult> {
     const label = formData.get("label");
@@ -13,6 +16,12 @@ export async function creerCours(prevState: ActionResult, formData: FormData): P
 
     if (typeof label !== "string" || typeof startDateString !== "string" || typeof startTimeString !== "string" || typeof duration !== "string" || groups.some(group => typeof group !== "string")) {
         return { error: true, message: "Données de formulaire invalides." };
+    }9
+
+    const durationInMinutes = Number.parseInt(duration, 10);
+
+    if (!Number.isInteger(durationInMinutes) || durationInMinutes <= 0) {
+        return { error: true, message: "La durée du cours est invalide." };
     }
 
     const groupIds = [...new Set(
@@ -25,8 +34,13 @@ export async function creerCours(prevState: ActionResult, formData: FormData): P
         return { error: true, message: "Les groupes sélectionnés sont invalides." };
     }
 
-    const startDateDate = new Date(`${startDateString}T${startTimeString}:00`);
-    const endTimeDate = new Date(startDateDate.getTime() + (Number.parseInt(duration) * 60 * 1000));
+    const startDateDate = fromZonedTime(`${startDateString}T${startTimeString}:00`, PARIS_TIME_ZONE);
+
+    if (Number.isNaN(startDateDate.getTime())) {
+        return { error: true, message: "La date ou l'heure du cours est invalide." };
+    }
+
+    const endTimeDate = new Date(startDateDate.getTime() + (durationInMinutes * 60 * 1000));
 
     const uuid = crypto.randomUUID()
 
