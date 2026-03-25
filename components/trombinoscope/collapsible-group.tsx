@@ -32,7 +32,7 @@ export default function CollapsibleGroup({
             setStudentsError(null);
 
             try {
-                const response = await fetch(`/api/students?groupId=${group.groupId}`);
+                const response = await fetch(`/api/teacher/students?groupId=${group.groupId}`);
                 if (!response.ok) {
                     throw new Error(`Impossible de charger les étudiants du groupe ${group.td}${group.tp}.`);
                 }

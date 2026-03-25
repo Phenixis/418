@@ -17,7 +17,7 @@ export default function QRCode({
         const top = window.screenY + (window.outerHeight - height) / 2;
 
         window.open(
-            `/api/qr-code?codePin=${encodeURIComponent(codePin)}`,
+            `/api/teacher/qr-code?codePin=${encodeURIComponent(codePin)}`,
             'ImagePopup',
             `width=${width},height=${height},left=${left},top=${top},resizable=yes`
         );
