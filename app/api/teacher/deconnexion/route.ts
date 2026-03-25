@@ -1,5 +1,5 @@
 import { logout } from '@/lib/actions/authentication';
 
-export async function GET() {
+export async function POST() {
     await logout();
 }
