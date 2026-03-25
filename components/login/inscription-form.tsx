@@ -16,6 +16,7 @@ import Link from "next/link";
 import { passwordRules } from "./rules";
 import { register } from "@/lib/actions/authentication";
 import { ActionResult } from "@/lib/actions/types";
+import { Checkbox } from "../ui/checkbox";
 
 export default function InscriptionForm() {
     const formRef = useRef<HTMLFormElement>(null)
@@ -25,6 +26,7 @@ export default function InscriptionForm() {
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [passwordFocused, setPasswordFocused] = useState(false);
+    const [isRememberChecked, setIsRememberChecked] = useState(false);
 
     const passwordValid = passwordRules.every((rule) => rule.test(password));
     const formValid =
@@ -166,6 +168,15 @@ export default function InscriptionForm() {
                     <Button variant="big" className="w-full" disabled={pending || !formValid} type="submit">
                         S'inscrire
                     </Button>
+                    <div className="flex items-center">
+                        <Checkbox
+                            id="remember"
+                            name="remember"
+                            checked={isRememberChecked}
+                            onCheckedChange={(checked) => setIsRememberChecked(checked === true)}
+                        />
+                        <Label htmlFor="remember" className="ml-2 cursor-pointer">Rester connecté</Label>
+                    </div>
                 </CardFooter>
             </Card>
         </form>

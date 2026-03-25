@@ -54,6 +54,7 @@ export async function register(_prevState: ActionResult, formData: FormData): Pr
 	const lastName = formData.get("last-name");
 	const email = formData.get("email");
 	const password = formData.get("password");
+	const remember = formData.get("remember") === "on";
 
 	if (
 		typeof firstName !== "string" ||
@@ -93,6 +94,11 @@ export async function register(_prevState: ActionResult, formData: FormData): Pr
 			message: "Une erreur est survenue lors de l'inscription.",
 		};
 	}
+
+	await setSession({
+		teacherEmail: creationResult.entity.userMail,
+		isPersistentSession: remember,
+	})
 
 	return {
 		success: true,
