@@ -18,9 +18,11 @@ export default function ProfilBadge({ firstName, lastName }: Readonly<ProfilBadg
                 <p className="">{firstName.charAt(0)}{lastName.charAt(0)}</p>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-                <Link href="/api/teacher/deconnexion">
-                    <DropdownMenuItem variant="destructive">Déconnexion</DropdownMenuItem>
-                </Link>
+                <form action="/api/teacher/deconnexion" method="POST">
+                    <DropdownMenuItem variant="destructive" asChild>
+                        <button type="submit">Déconnexion</button>
+                    </DropdownMenuItem>
+                </form>
             </DropdownMenuContent>
         </DropdownMenu>
     );
