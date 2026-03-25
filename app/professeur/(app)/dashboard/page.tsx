@@ -1,4 +1,5 @@
 import TableDemo from '@/components/cours/CourseTableRow';
+import CreerCours from '@/components/cours/creation/creer-cours';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { courseQueries } from '@/lib/db/queries/course';
@@ -52,19 +53,19 @@ export default async function DashboardPage() {
         <>
             <div className="flex items-center justify-between mb-4">
                 <h1 className="h1">Dashboard</h1>
-                <Link href="/professeur/cours/actuel">
-                    <Button>Créer un Cours</Button>
-                </Link>
+                <CreerCours />
             </div>
             {'success' in coursesQueryResults && (
-                <Table className="rounded-lg border overflow-hidden border-separate border-spacing-0">
+                <Table className="text-center">
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Cours</TableHead>
+                            <TableHead className="text-xl">Cours</TableHead>
+                            <TableHead>Jours</TableHead>
                             <TableHead>Début</TableHead>
                             <TableHead>Fin</TableHead>
-                            <TableHead>Créé le</TableHead>
                             <TableHead>Groupes</TableHead>
+                            <TableHead>Statut</TableHead>
+                            
                         </TableRow>
                     </TableHeader>
                     <TableBody className="rounded-lg overflow-hidden">

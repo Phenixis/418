@@ -19,7 +19,7 @@ export interface CourseInfoProps {
     /** Nombre d'étudiants non scannés */
     nonScannes: number;
     /** ID du cours pour le lien du QRCode */
-    idCours: number;
+    idCours: string;
 }
 
 // Formatte une date en "18 mars 2026"
@@ -50,7 +50,7 @@ export default function CourseInfo({
     presents,
     nonScannes,
     idCours
-}: CourseInfoProps) {
+}: Readonly<CourseInfoProps>) {
     const dateFormatee = formatDate(date);
     const horaireFormate = `${heureDebut} — ${heureFin}`;
     const ENT_PAGE_URL = 'https://418.maximeduhamel.com/etudiant?cours_id=' + idCours;
