@@ -4,21 +4,28 @@ import { TableCell, TableRow } from '@/components/ui/table';
 
 import { Select as Course } from '@/lib/db/schema/course';
 import { Select as Group } from '@/lib/db/schema/group';
-import { format } from 'date-fns';
 import Vignette from '@/components/ui/Vignette';
 import { CourseStatus } from '@/components/cours/course.types';
 import { fr } from 'date-fns/locale/fr';
+import { formatInTimeZone } from 'date-fns-tz';
+
+const PARIS_TIME_ZONE = 'Europe/Paris';
 
 interface CoursProps {
     cours: Course;
     groups: Group[];
 }
 
-export default function CourseTableRow({ cours, groups }: CoursProps) {
+export default function CourseTableRow({ cours, groups }: Readonly<CoursProps>) {
     const now = new Date();
 
-    const status: CourseStatus =
-        now < cours.startAt ? CourseStatus.A_VENIR : now > cours.endAt ? CourseStatus.TERMINE : CourseStatus.EN_COURS;
+    let status: CourseStatus = CourseStatus.EN_COURS;
+
+    if (now < cours.startAt) {
+        status = CourseStatus.A_VENIR;
+    } else if (now > cours.endAt) {
+        status = CourseStatus.TERMINE;
+    }
 
     return (
         <TableRow
@@ -28,9 +35,9 @@ export default function CourseTableRow({ cours, groups }: CoursProps) {
             }}
         >
             <TableCell className="font-bold text-left">{cours.subject}</TableCell>
-            <TableCell>{format(cours.startAt, 'EEEE', { locale: fr })}</TableCell>
-            <TableCell className="text-lg">{format(cours.startAt, 'HH:mm', { locale: fr })}</TableCell>
-            <TableCell className="text-lg">{format(cours.endAt, 'HH:mm', { locale: fr })}</TableCell>
+            <TableCell>{formatInTimeZone(cours.startAt, PARIS_TIME_ZONE, 'EEEE', { locale: fr })}</TableCell>
+            <TableCell className="text-lg">{formatInTimeZone(cours.startAt, PARIS_TIME_ZONE, 'HH:mm', { locale: fr })}</TableCell>
+            <TableCell className="text-lg">{formatInTimeZone(cours.endAt, PARIS_TIME_ZONE, 'HH:mm', { locale: fr })}</TableCell>
             <TableCell className="flex flex-row text-center justify-center gap-1">
                 {groups.map((group, index) => (
                     <span key={group.groupId}>

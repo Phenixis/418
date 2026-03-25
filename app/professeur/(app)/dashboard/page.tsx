@@ -34,6 +34,6 @@ export default async function DashboardPage() {
     const groups = groupsQueryResult.entity as Group[];
 
     return (
-        <TableauCours courses={courses} groupCourses={groupCourses} groups={groups} />
+        <TableauCours courses={courses.slice().sort((a, b) => a.startAt.getTime() - b.startAt.getTime())} groupCourses={groupCourses} groups={groups} />
     );
 }
