@@ -15,8 +15,10 @@ import { login } from "@/lib/actions/authentication";
 import { ActionResult } from "@/lib/actions/types";
 import { useActionState, useEffect, useState } from "react";
 import { Checkbox } from "../ui/checkbox";
+import { useRouter } from "next/navigation";
 
 export default function ConnexionForm() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isRememberChecked, setIsRememberChecked] = useState(false);
@@ -29,7 +31,7 @@ export default function ConnexionForm() {
 
   useEffect(() => {
     if ("success" in state) {
-      globalThis.location.href = state.redirectTo;
+      router.push(state.redirectTo);
     }
   }, [state]);
 

@@ -1,5 +1,6 @@
 import { QueryModel } from './model'
 import * as lib from './lib'
+import { courseTeacherQueries } from './course-teacher'
 
 const courseTable = lib.Schema.CourseTable.table
 
@@ -20,6 +21,27 @@ class CourseQueries extends QueryModel<NewCourse, Course> {
             return { error: "Cours introuvable avec cet ID." }
         }
         return { success: "Cours trouvé.", entity: result[0] as Course }
+    }
+
+    async getByTeacherMail(teacherMail: string) {
+        const courseTeacherResult = await courseTeacherQueries.getByTeacherEmail(teacherMail)
+
+        if ('error' in courseTeacherResult) {
+            return courseTeacherResult
+        }
+
+        const courseIds = courseTeacherResult.entity.map(ct => ct.courseId)
+
+        const result = await lib.db
+            .select()
+            .from(this.table)
+            .where(lib.inArray(this.table.courseId, courseIds))
+            
+        if (lib.resultEmpty(result)) {
+            return { error: "Aucun cours trouvé." }
+        }
+
+        return { success: "Cours trouvés pour le professeur.", entity: result as Course[] }
     }
 }
 

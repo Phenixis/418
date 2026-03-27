@@ -19,7 +19,7 @@ function formatHeure(date: Date): string {
     return `${heures}h${minutes}`;
 }
 
-export default async function AppelPage({ params }: { params: Promise<{ cours_id: string }> }) {
+export default async function AppelPage({ params }: Readonly<{ params: Promise<{ cours_id: string }> }>) {
     const { cours_id } = await params;
 
     const result = await fetchCoursActuel(cours_id);

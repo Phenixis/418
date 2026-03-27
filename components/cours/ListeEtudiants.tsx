@@ -130,10 +130,10 @@ interface ListeEtudiantsProps {
     etudiants?: Etudiant[];
 }
 
-export default function ListeEtudiants({ etudiants = mockEtudiants }: ListeEtudiantsProps) {
+export default function ListeEtudiants({ etudiants = mockEtudiants }: Readonly<ListeEtudiantsProps>) {
     return (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-            {etudiants.map(etudiant => (
+            {etudiants.slice().sort((a, b) => a.nom.localeCompare(b.nom)).map(etudiant => (
                 <EtudiantCard key={etudiant.id} etudiant={etudiant} />
             ))}
         </div>

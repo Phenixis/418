@@ -1,13 +1,21 @@
 import { courseQueries } from '@/lib/db/queries/course';
 import { courseGroupQueries } from '@/lib/db/queries/course-group';
 import { groupQueries } from '@/lib/db/queries/group';
+import { teacherQueries } from '@/lib/db/queries/teacher';
 import type { Select as Course } from '@/lib/db/schema/course';
 import type { Select as CourseGroup } from '@/lib/db/schema/course-group';
 import type { Select as Group } from '@/lib/db/schema/group';
 import TableauCours from '@/components/cours/TableauCours';
+import { redirect } from 'next/navigation';
 
 export default async function DashboardPage() {
-    const coursesQueryResults = await courseQueries.getAll();
+    const teacher = await teacherQueries.getTeacher();
+
+    if (!teacher) {
+        redirect("/professeur/connexion")
+    }
+
+    const coursesQueryResults = await courseQueries.getByTeacherMail(teacher.userMail);
 
     if ('error' in coursesQueryResults) {
         return (

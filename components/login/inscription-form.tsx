@@ -17,9 +17,10 @@ import { passwordRules } from "./rules";
 import { register } from "@/lib/actions/authentication";
 import { ActionResult } from "@/lib/actions/types";
 import { Checkbox } from "../ui/checkbox";
+import { useRouter } from "next/navigation";
 
 export default function InscriptionForm() {
-    const formRef = useRef<HTMLFormElement>(null)
+    const router = useRouter();
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
     const [email, setEmail] = useState("");
@@ -42,12 +43,12 @@ export default function InscriptionForm() {
 
     useEffect(() => {
         if ("success" in state) {
-            globalThis.location.href = state.redirectTo;
+            router.push(state.redirectTo);
         }
     }, [state]);
 
     return (
-        <form className="h-screen w-screen flex items-center justify-center" action={formAction} ref={formRef}>
+        <form className="h-screen w-screen flex items-center justify-center" action={formAction}>
             <Card className="w-full max-w-md">
                 <CardHeader>
                     <CardTitle className="h2 font-normal">Inscription</CardTitle>

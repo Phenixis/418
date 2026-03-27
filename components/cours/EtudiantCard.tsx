@@ -20,11 +20,11 @@ interface EtudiantCardProps {
 }
 
 // Affiche la photo carrée de l'étudiant, ou une silhouette générique si indisponible
-function PhotoEtudiant({ photoUrl, prenom, nom }: { photoUrl: string | null; prenom: string; nom: string }) {
+function PhotoEtudiant({ photoUrl, prenom, nom }: Readonly<{ photoUrl: string | null; prenom: string; nom: string }>) {
     if (!photoUrl) {
         return (
             <div className="w-full aspect-square rounded-[6px] bg-faded/20 flex items-center justify-center">
-                <img
+                <Image
                     src="/icons/silhouette.svg"
                     alt="Photo non disponible"
                     width={64}
@@ -48,28 +48,28 @@ function PhotoEtudiant({ photoUrl, prenom, nom }: { photoUrl: string | null; pre
 }
 
 // Zone nom : fond vert + checkmark si présent, fond neutre sinon
-function ZoneNom({ prenom, nom, isPresent }: { prenom: string; nom: string; isPresent: boolean }) {
+function ZoneNom({ prenom, nom, isPresent }: Readonly<{ prenom: string; nom: string; isPresent: boolean }>) {
     return (
         <div className={cn(
             "w-full flex items-center gap-3 border border-faded rounded-[6px] py-1 px-2",
             isPresent && "bg-green border-green"
         )}>
             {isPresent && <CheckIcon className="shrink-0 text-black" style={{ fontSize: "1.1rem" }} />}
-            <div className="flex flex-col gap-[3px] min-w-0">
+            <div className="w-full flex flex-col gap-0.75 min-w-0">
                 <p className="truncate">{prenom}</p>
-                <p className="truncate">{nom}</p>
+                <p className="truncate uppercase">{nom}</p>
             </div>
         </div>
     )
 }
 
-export default function EtudiantCard({ etudiant }: EtudiantCardProps) {
+export default function EtudiantCard({ etudiant }: Readonly<EtudiantCardProps>) {
     const { prenom, nom, photoUrl, statut } = etudiant
     const isPresent = statut === StatutEtudiant.PRESENT
 
     return (
         <div className={cn(
-            "flex flex-col items-center gap-3 p-3 bg-background-alternative border border-faded rounded-[6px]",
+            "flex flex-col items-center gap-3 p-3 bg-background-alternative border border-faded rounded-[6px] text-center",
             // Carte absente : élévation Material M3/Elevation Light/3
             !isPresent && "shadow-[0px_4px_8px_3px_rgba(0,0,0,0.15),0px_1px_3px_rgba(0,0,0,0.3)]"
         )}>

@@ -32,7 +32,7 @@ function formatDate(date: Date): string {
 }
 
 // Champ d'information individuel (label + valeur)
-function InfoField({ label, value }: { label: string; value: string }) {
+function InfoField({ label, value }: Readonly<{ label: string; value: string }>) {
     return (
         <div className="flex flex-col gap-1">
             <span className="font-faded">{label}</span>

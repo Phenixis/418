@@ -8,6 +8,7 @@ import Vignette from '@/components/ui/Vignette';
 import { CourseStatus } from '@/components/cours/course.types';
 import { fr } from 'date-fns/locale/fr';
 import { formatInTimeZone } from 'date-fns-tz';
+import { useRouter } from 'next/navigation';
 
 const PARIS_TIME_ZONE = 'Europe/Paris';
 
@@ -18,6 +19,7 @@ interface CoursProps {
 
 export default function CourseTableRow({ cours, groups }: Readonly<CoursProps>) {
     const now = new Date();
+    const router = useRouter();
 
     let status: CourseStatus = CourseStatus.EN_COURS;
 
@@ -31,7 +33,7 @@ export default function CourseTableRow({ cours, groups }: Readonly<CoursProps>) 
         <TableRow
             className="even:bg-background odd:bg-white outline-2 outline-transparent hover:bg-white/50 hover:outline-primary cursor-pointer"
             onClick={() => {
-                globalThis.location.href = `/professeur/cours/${cours.courseId}`;
+                router.push(`/professeur/cours/${cours.courseId}`);
             }}
         >
             <TableCell className="font-bold text-left">{cours.subject}</TableCell>
