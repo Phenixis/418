@@ -59,16 +59,6 @@ export default function CreerCours() {
         );
     }, [label, heureDebut, duration, groupsSelected]);
 
-    useEffect(() => {
-        if (!teacher) {
-            router.replace("/professeur/connexion");
-        }
-    }, [teacher, router]);
-
-    if (!teacher) {
-        return null;
-    }
-
     return (
         <>
             {isCreateCourseDialogOpen && (
@@ -95,7 +85,7 @@ export default function CreerCours() {
                         </DialogDescription>
                     </DialogHeader>
                     <form action={formAction} className="w-full">
-                        <input type="text" name="teacherId" value={teacher.userMail} className="hidden" readOnly />
+                        <input type="text" name="teacherEmail" value={teacher.userMail} className="hidden" readOnly />
                         <div className="w-full flex flex-col gap-2 mb-2">
                             <Label htmlFor="label">Nom du cours</Label>
                             <Input 

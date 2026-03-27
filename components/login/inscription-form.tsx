@@ -1,8 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import {
     Card,
     CardContent,
@@ -11,13 +9,15 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { passwordRules } from "./rules";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { register } from "@/lib/actions/authentication";
 import { ActionResult } from "@/lib/actions/types";
-import { Checkbox } from "../ui/checkbox";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useActionState, useEffect, useState } from "react";
+import { Checkbox } from "../ui/checkbox";
+import { passwordRules } from "./rules";
 
 export default function InscriptionForm() {
     const router = useRouter();

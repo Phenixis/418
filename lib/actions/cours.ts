@@ -14,9 +14,9 @@ export async function creerCours(prevState: ActionResult, formData: FormData): P
     const startTimeString = formData.get("start-time");
     const duration = formData.get("duration");
     const groups = formData.getAll("groups");
-    const teachers = formData.getAll("teacherId");
+    const teachers = formData.getAll("teacherEmail");
 
-    if (typeof label !== "string" || typeof startDateString !== "string" || typeof startTimeString !== "string" || typeof duration !== "string" || groups.some(group => typeof group !== "string")) {
+    if (typeof label !== "string" || typeof startDateString !== "string" || typeof startTimeString !== "string" || typeof duration !== "string" || groups.some(group => typeof group !== "string") || teachers.some(teacher => typeof teacher !== "string") || teachers.length === 0) {
         return { error: true, message: "Données de formulaire invalides." };
     }
 

@@ -38,7 +38,7 @@ export const Header = () => {
                     <p>Rechercher</p>
                 </div>
                 <SettingsIcon className="m-4" />
-                <ProfilBadge firstName={teacher?.firstName || "Benoit"} lastName={teacher?.lastName || "Tottereau"} />
+                <ProfilBadge firstName={teacher.firstName} lastName={teacher.lastName} />
             </div>
         </div>
     );
