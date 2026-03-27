@@ -14,39 +14,38 @@ export default function TableauCours({
     groups: Group[];
 }>) {
     return (
-                <Table className="text-center">
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead className="text-xl">Cours</TableHead>
-                            <TableHead>Jours</TableHead>
-                            <TableHead>Début</TableHead>
-                            <TableHead>Fin</TableHead>
-                            <TableHead>Groupes</TableHead>
-                            <TableHead>Statut</TableHead>
-
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody className="rounded-lg overflow-hidden">
-                        {courses.length > 0 ? courses.map(course => (
-                            <CourseTableRow
-                                key={course.courseId}
-                                cours={course}
-                                groups={groups.filter(group =>
-                                    groupCourses.some(
-                                        groupCourse =>
-                                            groupCourse.courseId === course.courseId &&
-                                            groupCourse.groupId === group.groupId
-                                    )
-                                )}
-                            />
-                        )) : (
-                            <TableRow className="bg-white/80">
-                                <td colSpan={6} className="text-center">
-                                    Aucun cours disponible.
-                                </td>
-                            </TableRow>
+        <Table className="text-center">
+            <TableHeader>
+                <TableRow>
+                    <TableHead className="w-px">Jour</TableHead>
+                    <TableHead className="w-px">Début</TableHead>
+                    <TableHead className="w-px">Fin</TableHead>
+                    <TableHead className="w-full text-xl">Cours</TableHead>
+                    <TableHead>Groupes</TableHead>
+                    <TableHead>Statut</TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody className="rounded-lg overflow-hidden">
+                {courses.length > 0 ? courses.map(course => (
+                    <CourseTableRow
+                        key={course.courseId}
+                        cours={course}
+                        groups={groups.filter(group =>
+                            groupCourses.some(
+                                groupCourse =>
+                                    groupCourse.courseId === course.courseId &&
+                                    groupCourse.groupId === group.groupId
+                            )
                         )}
-                    </TableBody>
-                </Table>
+                    />
+                )) : (
+                    <TableRow className="bg-white/80">
+                        <td colSpan={6} className="text-center">
+                            Aucun cours disponible.
+                        </td>
+                    </TableRow>
+                )}
+            </TableBody>
+        </Table>
     )
 }

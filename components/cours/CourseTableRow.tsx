@@ -18,7 +18,7 @@ interface CoursProps {
 }
 
 /**
- * Si la  date est de +/- 7 jours, affiché la date relative (ex: "vendredi dernier", "jeudi prochain"), sinon affiché la date au format "dd MMMM yyyy" (ex: "14 septembre 2023")
+ * Si la  date est de +/- 7 jours, affiché la date relative (ex: "vendredi dernier", "jeudi prochain"), sinon affiché la date au format "dd/MM/yyyy" (ex: "14/09/2023")
  * @param date 
  */
 function formatDate(date: Date): string {
@@ -29,7 +29,7 @@ function formatDate(date: Date): string {
         return formatInTimeZone(date, PARIS_TIME_ZONE, 'EEEE', { locale: fr });
     }
 
-    return formatInTimeZone(date, PARIS_TIME_ZONE, 'dd MMMM yyyy', { locale: fr });
+    return formatInTimeZone(date, PARIS_TIME_ZONE, 'dd/MM/yyyy', { locale: fr });
 }
 
 export default function CourseTableRow({ cours, groups }: Readonly<CoursProps>) {
@@ -51,10 +51,10 @@ export default function CourseTableRow({ cours, groups }: Readonly<CoursProps>) 
                 router.push(`/professeur/cours/${cours.courseId}`);
             }}
         >
+            <TableCell className="w-px">{formatDate(cours.startAt)}</TableCell>
+            <TableCell className="w-px text-lg">{formatInTimeZone(cours.startAt, PARIS_TIME_ZONE, 'HH:mm', { locale: fr })}</TableCell>
+            <TableCell className="w-px text-lg">{formatInTimeZone(cours.endAt, PARIS_TIME_ZONE, 'HH:mm', { locale: fr })}</TableCell>
             <TableCell className="font-bold text-left">{cours.subject}</TableCell>
-            <TableCell>{formatDate(cours.startAt)}</TableCell>
-            <TableCell className="text-lg">{formatInTimeZone(cours.startAt, PARIS_TIME_ZONE, 'HH:mm', { locale: fr })}</TableCell>
-            <TableCell className="text-lg">{formatInTimeZone(cours.endAt, PARIS_TIME_ZONE, 'HH:mm', { locale: fr })}</TableCell>
             <TableCell className="flex flex-row text-center justify-center gap-1">
                 {groups.map((group, index) => (
                     <span key={group.groupId}>
