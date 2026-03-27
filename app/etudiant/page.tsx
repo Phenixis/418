@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Eye, EyeOff } from "lucide-react";
 import {
     authenticateStudentAction,
     checkStudentEmailAction,
@@ -44,10 +44,23 @@ function PresenceForm() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+    const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
     const [shouldRememberSession, setShouldRememberSession] = useState(false);
     const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
     const [courseName, setCourseName] = useState<string>('');
     const [isSubmittingForm, setIsSubmittingForm] = useState(false);
+
+    // Re-masque les champs sensibles a chaque changement d'etape.
+    useEffect(() => {
+        setIsPasswordVisible(false);
+        setIsConfirmPasswordVisible(false);
+
+        if (step !== 'PASSWORD' && step !== 'CREATE_PASSWORD') {
+            setPassword('');
+            setConfirmPassword('');
+        }
+    }, [step]);
 
     // Initialisation du cours scanne (validation en base puis passage a l'etape email).
     useEffect(() => {
@@ -274,14 +287,28 @@ function PresenceForm() {
                                 <div className="space-y-5 pt-2 animate-in fade-in slide-in-from-top-2 duration-300">
                                     <div className="space-y-2">
                                         <Label htmlFor="password" className="font-semibold text-gray-700">Mot de passe</Label>
-                                        <Input
-                                            id="password"
-                                            type="password"
-                                            value={password}
-                                            onChange={(e) => setPassword(e.target.value)}
-                                            placeholder="Mot de passe"
-                                            required
-                                        />
+                                        <div className="relative">
+                                            <Input
+                                                id="password"
+                                                type={isPasswordVisible ? 'text' : 'password'}
+                                                value={password}
+                                                onChange={(e) => setPassword(e.target.value)}
+                                                placeholder="Mot de passe"
+                                                required
+                                                className="pr-12"
+                                            />
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon"
+                                                className="absolute inset-y-0 right-0 my-1 mr-1 h-10 w-10"
+                                                aria-label={isPasswordVisible ? 'Cacher le mot de passe' : 'Afficher le mot de passe'}
+                                                aria-pressed={isPasswordVisible}
+                                                onClick={() => setIsPasswordVisible((current) => !current)}
+                                            >
+                                                {isPasswordVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                            </Button>
+                                        </div>
                                     </div>
 
                                     <div className="flex items-center justify-between gap-3 rounded-md border border-gray-200 bg-gray-50 px-3 py-2">
@@ -366,14 +393,28 @@ function PresenceForm() {
 
                                     <div className="space-y-2">
                                         <Label htmlFor="password" className="font-semibold text-gray-700">Créer un mot de passe</Label>
-                                        <Input
-                                            id="password"
-                                            type="password"
-                                            value={password}
-                                            onChange={(e) => setPassword(e.target.value)}
-                                            placeholder="Mot de passe"
-                                            required
-                                        />
+                                        <div className="relative">
+                                            <Input
+                                                id="password"
+                                                type={isPasswordVisible ? 'text' : 'password'}
+                                                value={password}
+                                                onChange={(e) => setPassword(e.target.value)}
+                                                placeholder="Mot de passe"
+                                                required
+                                                className="pr-12"
+                                            />
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon"
+                                                className="absolute inset-y-0 right-0 my-1 mr-1 h-10 w-10"
+                                                aria-label={isPasswordVisible ? 'Cacher le mot de passe' : 'Afficher le mot de passe'}
+                                                aria-pressed={isPasswordVisible}
+                                                onClick={() => setIsPasswordVisible((current) => !current)}
+                                            >
+                                                {isPasswordVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                            </Button>
+                                        </div>
                                     </div>
 
                                     {confirmPassword !== '' && password !== confirmPassword && (
@@ -382,14 +423,29 @@ function PresenceForm() {
 
                                     <div className="space-y-2">
                                         <Label htmlFor="confirmPassword" className="font-semibold text-gray-700">Confirmer le mot de passe</Label>
-                                        <Input
-                                            id="confirmPassword"
-                                            type="password"
-                                            value={confirmPassword}
-                                            onChange={(e) => setConfirmPassword(e.target.value)}
-                                            placeholder="Mot de passe"
-                                            required
-                                        />
+                                        <div className="relative">
+                                            <Input
+                                                id="confirmPassword"
+                                                type={isConfirmPasswordVisible ? 'text' : 'password'}
+                                                value={confirmPassword}
+                                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                                placeholder="Mot de passe"
+                                                required
+                                                className="pr-12"
+                                            />
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon"
+                                                className="absolute inset-y-0 right-0 my-1 mr-1 h-10 w-10"
+                                                aria-label={isConfirmPasswordVisible ? 'Cacher le mot de passe de confirmation' : 'Afficher le mot de passe de confirmation'}
+                                                aria-controls="confirmPassword"
+                                                aria-pressed={isConfirmPasswordVisible}
+                                                onClick={() => setIsConfirmPasswordVisible((current) => !current)}
+                                            >
+                                                {isConfirmPasswordVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                            </Button>
+                                        </div>
                                     </div>
 
                                     <ul className="flex flex-col gap-1 mt-1">
