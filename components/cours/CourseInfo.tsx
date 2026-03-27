@@ -2,7 +2,6 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import QRCode from './QrCode';
 
-
 export interface CourseInfoProps {
     /** Date du cours */
     date: Date;
@@ -53,7 +52,7 @@ export default function CourseInfo({
 }: Readonly<CourseInfoProps>) {
     const dateFormatee = formatDate(date);
     const horaireFormate = `${heureDebut} — ${heureFin}`;
-    const ENT_PAGE_URL = 'https://418.maximeduhamel.com/etudiant?cours_id=' + idCours;
+    const ENT_PAGE_URL = (process.env.BASE_URL ?? '') + '/etudiant?cours_id=' + idCours;
 
     return (
         <div className="flex items-stretch gap-4">

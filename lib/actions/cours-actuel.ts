@@ -1,15 +1,15 @@
 'use server';
 
+import { StatutEtudiant } from '@/components/cours/course.types';
+import { attendanceQueries } from '@/lib/db/queries/attendance';
 import { courseQueries } from '@/lib/db/queries/course';
 import { courseGroupQueries } from '@/lib/db/queries/course-group';
 import { groupQueries } from '@/lib/db/queries/group';
 import { studentQueries } from '@/lib/db/queries/student';
-import { attendanceQueries } from '@/lib/db/queries/attendance';
-import { StatutEtudiant } from '@/components/cours/course.types';
-import { Etudiant } from '@/components/cours/EtudiantCard';
 import * as Schema from '@/lib/db/schema';
 
 type Student = Schema.StudentTable.Select;
+export type StudentWithStatus = Student & { groupName: string, statut: StatutEtudiant };
 type Attendance = Schema.AttendanceTable.Select;
 type CourseGroup = Schema.CourseGroupTable.Select;
 type Group = Schema.GroupTable.Select;
@@ -27,7 +27,7 @@ export interface CoursActuelData {
     presents: number;
     nonScannes: number;
     // Liste des étudiants avec leur statut
-    etudiants: Etudiant[];
+    etudiants: StudentWithStatus[];
 }
 
 export async function fetchCoursActuel(
@@ -50,14 +50,14 @@ export async function fetchCoursActuel(
     // --- 3. Récupération du groupe (pour la promo/classe) ---
     const groupResult = await groupQueries.getByIds(groupIds);
     if ('error' in groupResult) {
-        return { success: false, error: groupResult.error as string };
+        return { success: false, error: groupResult.error };
     }
     const groupes = groupResult.entity as Group[];
 
     // --- 4. Récupération des étudiants du groupe ---
     const studentsResult = await studentQueries.getByGroupIds(groupIds);
     if ('error' in studentsResult) {
-        return { success: false, error: studentsResult.error as string };
+        return { success: false, error: studentsResult.error };
     }
     const students = studentsResult.entity;
 
@@ -67,13 +67,15 @@ export async function fetchCoursActuel(
     const presentMails = new Set(attendanceResult.entity.map((a: Attendance) => a.studentMail));
 
     // --- Assemblage des étudiants avec leur statut ---
-    const etudiants: Etudiant[] = students.map((student: Student) => ({
-        id: student.userMail,
-        prenom: student.firstName ?? '',
-        nom: student.lastName ?? '',
-        photoUrl: student.picture ?? null,
-        statut: presentMails.has(student.userMail) ? StatutEtudiant.PRESENT : StatutEtudiant.ABSENT
-    }));
+    const etudiants: StudentWithStatus[] = students.map((student: Student) => {
+        const group = groupes.find(g => g.groupId === student.groupId);
+
+        return {
+            ...student,
+            groupName: (group?.promo  || '') + (group?.td || '') + (group?.tp || ''),
+            statut: presentMails.has(student.userMail) ? StatutEtudiant.PRESENT : StatutEtudiant.ABSENT
+        }
+    });
 
     const nombrePresents = etudiants.filter(e => e.statut === StatutEtudiant.PRESENT).length;
 

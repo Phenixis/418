@@ -4,19 +4,10 @@ import CheckIcon from "@mui/icons-material/Check"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
 import { StatutEtudiant } from "@/components/cours/course.types"
-
-export interface Etudiant {
-    id: string
-    prenom: string
-    nom: string
-    /** URL de la photo — null si indisponible */
-    photoUrl: string | null
-    /** Statut de présence pour ce cours */
-    statut: StatutEtudiant
-}
+import { StudentWithStatus } from "@/lib/actions/cours-actuel"
 
 interface EtudiantCardProps {
-    etudiant: Etudiant
+    etudiant: StudentWithStatus
 }
 
 // Affiche la photo carrée de l'étudiant, ou une silhouette générique si indisponible
@@ -48,7 +39,7 @@ function PhotoEtudiant({ photoUrl, prenom, nom }: Readonly<{ photoUrl: string | 
 }
 
 // Zone nom : fond vert + checkmark si présent, fond neutre sinon
-function ZoneNom({ prenom, nom, isPresent }: Readonly<{ prenom: string; nom: string; isPresent: boolean }>) {
+function ZoneNom({ prenom, nom, isPresent, groupName }: Readonly<{ prenom: string; nom: string; isPresent: boolean; groupName: string }>) {
     return (
         <div className={cn(
             "w-full flex items-center gap-3 border border-faded rounded-[6px] py-1 px-2",
@@ -59,12 +50,13 @@ function ZoneNom({ prenom, nom, isPresent }: Readonly<{ prenom: string; nom: str
                 <p className="truncate">{prenom}</p>
                 <p className="truncate uppercase">{nom}</p>
             </div>
+                <p className="text-xs text-muted-foreground">{groupName}</p>
         </div>
     )
 }
 
 export default function EtudiantCard({ etudiant }: Readonly<EtudiantCardProps>) {
-    const { prenom, nom, photoUrl, statut } = etudiant
+    const { firstName, lastName, picture, statut, groupName } = etudiant
     const isPresent = statut === StatutEtudiant.PRESENT
 
     return (
@@ -73,8 +65,8 @@ export default function EtudiantCard({ etudiant }: Readonly<EtudiantCardProps>) 
             // Carte absente : élévation Material M3/Elevation Light/3
             !isPresent && "shadow-[0px_4px_8px_3px_rgba(0,0,0,0.15),0px_1px_3px_rgba(0,0,0,0.3)]"
         )}>
-            <PhotoEtudiant photoUrl={photoUrl} prenom={prenom} nom={nom} />
-            <ZoneNom prenom={prenom} nom={nom} isPresent={isPresent} />
+            <PhotoEtudiant photoUrl={picture} prenom={firstName} nom={lastName} />
+            <ZoneNom prenom={firstName} nom={lastName} isPresent={isPresent} groupName={groupName} />
         </div>
     )
 }
