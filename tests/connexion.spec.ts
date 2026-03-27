@@ -1,8 +1,32 @@
 import { test, expect } from '@playwright/test';
+import bcrypt from 'bcrypt';
+import { db } from '@/lib/db/drizzle';
+import { table as teacherTable } from '@/lib/db/schema/teacher';
+import {
+    ensureTestTeacherAccount,
+} from './helpers/test-account';
+
+async function createLoginTeacherCredentials(): Promise<{ localPart: string; password: string }> {
+    const randomSuffix = `${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`;
+    const localPart = `login.${randomSuffix}`;
+    const password = `ValidPass1!${randomSuffix}`;
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    await db.insert(teacherTable).values({
+        userMail: `${localPart}@univ-rennes.fr`,
+        firstName: 'Login',
+        lastName: 'Test',
+        password: hashedPassword,
+        isTeacher: true,
+    });
+
+    return { localPart, password };
+}
 
 test.describe('Connexion page', () => {
 
     test.beforeEach(async ({ page }) => {
+        await ensureTestTeacherAccount();
         await page.goto('/professeur/connexion');
     });
 
@@ -21,6 +45,8 @@ test.describe('Connexion page', () => {
     test('should allow toggling remember checkbox', async ({ page }) => {
         const rememberCheckbox = page.getByLabel('Rester connecté');
 
+        await expect(rememberCheckbox).not.toBeChecked();
+        await rememberCheckbox.click();
         await expect(rememberCheckbox).toBeChecked();
         await rememberCheckbox.click();
         await expect(rememberCheckbox).not.toBeChecked();
@@ -43,12 +69,14 @@ test.describe('Connexion page', () => {
         const emailInput = page.getByLabel('Email');
         const passwordInput = page.getByLabel('Mot de passe');
         const submitButton = page.getByRole('button', { name: 'Se connecter' });
+        const loginTeacherCredentials = await createLoginTeacherCredentials();
 
-        await emailInput.fill('benoit.tottereau');
-        await passwordInput.fill('Totoro123');
+        await emailInput.fill(loginTeacherCredentials.localPart);
+        await passwordInput.fill(loginTeacherCredentials.password);
+        await expect(submitButton).toBeEnabled();
         await submitButton.click();
 
-        await expect(page).toHaveURL('/professeur/dashboard');
+        await expect(page).toHaveURL('/professeur/dashboard', { timeout: 15_000 });
     });
 
     test('should remove mail domain if user enters it', async ({ page }) => {

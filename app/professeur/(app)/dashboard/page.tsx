@@ -8,6 +8,18 @@ import type { Select as Group } from '@/lib/db/schema/group';
 import TableauCours from '@/components/cours/TableauCours';
 import { redirect } from 'next/navigation';
 
+function getCourseStatusPriority(course: Course, now: Date): number {
+    if (now >= course.startAt && now <= course.endAt) {
+        return 0;
+    }
+
+    if (now < course.startAt) {
+        return 1;
+    }
+
+    return 2;
+}
+
 export default async function DashboardPage() {
     const teacher = await teacherQueries.getTeacher();
 
@@ -41,7 +53,19 @@ export default async function DashboardPage() {
 
     const groups = groupsQueryResult.entity as Group[];
 
+    const now = new Date();
+    const sortedCourses = courses.slice().sort((firstCourse, secondCourse) => {
+        const firstCourseStatusPriority = getCourseStatusPriority(firstCourse, now);
+        const secondCourseStatusPriority = getCourseStatusPriority(secondCourse, now);
+
+        if (firstCourseStatusPriority !== secondCourseStatusPriority) {
+            return firstCourseStatusPriority - secondCourseStatusPriority;
+        }
+
+        return firstCourse.startAt.getTime() - secondCourse.startAt.getTime();
+    });
+
     return (
-        <TableauCours courses={courses.slice().sort((a, b) => a.startAt.getTime() - b.startAt.getTime())} groupCourses={groupCourses} groups={groups} />
+        <TableauCours courses={sortedCourses} groupCourses={groupCourses} groups={groups} />
     );
 }

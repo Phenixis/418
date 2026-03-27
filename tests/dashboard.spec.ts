@@ -1,46 +1,66 @@
-import { test, expect } from '@playwright/test';
-import type { Page } from '@playwright/test';
+import { test, expect } from './fixtures/authenticated-teacher';
 import { db } from '@/lib/db/drizzle';
 import { table as teacherTable } from '@/lib/db/schema/teacher';
 import { table as courseTable } from '@/lib/db/schema/course';
 import { table as courseTeacherTable } from '@/lib/db/schema/course-teacher';
 import { eq } from 'drizzle-orm';
+import {
+    getTestAccountEmail,
+} from './helpers/test-account';
 
-function getTestAccountLocalPart(): string {
-    const testAccountEmail = process.env.TEST_ACCOUNT_EMAIL ?? 'test@univ-rennes.fr';
-    return testAccountEmail.split('@')[0];
-}
+function normalizeStatusLabel(rawStatusText: string): 'En cours' | 'À venir' | 'Terminé' | null {
+    const normalizedStatusText = rawStatusText
+        .normalize('NFD')
+        .replace(/\p{Diacritic}/gu, '')
+        .toLowerCase();
 
-async function loginAsTestTeacher(page: Page) {
-    await page.goto('/professeur/connexion');
+    if (normalizedStatusText.includes('en cours')) {
+        return 'En cours';
+    }
 
-    const emailInput = page.getByLabel('Email');
-    const passwordInput = page.getByLabel('Mot de passe');
-    const submitButton = page.getByRole('button', { name: 'Se connecter' });
+    if (normalizedStatusText.includes('a venir')) {
+        return 'À venir';
+    }
 
-    await emailInput.fill(getTestAccountLocalPart());
-    await passwordInput.fill(process.env.TEST_ACCOUNT_PASSWORD ?? 'MotDePasse1');
-    await expect(submitButton).toBeEnabled();
-    await submitButton.click();
-    await expect(page).toHaveURL('/professeur/dashboard');
+    if (normalizedStatusText.includes('termine')) {
+        return 'Terminé';
+    }
+
+    return null;
 }
 
 test.describe('Dashboard page', () => {
-    test.beforeEach(async ({ page }: { page: Page }) => {
-        await loginAsTestTeacher(page);
+    test.beforeEach(async ({ authenticatedPage }) => {
+        await authenticatedPage.goto('/professeur/dashboard');
     });
 
-    test('should display the dashboard', async ({ page }: { page: Page }) => {
-        const heading1 = page.getByRole('heading', { name: 'Dashboard' });
-        const createCourseButton = page.getByRole('button', { name: 'Créer un cours' });
+    test('should display the dashboard', async ({ authenticatedPage }) => {
+        const heading1 = authenticatedPage.getByRole('heading', { name: 'Dashboard' });
+        const createCourseButton = authenticatedPage.getByRole('button', { name: 'Créer un cours' });
         
         await expect(heading1).toBeVisible();
         await expect(createCourseButton).toBeVisible();
     });
 
-    test('should display courses ordered by status: present, future, past', async ({ page }: { page: Page }) => {
-        const statusCells = page.locator('tbody tr td:nth-child(6)');
-        const statusTexts = (await statusCells.allTextContents()).map((statusText) => statusText.trim());
+    test('should display courses ordered by status: present, future, past', async ({ authenticatedPage }) => {
+        const courseRows = authenticatedPage.locator('tbody tr');
+        const courseRowCount = await courseRows.count();
+        const statusTexts: Array<'En cours' | 'À venir' | 'Terminé'> = [];
+
+        for (let courseRowIndex = 0; courseRowIndex < courseRowCount; courseRowIndex++) {
+            const courseCells = courseRows.nth(courseRowIndex).locator('td');
+            const courseCellCount = await courseCells.count();
+
+            if (courseCellCount === 0) {
+                continue;
+            }
+
+            const rawStatusText = (await courseCells.nth(courseCellCount - 1).innerText()).trim();
+            const normalizedStatusText = normalizeStatusLabel(rawStatusText);
+
+            expect(normalizedStatusText).not.toBeNull();
+            statusTexts.push(normalizedStatusText as 'En cours' | 'À venir' | 'Terminé');
+        }
 
         const statusPriorityByLabel: Record<string, number> = {
             'En cours': 0,
@@ -50,10 +70,6 @@ test.describe('Dashboard page', () => {
 
         expect(statusTexts.length).toBeGreaterThan(0);
 
-        for (const statusText of statusTexts) {
-            expect(statusPriorityByLabel[statusText]).not.toBeUndefined();
-        }
-
         for (let statusIndex = 1; statusIndex < statusTexts.length; statusIndex++) {
             const previousStatusPriority = statusPriorityByLabel[statusTexts[statusIndex - 1]];
             const currentStatusPriority = statusPriorityByLabel[statusTexts[statusIndex]];
@@ -62,8 +78,8 @@ test.describe('Dashboard page', () => {
         }
     });
 
-    test('should only display courses for the connected teacher', async ({ page }: { page: Page }) => {
-        const testTeacherEmail = process.env.TEST_ACCOUNT_EMAIL ?? 'test@univ-rennes.fr';
+    test('should only display courses for the connected teacher', async ({ authenticatedPage }) => {
+        const testTeacherEmail = getTestAccountEmail();
         const outsiderTeacherEmail = `outsider.${Date.now()}@univ-rennes.fr`;
         const outsiderCourseId = `outsider-course-${Date.now()}`;
         const outsiderCourseSubject = `Cours outsider ${Date.now()}`;
@@ -72,7 +88,7 @@ test.describe('Dashboard page', () => {
             userMail: outsiderTeacherEmail,
             firstName: 'Outsider',
             lastName: 'Teacher',
-            password: `outsider-${Date.now()}`,
+            password: '',
             isTeacher: true,
         });
 
@@ -89,10 +105,10 @@ test.describe('Dashboard page', () => {
         });
 
         try {
-            await page.goto('/professeur/dashboard');
+            await authenticatedPage.goto('/professeur/dashboard');
 
-            await expect(page.getByRole('cell', { name: outsiderCourseSubject })).toHaveCount(0);
-            await expect(page.getByText('Cours Passé')).toBeVisible();
+            await expect(authenticatedPage.getByRole('cell', { name: outsiderCourseSubject })).toHaveCount(0);
+            await expect(authenticatedPage.getByText('Cours Passé')).toBeVisible();
 
             // Sanity check: the temporary course is linked to another teacher than the connected one.
             expect(outsiderTeacherEmail).not.toBe(testTeacherEmail);

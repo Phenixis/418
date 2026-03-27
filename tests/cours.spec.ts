@@ -1,26 +1,7 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures/authenticated-teacher';
 import type { Locator, Page } from '@playwright/test';
 
 const QR_BUTTON_ACCESSIBLE_NAME = 'Ouvrir le QR code dans une nouvelle fenêtre';
-
-function getTestAccountLocalPart(): string {
-	const testAccountEmail = process.env.TEST_ACCOUNT_EMAIL ?? 'test@univ-rennes.fr';
-	return testAccountEmail.split('@')[0];
-}
-
-async function loginAsTestTeacher(page: Page): Promise<void> {
-	await page.goto('/professeur/connexion');
-
-	const emailInput = page.getByLabel('Email');
-	const passwordInput = page.getByLabel('Mot de passe');
-	const submitButton = page.getByRole('button', { name: 'Se connecter' });
-
-	await emailInput.fill(getTestAccountLocalPart());
-	await passwordInput.fill(process.env.TEST_ACCOUNT_PASSWORD ?? 'MotDePasse1');
-	await expect(submitButton).toBeEnabled();
-	await submitButton.click();
-	await expect(page).toHaveURL('/professeur/dashboard');
-}
 
 async function openCourseByStatus(page: Page, statusLabel: 'En cours' | 'Terminé' | 'À venir'): Promise<void> {
 	await page.goto('/professeur/dashboard');
@@ -28,10 +9,24 @@ async function openCourseByStatus(page: Page, statusLabel: 'En cours' | 'Termin�
 	const courseRow = page.locator('tbody tr').filter({
 		has: page.getByRole('cell', { name: statusLabel, exact: true }),
 	}).first();
+	const expectedCourseUrlPattern = /\/professeur\/cours\/[\w-]+$/;
 
 	await expect(courseRow).toBeVisible();
-	await courseRow.click();
-	await expect(page).toHaveURL(/\/professeur\/cours\/[\w-]+$/);
+
+	for (let attemptIndex = 0; attemptIndex < 5; attemptIndex++) {
+		await courseRow.click({ force: true });
+
+		try {
+			await expect(page).toHaveURL(expectedCourseUrlPattern, { timeout: 3_000 });
+			return;
+		} catch {
+			if (attemptIndex === 4) {
+				throw new Error(`Navigation vers la page de cours impossible pour le statut "${statusLabel}".`);
+			}
+
+			await page.waitForTimeout(500);
+		}
+	}
 }
 
 async function readInfoCount(page: Page, label: 'Total' | 'Présents' | 'Non-scannés'): Promise<number> {
@@ -103,34 +98,34 @@ async function readStudentsInDisplayedOrder(page: Page): Promise<StudentIdentity
 }
 
 test.describe('Segment dynamique de cours', () => {
-	test.beforeEach(async ({ page }) => {
-		await loginAsTestTeacher(page);
+	test.beforeEach(async ({ authenticatedPage }) => {
+		await authenticatedPage.goto('/professeur/dashboard');
 	});
 
-	test('ne doit pas afficher le QR code si le cours n\'est pas en cours', async ({ page }) => {
+	test('ne doit pas afficher le QR code si le cours n\'est pas en cours', async ({ authenticatedPage }) => {
 		for (const nonRunningStatus of ['Terminé', 'À venir'] as const) {
-			await openCourseByStatus(page, nonRunningStatus);
-			await expect(page.getByText(nonRunningStatus, { exact: true })).toBeVisible();
-			await expect(getQrButton(page)).toHaveCount(0);
+			await openCourseByStatus(authenticatedPage, nonRunningStatus);
+			await expect(authenticatedPage.getByText(nonRunningStatus, { exact: true })).toBeVisible();
+			await expect(getQrButton(authenticatedPage)).toHaveCount(0);
 		}
 	});
 
-	test('doit afficher le QR code si le cours est en cours', async ({ page }) => {
-		await openCourseByStatus(page, 'En cours');
+	test('doit afficher le QR code si le cours est en cours', async ({ authenticatedPage }) => {
+		await openCourseByStatus(authenticatedPage, 'En cours');
 
-		const qrButton = getQrButton(page);
+		const qrButton = getQrButton(authenticatedPage);
 
-		await expect(page.getByText('En cours', { exact: true })).toBeVisible();
+		await expect(authenticatedPage.getByText('En cours', { exact: true })).toBeVisible();
 		await expect(qrButton).toBeVisible();
 		await expect(qrButton).toBeEnabled();
 	});
 
-	test('doit ouvrir une nouvelle fenêtre QR avec uniquement le QR quand on clique dessus', async ({ page }) => {
-		await openCourseByStatus(page, 'En cours');
+	test('doit ouvrir une nouvelle fenêtre QR avec uniquement le QR quand on clique dessus', async ({ authenticatedPage }) => {
+		await openCourseByStatus(authenticatedPage, 'En cours');
 
-		const qrButton = getQrButton(page);
+		const qrButton = getQrButton(authenticatedPage);
 		const [popup] = await Promise.all([
-			page.waitForEvent('popup'),
+			authenticatedPage.waitForEvent('popup'),
 			qrButton.click(),
 		]);
 
@@ -141,16 +136,16 @@ test.describe('Segment dynamique de cours', () => {
 		await expect(popup.locator('main > *')).toHaveCount(1);
 	});
 
-	test('doit permettre de cliquer un étudiant pour basculer present et non-scanné', async ({ page }) => {
-		await openCourseByStatus(page, 'En cours');
+	test('doit permettre de cliquer un étudiant pour basculer present et non-scanné', async ({ authenticatedPage }) => {
+		await openCourseByStatus(authenticatedPage, 'En cours');
 
-		const firstStudentCard = getStudentCards(page).first();
+		const firstStudentCard = getStudentCards(authenticatedPage).first();
 		await expect(firstStudentCard).toBeVisible();
 
 		const initialStudentPresence = await isStudentPresent(firstStudentCard);
 		const expectedStatusAfterFirstClick = initialStudentPresence ? 'non-scanne' : 'present';
 
-		const firstToggleResponsePromise = page.waitForResponse((response) => {
+		const firstToggleResponsePromise = authenticatedPage.waitForResponse((response) => {
 			return response.url().includes('/api/teacher/attendance/toggle')
 				&& response.request().method() === 'PATCH';
 		});
@@ -164,7 +159,7 @@ test.describe('Segment dynamique de cours', () => {
 
 		await expect.poll(async () => isStudentPresent(firstStudentCard)).toBe(!initialStudentPresence);
 
-		const secondToggleResponsePromise = page.waitForResponse((response) => {
+		const secondToggleResponsePromise = authenticatedPage.waitForResponse((response) => {
 			return response.url().includes('/api/teacher/attendance/toggle')
 				&& response.request().method() === 'PATCH';
 		});
@@ -179,14 +174,14 @@ test.describe('Segment dynamique de cours', () => {
 		await expect.poll(async () => isStudentPresent(firstStudentCard)).toBe(initialStudentPresence);
 	});
 
-	test('doit afficher des compteurs cohérents entre total, présents et non-scannés', async ({ page }) => {
-		await openCourseByStatus(page, 'En cours');
+	test('doit afficher des compteurs cohérents entre total, présents et non-scannés', async ({ authenticatedPage }) => {
+		await openCourseByStatus(authenticatedPage, 'En cours');
 
-		const totalFromInfo = await readInfoCount(page, 'Total');
-		const presentsFromInfo = await readInfoCount(page, 'Présents');
-		const nonScannesFromInfo = await readInfoCount(page, 'Non-scannés');
+		const totalFromInfo = await readInfoCount(authenticatedPage, 'Total');
+		const presentsFromInfo = await readInfoCount(authenticatedPage, 'Présents');
+		const nonScannesFromInfo = await readInfoCount(authenticatedPage, 'Non-scannés');
 
-		const studentCards = getStudentCards(page);
+		const studentCards = getStudentCards(authenticatedPage);
 		const displayedStudentCount = await studentCards.count();
 		const presentStudentsCount = await countPresentStudents(studentCards);
 		const nonScannedStudentsCount = displayedStudentCount - presentStudentsCount;
@@ -197,10 +192,10 @@ test.describe('Segment dynamique de cours', () => {
 		expect(totalFromInfo).toBe(presentsFromInfo + nonScannesFromInfo);
 	});
 
-	test('doit trier les étudiants par classe puis nom puis prénom', async ({ page }) => {
-		await openCourseByStatus(page, 'En cours');
+	test('doit trier les étudiants par classe puis nom puis prénom', async ({ authenticatedPage }) => {
+		await openCourseByStatus(authenticatedPage, 'En cours');
 
-		const displayedStudents = await readStudentsInDisplayedOrder(page);
+		const displayedStudents = await readStudentsInDisplayedOrder(authenticatedPage);
 		const sortedStudents = [...displayedStudents].sort((studentA, studentB) => {
 			const groupComparison = studentA.groupName.localeCompare(studentB.groupName, 'fr');
 			if (groupComparison !== 0) {

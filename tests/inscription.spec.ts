@@ -1,5 +1,9 @@
 import { passwordRules } from '@/components/login/rules';
 import { expect, test } from '@playwright/test';
+import {
+    ensureTestTeacherAccount,
+    getTestAccountLocalPart,
+} from './helpers/test-account';
 
 test.describe('Inscription page', () => {
 
@@ -31,6 +35,8 @@ test.describe('Inscription page', () => {
     });
 
     test('should show error message on creation with email already registered', async ({ page }) => {
+        await ensureTestTeacherAccount();
+
         const firstNameInput = page.getByLabel('Prénom', { exact: true });
         const lastNameInput = page.getByLabel('Nom', { exact: true });
         const emailInput = page.getByLabel('Email', { exact: true });
@@ -40,7 +46,7 @@ test.describe('Inscription page', () => {
 
         await firstNameInput.fill('Benoit');
         await lastNameInput.fill('Tottereau');
-        await emailInput.fill('benoit.tottereau');
+        await emailInput.fill(getTestAccountLocalPart());
         await passwordInput.fill('Totoro123');
         await confirmPasswordInput.fill('Totoro123');
         await submitButton.click();
