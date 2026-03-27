@@ -16,6 +16,7 @@ jobs:
       TEST_ACCOUNT_EMAIL: ${{ secrets.TEST_ACCOUNT_EMAIL || vars.TEST_ACCOUNT_EMAIL }}
       TEST_ACCOUNT_PASSWORD: ${{ secrets.TEST_ACCOUNT_PASSWORD || vars.TEST_ACCOUNT_PASSWORD }}
       BASE_URL: ${{ secrets.BASE_URL || vars.BASE_URL }}
+      AUTH_SECRET: ${{ secrets.AUTH_SECRET || vars.AUTH_SECRET }}
 
     steps:
       - uses: actions/checkout@v4
@@ -24,17 +25,19 @@ jobs:
         with:
           node-version: lts/*
 
-      - name: Install dependencies
-        run: npm install -g pnpm && pnpm install
-
-      - name: Install Playwright Browsers
-        run: pnpm exec playwright install --with-deps
-
       - name: Validate required env vars
         run: |
           test -n "$POSTGRES_URL" || (echo "::error::POSTGRES_URL is empty. Check Actions secrets/variables name, environment binding, and PR context (fork PRs do not receive secrets)." && exit 1)
           test -n "$TEST_ACCOUNT_EMAIL" || (echo "::error::TEST_ACCOUNT_EMAIL is empty. Check Actions secrets/variables name, environment binding, and PR context (fork PRs do not receive secrets)." && exit 1)
           test -n "$TEST_ACCOUNT_PASSWORD" || (echo "::error::TEST_ACCOUNT_PASSWORD is empty. Check Actions secrets/variables name, environment binding, and PR context (fork PRs do not receive secrets)." && exit 1)
+          test -n "$BASE_URL" || (echo "::error::BASE_URL is empty. Check Actions secrets/variables name, environment binding, and PR context (fork PRs do not receive secrets)." && exit 1)
+          test -n "$AUTH_SECRET" || (echo "::error::AUTH_SECRET is empty. Check Actions secrets/variables name, environment binding, and PR context (fork PRs do not receive secrets)." && exit 1)
+
+      - name: Install dependencies
+        run: npm install -g pnpm && pnpm install
+
+      - name: Install Playwright Browsers
+        run: pnpm exec playwright install --with-deps
 
       - name: Run Playwright tests
         run: pnpm exec playwright test
