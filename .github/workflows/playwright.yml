@@ -23,8 +23,18 @@ jobs:
       run: npm install -g pnpm && pnpm install
     - name: Install Playwright Browsers
       run: pnpm exec playwright install --with-deps
+    - name: Validate required env vars
+      run: |
+        test -n "$POSTGRES_URL" || (echo "::error::POSTGRES_URL is empty or unavailable in this workflow context." && exit 1)
+        test -n "$TEST_ACCOUNT_EMAIL" || (echo "::error::TEST_ACCOUNT_EMAIL is empty or unavailable in this workflow context." && exit 1)
+        test -n "$TEST_ACCOUNT_PASSWORD" || (echo "::error::TEST_ACCOUNT_PASSWORD is empty or unavailable in this workflow context." && exit 1)
     - name: Run Playwright tests
       run: pnpm exec playwright test
+      env:
+        POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
+        TEST_ACCOUNT_EMAIL: ${{ secrets.TEST_ACCOUNT_EMAIL }}
+        TEST_ACCOUNT_PASSWORD: ${{ secrets.TEST_ACCOUNT_PASSWORD }}
+        BASE_URL: ${{ secrets.BASE_URL }}
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:

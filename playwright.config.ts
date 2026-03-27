@@ -33,6 +33,10 @@ export default defineConfig({
     url: 'http://localhost:3005',
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
+    env: {
+      ...process.env,
+      PORT: '3005',
+    },
     gracefulShutdown: {
       signal: 'SIGTERM',
       timeout: 1_000,
