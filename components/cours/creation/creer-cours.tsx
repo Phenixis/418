@@ -59,8 +59,13 @@ export default function CreerCours() {
         );
     }, [label, heureDebut, duration, groupsSelected]);
 
+    useEffect(() => {
+        if (!teacher) {
+            router.replace("/professeur/connexion");
+        }
+    }, [teacher, router]);
+
     if (!teacher) {
-        router.push("/professeur/connexion");
         return null;
     }
 

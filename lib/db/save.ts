@@ -7,7 +7,9 @@ import { groupQueries } from "./queries/group";
 import { studentQueries } from "./queries/student";
 import { teacherQueries } from "./queries/teacher";
 import { Data } from "./save.types";
-import { SAVES_FOLDER_PATH } from "./seed";
+import { normalize } from "node:path";
+
+export const SAVES_FOLDER_PATH = normalize(__dirname + "/saves/")
 
 async function save() {
     const attendances = await attendanceQueries.getAll();

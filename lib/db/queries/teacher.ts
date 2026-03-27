@@ -1,6 +1,7 @@
 import { QueryModel } from './model'
 import * as lib from './lib'
 import { getClientSession } from '@/lib/actions/authentication'
+import { redirect } from 'next/navigation'
 
 const teacherTable = lib.Schema.TeacherTable.table
 
@@ -43,13 +44,13 @@ class TeacherQueries extends QueryModel<NewTeacher, Teacher> {
         const teacherEmail = email || await this.getTeacherEmailFromSession();
 
         if (!teacherEmail) {
-            return null
+            redirect('/api/teacher/deconnexion')
         }
 
         const user = await this.getByEmail(teacherEmail)
 
         if ("error" in user) {
-            throw new Error(user.error)
+            redirect('/api/teacher/deconnexion')
         }
 
         return user.entity
