@@ -62,7 +62,7 @@ export default function ListeEtudiants({ courseId, etudiants }: Readonly<ListeEt
             });
 
             if (!response.ok) {
-                throw new Error('Impossible de mettre a jour la presence de l\'etudiant.');
+                throw new Error("Impossible de mettre à jour la présence de l'étudiant.");
             }
 
             const responseData = await response.json() as ToggleAttendanceResponse;
@@ -103,11 +103,11 @@ export default function ListeEtudiants({ courseId, etudiants }: Readonly<ListeEt
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
             {students.slice()
             .sort((a, b) => {
-                const groupComparison = a.groupName.localeCompare(b.groupName);
+                const groupComparison = a.groupName.localeCompare(b.groupName, 'fr', { sensitivity: 'base' });
                 if (groupComparison !== 0) return groupComparison;
-                const lastNameComparison = a.lastName.localeCompare(b.lastName);
+                const lastNameComparison = a.lastName.localeCompare(b.lastName, 'fr', { sensitivity: 'base' });
                 if (lastNameComparison !== 0) return lastNameComparison;
-                return a.firstName.localeCompare(b.firstName);
+                return a.firstName.localeCompare(b.firstName, 'fr', { sensitivity: 'base' });
             })
             .map(etudiant => (
                 <EtudiantCard
