@@ -8,6 +8,8 @@ import { StudentWithStatus } from "@/lib/actions/cours-actuel"
 
 interface EtudiantCardProps {
     etudiant: StudentWithStatus
+    onClick?: (student: StudentWithStatus) => void
+    isDisabled?: boolean
 }
 
 // Affiche la photo carrée de l'étudiant, ou une silhouette générique si indisponible
@@ -50,23 +52,33 @@ function ZoneNom({ prenom, nom, isPresent, groupName }: Readonly<{ prenom: strin
                 <p className="truncate">{prenom}</p>
                 <p className="truncate uppercase">{nom}</p>
             </div>
-                <p className="text-xs text-muted-foreground">{groupName}</p>
+            <p className="text-xs text-muted-foreground">{groupName}</p>
         </div>
     )
 }
 
-export default function EtudiantCard({ etudiant }: Readonly<EtudiantCardProps>) {
+export default function EtudiantCard({
+    etudiant,
+    onClick,
+    isDisabled = false
+}: Readonly<EtudiantCardProps>) {
     const { firstName, lastName, picture, statut, groupName } = etudiant
     const isPresent = statut === StatutEtudiant.PRESENT
 
     return (
-        <div className={cn(
+        <button className={cn(
             "flex flex-col items-center gap-3 p-3 bg-background-alternative border border-faded rounded-[6px] text-center",
             // Carte absente : élévation Material M3/Elevation Light/3
-            !isPresent && "shadow-[0px_4px_8px_3px_rgba(0,0,0,0.15),0px_1px_3px_rgba(0,0,0,0.3)]"
-        )}>
+            !isPresent && "shadow-[0px_4px_8px_3px_rgba(0,0,0,0.15),0px_1px_3px_rgba(0,0,0,0.3)]",
+            isDisabled && "opacity-70 cursor-not-allowed",
+            onClick && !isDisabled && "cursor-pointer hover:bg-background-alternative/80 active:bg-background-alternative/60 transition-colors"
+        )}
+            onClick={() => onClick?.(etudiant)}
+            type="button"
+            disabled={isDisabled}
+        >
             <PhotoEtudiant photoUrl={picture} prenom={firstName} nom={lastName} />
             <ZoneNom prenom={firstName} nom={lastName} isPresent={isPresent} groupName={groupName} />
-        </div>
+        </button>
     )
 }

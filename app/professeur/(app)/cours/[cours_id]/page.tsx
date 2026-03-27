@@ -51,10 +51,11 @@ export default async function AppelPage({ params }: Readonly<{ params: Promise<{
                 total={data.total}
                 presents={data.presents}
                 nonScannes={data.nonScannes}
+                status={status}
             />
 
             {/* Liste des étudiants du cours */}
-            <ListeEtudiants etudiants={data.etudiants} />
+            <ListeEtudiants courseId={cours_id} etudiants={data.etudiants} />
         </section>
     );
 }

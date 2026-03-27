@@ -73,7 +73,7 @@ export async function fetchCoursActuel(
         return {
             ...student,
             groupName: (group?.promo  || '') + (group?.td || '') + (group?.tp || ''),
-            statut: presentMails.has(student.userMail) ? StatutEtudiant.PRESENT : StatutEtudiant.ABSENT
+            statut: presentMails.has(student.userMail) ? StatutEtudiant.PRESENT : StatutEtudiant['NON-SCANNE']
         }
     });
 

@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import QRCode from './QrCode';
+import { CourseStatus } from './course.types';
 
 export interface CourseInfoProps {
     /** Date du cours */
@@ -19,6 +20,8 @@ export interface CourseInfoProps {
     nonScannes: number;
     /** ID du cours pour le lien du QRCode */
     idCours: string;
+    /** Statut du cours pour adapter l'affichage si besoin */
+    status: CourseStatus;
 }
 
 // Formatte une date en "18 mars 2026"
@@ -48,7 +51,8 @@ export default function CourseInfo({
     total,
     presents,
     nonScannes,
-    idCours
+    idCours,
+    status
 }: Readonly<CourseInfoProps>) {
     const dateFormatee = formatDate(date);
     const horaireFormate = `${heureDebut} — ${heureFin}`;
@@ -78,10 +82,13 @@ export default function CourseInfo({
                 </CardContent>
             </Card>
 
-            {/* Placeholder QR Code — carré de même hauteur que le rectangle d'informations */}
-            <div className="self-stretch shrink-0 flex items-center justify-center">
-                <QRCode codePin={ENT_PAGE_URL}/>
-            </div>
+            {
+                status === CourseStatus.EN_COURS && (
+                    <div className="self-stretch shrink-0 flex items-center justify-center">
+                        <QRCode codePin={ENT_PAGE_URL} />
+                    </div>
+                )
+            }
         </div>
     );
 }
