@@ -18,15 +18,26 @@ interface CoursProps {
 }
 
 /**
- * Si la  date est de +/- 7 jours, affiché la date relative (ex: "vendredi dernier", "jeudi prochain"), sinon affiché la date au format "dd/MM/yyyy" (ex: "14/09/2023")
- * @param date 
+ * Si la date est de +/- 7 jours, affiche une date relative (ex: "vendredi dernier", "jeudi prochain"),
+ * sinon affiche la date au format "dd/MM/yyyy" (ex: "14/09/2023").
+ * @param date
  */
 function formatDate(date: Date): string {
     const now = new Date();
     const diffInDays = Math.round((date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
 
     if (diffInDays >= -7 && diffInDays <= 7) {
-        return formatInTimeZone(date, PARIS_TIME_ZONE, 'EEEE', { locale: fr });
+        const weekdayName = formatInTimeZone(date, PARIS_TIME_ZONE, 'EEEE', { locale: fr });
+
+        if (diffInDays === 0) {
+            return "Aujourd'hui";
+        }
+
+        if (diffInDays < 0) {
+            return `${weekdayName} dernier`;
+        }
+
+        return `${weekdayName} prochain`;
     }
 
     return formatInTimeZone(date, PARIS_TIME_ZONE, 'dd/MM/yyyy', { locale: fr });

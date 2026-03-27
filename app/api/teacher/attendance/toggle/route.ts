@@ -30,9 +30,18 @@ export async function PATCH(request: Request) {
         return NextResponse.json({ error: "Le corps de la requête doit être un JSON valide." }, { status: 400 });
     }
 
-    const courseId = requestBody.courseId?.trim();
-    const studentMail = requestBody.studentMail?.trim();
+    const rawCourseId = requestBody.courseId;
+    const rawStudentMail = requestBody.studentMail;
 
+    if (typeof rawCourseId !== "string" || typeof rawStudentMail !== "string") {
+        return NextResponse.json(
+            { error: "Les champs courseId et studentMail doivent être des chaînes de caractères non vides." },
+            { status: 400 }
+        );
+    }
+
+    const courseId = rawCourseId.trim();
+    const studentMail = rawStudentMail.trim();
     if (!courseId || !studentMail) {
         return NextResponse.json(
             { error: "Les champs courseId et studentMail sont requis." },

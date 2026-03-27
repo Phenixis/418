@@ -33,7 +33,7 @@ export default function ConnexionForm() {
     if ("success" in state) {
       router.push(state.redirectTo);
     }
-  }, [state]);
+  }, [state, router]);
 
   return (
     <form className="h-screen w-screen flex items-center justify-center" action={formAction}>
