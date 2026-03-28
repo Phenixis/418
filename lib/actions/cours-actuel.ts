@@ -36,23 +36,20 @@ export async function fetchCoursActuel(
     // --- 1. Récupération du cours ---
     const courseResult = await courseQueries.getByStringId(courseId);
     if ('error' in courseResult) {
-        return { success: false, error: courseResult.error as string };
+        return { success: false, error: courseResult.error };
     }
     const cours = courseResult.entity;
 
     // --- 2. Récupération du lien cours-groupe ---
     const courseGroupResult = await courseGroupQueries.getByCourseId(courseId);
     if ('error' in courseGroupResult) {
-        return { success: false, error: courseGroupResult.error as string };
+        return { success: false, error: courseGroupResult.error };
     }
     const groupIds = courseGroupResult.entity.map((coursGroup: CourseGroup) => coursGroup.groupId);
 
     // --- 3. Récupération du groupe (pour la promo/classe) ---
     const groupResult = await groupQueries.getByIds(groupIds);
-    if ('error' in groupResult) {
-        return { success: false, error: groupResult.error };
-    }
-    const groupes = groupResult.entity as Group[];
+    const groupes = groupResult.entity;
 
     // --- 4. Récupération des étudiants du groupe ---
     const studentsResult = await studentQueries.getByGroupIds(groupIds);
@@ -72,7 +69,7 @@ export async function fetchCoursActuel(
 
         return {
             ...student,
-            groupName: (group?.promo  || '') + (group?.td || '') + (group?.tp || ''),
+            groupName: (group?.promo || '') + (group?.td || '') + (group?.tp || ''),
             statut: presentMails.has(student.userMail) ? StatutEtudiant.PRESENT : StatutEtudiant['NON-SCANNE']
         }
     });
