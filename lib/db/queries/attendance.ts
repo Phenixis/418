@@ -1,4 +1,4 @@
-import { QueryModel } from './model'
+import { QueryModel, QueryResult, SuccessQueryResult } from './model'
 import * as lib from './lib'
 
 const attendanceTable = lib.Schema.AttendanceTable.table
@@ -11,7 +11,7 @@ class AttendanceQueries extends QueryModel<NewAttendance, Attendance> {
         super(attendanceTable)
     }
 
-    async getById(id: number) {
+    async getById(id: number): Promise<QueryResult<Attendance>> {
         const result = await lib.db
             .select()
             .from(this.table)
@@ -25,7 +25,7 @@ class AttendanceQueries extends QueryModel<NewAttendance, Attendance> {
     }
 
     // Récupère toutes les présences pour un cours donné
-    async getByCourseId(courseId: string) {
+    async getByCourseId(courseId: string): Promise<SuccessQueryResult<Attendance[]>> {
         const result = await lib.db
             .select()
             .from(this.table)
@@ -38,7 +38,7 @@ class AttendanceQueries extends QueryModel<NewAttendance, Attendance> {
         return { success: "Présences récupérées.", entity: result as Attendance[] }
     }
 
-    async getByCourseAndStudent(courseId: string, studentMail: string) {
+    async getByCourseAndStudent(courseId: string, studentMail: string): Promise<SuccessQueryResult<Attendance[]>> {
         const result = await lib.db
             .select()
             .from(this.table)
@@ -51,7 +51,7 @@ class AttendanceQueries extends QueryModel<NewAttendance, Attendance> {
         return { success: "Présences récupérées.", entity: result as Attendance[] }
     }
 
-    async markPresent(courseId: string, studentMail: string) {
+    async markPresent(courseId: string, studentMail: string): Promise<QueryResult<Attendance>> {
         const existingAttendance = await this.getByCourseAndStudent(courseId, studentMail)
 
         if (existingAttendance.entity.length > 0) {
@@ -68,10 +68,10 @@ class AttendanceQueries extends QueryModel<NewAttendance, Attendance> {
             return createResult
         }
 
-        return { success: "Présence ajoutée.", entity: createResult.entity as Attendance }
+        return { success: "Présence ajoutée.", entity: createResult.entity }
     }
 
-    async markNonScanne(courseId: string, studentMail: string) {
+    async markNonScanne(courseId: string, studentMail: string): Promise<SuccessQueryResult<Attendance[]>> {
         const deletedAttendances = await lib.db
             .delete(this.table)
             .where(lib.and(

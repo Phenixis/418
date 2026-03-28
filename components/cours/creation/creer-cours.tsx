@@ -18,7 +18,7 @@ import { creerCours } from "@/lib/actions/cours";
 import { ActionResult } from "@/lib/actions/types";
 import { useActionState, useEffect, useState } from "react";
 import SelectGroupComponent from "./select-group";
-import { useTeacher } from "@/lib/hooks/UseTeacher";
+import { useTeacher } from "@/lib/hooks/useTeacher";
 import { useRouter } from "next/navigation";
 
 export default function CreerCours() {

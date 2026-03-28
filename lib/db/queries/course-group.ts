@@ -1,4 +1,4 @@
-import { QueryModel } from './model'
+import { QueryModel, QueryResult, SuccessQueryResult } from './model'
 import * as lib from './lib'
 
 const courseGroupTable = lib.Schema.CourseGroupTable.table
@@ -11,7 +11,7 @@ class CourseGroupQueries extends QueryModel<NewCourseGroup, CourseGroup> {
         super(courseGroupTable)
     }
 
-    async getById(id: number) {
+    async getById(id: number): Promise<QueryResult<CourseGroup>> {
         const result = await lib.db
             .select()
             .from(this.table)
@@ -25,7 +25,7 @@ class CourseGroupQueries extends QueryModel<NewCourseGroup, CourseGroup> {
     }
 
     // Récupère le lien cours-groupe pour un cours donné
-    async getByCourseId(courseId: string) {
+    async getByCourseId(courseId: string): Promise<QueryResult<CourseGroup[]>> {
         const result = await lib.db
             .select()
             .from(this.table)
@@ -38,7 +38,7 @@ class CourseGroupQueries extends QueryModel<NewCourseGroup, CourseGroup> {
         return { success: "Lien Cours-Groupe trouvé.", entity: result as CourseGroup[] }
     }
 
-    async getByCourseIds(courseIds: string[]) {
+    async getByCourseIds(courseIds: string[]): Promise<SuccessQueryResult<CourseGroup[]>> {
         const result = await lib.db
             .select()
             .from(this.table)

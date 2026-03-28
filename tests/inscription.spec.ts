@@ -1,14 +1,22 @@
 import { passwordRules } from '@/components/login/rules';
 import { expect, test } from '@playwright/test';
 import {
-    ensureTestTeacherAccount,
-    getTestAccountLocalPart,
+    deleteTeacherAccountByEmail,
+    ensureTeacherAccountByEmail,
 } from './helpers/test-account';
 
 test.describe('Inscription page', () => {
+    let createdTeacherEmails: string[] = [];
 
     test.beforeEach(async ({ page }) => {
+        createdTeacherEmails = [];
         await page.goto('/professeur/inscription?invite_id=123');
+    });
+
+    test.afterEach(async () => {
+        for (const teacherEmail of createdTeacherEmails) {
+            await deleteTeacherAccountByEmail(teacherEmail);
+        }
     });
 
     test("should show Not found if the invite_id is empty", async ({ page }) => {
@@ -35,7 +43,11 @@ test.describe('Inscription page', () => {
     });
 
     test('should show error message on creation with email already registered', async ({ page }) => {
-        await ensureTestTeacherAccount();
+        const uniqueTeacherLocalPart = `inscription.existing.${Date.now()}`;
+        const uniqueTeacherEmail = `${uniqueTeacherLocalPart}@univ-rennes.fr`;
+
+        await ensureTeacherAccountByEmail(uniqueTeacherEmail, 'Totoro123');
+        createdTeacherEmails.push(uniqueTeacherEmail);
 
         const firstNameInput = page.getByLabel('Prénom', { exact: true });
         const lastNameInput = page.getByLabel('Nom', { exact: true });
@@ -46,7 +58,7 @@ test.describe('Inscription page', () => {
 
         await firstNameInput.fill('Benoit');
         await lastNameInput.fill('Tottereau');
-        await emailInput.fill(getTestAccountLocalPart());
+        await emailInput.fill(uniqueTeacherEmail);
         await passwordInput.fill('Totoro123');
         await confirmPasswordInput.fill('Totoro123');
         await submitButton.click();

@@ -1,0 +1,1 @@
+ALTER TABLE "teacher" ADD COLUMN "is_validated" boolean DEFAULT false NOT NULL;

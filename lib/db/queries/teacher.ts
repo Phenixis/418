@@ -26,6 +26,37 @@ class TeacherQueries extends QueryModel<NewTeacher, Teacher> {
         return { success: "Enseignant trouvé.", entity: result[0] as Teacher }
     }
 
+    async validateTeacher(id: number) {
+        const result = await lib.db
+            .update(this.table)
+            .set({ isValidated: true })
+            .where(lib.eq(this.table.id, id))
+            .returning()
+
+        if (lib.resultEmpty(result)) {
+            return { error: "Enseignant introuvable avec cet id." }
+        }
+
+        /* TODO: send an email */
+
+        return { success: "Enseignant validé.", entity: result[0] as Teacher }
+    }
+
+    async refuseTeacher(id: number) {
+        const result = await lib.db
+            .delete(this.table)
+            .where(lib.eq(this.table.id, id))
+            .returning()
+
+        if (lib.resultEmpty(result)) {
+            return { error: "Enseignant introuvable avec cet id." }
+        }
+
+        /* TODO: send an email */
+
+        return { success: "Enseignant refusé.", entity: result[0] as Teacher }
+    }
+
     async getTeacherEmailFromSession(): Promise<string | null> {
         const session = await getClientSession();
 
@@ -53,7 +84,21 @@ class TeacherQueries extends QueryModel<NewTeacher, Teacher> {
             redirect('/api/teacher/deconnexion')
         }
 
+        if (!user.entity.isValidated) {
+            redirect('/professeur/en-attente')
+        }
+
         return user.entity
+    }
+
+    async getAdmin(email?: string): Promise<Teacher> {
+        const teacher = await this.getTeacher(email)
+
+        if (!teacher.isAdmin) {
+            redirect('/professeur/dashboard')
+        }
+
+        return teacher
     }
 }
 

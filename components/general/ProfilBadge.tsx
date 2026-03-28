@@ -17,11 +17,11 @@ export default function ProfilBadge({ firstName, lastName }: Readonly<ProfilBadg
                 <p className="">{firstName.charAt(0)}{lastName.charAt(0)}</p>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-                <form action="/api/teacher/deconnexion" method="POST">
-                    <DropdownMenuItem variant="destructive" asChild>
-                        <button type="submit">Déconnexion</button>
-                    </DropdownMenuItem>
-                </form>
+                <DropdownMenuItem variant="destructive">
+                    <form action="/api/teacher/deconnexion" method="POST">
+                        <button type="submit" aria-label="Se déconnecter">Déconnexion</button>
+                    </form>
+                </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
     );

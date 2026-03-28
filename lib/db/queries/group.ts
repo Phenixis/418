@@ -1,7 +1,6 @@
-import { QueryModel, QueryResult } from './model'
-import * as lib from './lib'
 import { courseGroupQueries } from './course-group'
-import { Select as CourseGroup } from '../schema/course-group'
+import * as lib from './lib'
+import { QueryModel, QueryResult, SuccessQueryResult } from './model'
 
 const groupeTable = lib.Schema.GroupTable.table
 
@@ -13,7 +12,7 @@ class GroupQueries extends QueryModel<NewGroup, Group> {
         super(groupeTable)
     }
 
-    async getByPromoTdTp(promo: string, td: string, tp: string) {
+    async getByPromoTdTp(promo: string, td: string, tp: string): Promise<QueryResult<Group>> {
         const result = await lib.db
             .select()
             .from(this.table)
@@ -32,7 +31,7 @@ class GroupQueries extends QueryModel<NewGroup, Group> {
         return { success: "Groupe trouvé.", entity: result[0] as Group }
     }
 
-    async getById(id: number) {
+    async getById(id: number): Promise<QueryResult<Group>> {
         const result = await lib.db
             .select()
             .from(this.table)
@@ -45,7 +44,7 @@ class GroupQueries extends QueryModel<NewGroup, Group> {
         return { success: "Groupe trouvé.", entity: result[0] as Group }
     }
 
-    async getByIds(ids: number[]): Promise<QueryResult> {
+    async getByIds(ids: number[]): Promise<SuccessQueryResult<Group[]>> {
         const result = await lib.db
             .select()
             .from(this.table)
@@ -54,7 +53,7 @@ class GroupQueries extends QueryModel<NewGroup, Group> {
         return { success: "Groupes trouvés pour ces IDs.", entity: result as Group[] }
     }
 
-    async getAll(): Promise<QueryResult> {
+    async getAll(): Promise<QueryResult<Group[]>> {
         const result = await lib.db
             .select()
             .from(this.table)
@@ -66,7 +65,7 @@ class GroupQueries extends QueryModel<NewGroup, Group> {
         return { success: "Groupes trouvés.", entity: result as Group[] }
     }
 
-    async getByCourseId(courseId: string): Promise<QueryResult> {
+    async getByCourseId(courseId: string): Promise<QueryResult<Group[]>> {
         const groupsIds = await courseGroupQueries.getByCourseId(courseId)
 
         if ('error' in groupsIds) {

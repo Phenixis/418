@@ -11,7 +11,7 @@ class StudentQueries extends QueryModel<NewStudent, Student> {
         super(studentTable)
     }
 
-    async getByEmail(email: string): Promise<QueryResult> {
+    async getByEmail(email: string): Promise<QueryResult<Student>> {
         const result = await lib.db
             .select()
             .from(this.table)
@@ -24,7 +24,7 @@ class StudentQueries extends QueryModel<NewStudent, Student> {
         return { success: "Étudiant trouvé.", entity: result[0] as Student }
     }
 
-    async getAll(): Promise<QueryResult> {
+    async getAll(): Promise<QueryResult<Student[]>> {
         const result = await lib.db
             .select()
             .from(this.table)
@@ -36,7 +36,7 @@ class StudentQueries extends QueryModel<NewStudent, Student> {
         return { success: "Étudiants trouvés.", entity: result as Student[] }
     }
 
-    async getByGroupId(group: number): Promise<QueryResult> {
+    async getByGroupId(group: number): Promise<QueryResult<Student[]>> {
         const result = await lib.db
             .select()
             .from(this.table)
@@ -49,7 +49,7 @@ class StudentQueries extends QueryModel<NewStudent, Student> {
         return { success: "Étudiants trouvés pour le groupe.", entity: result as Student[] }
     }
 
-    async getByGroupIds(groups: number[]): Promise<QueryResult> {
+    async getByGroupIds(groups: number[]): Promise<QueryResult<Student[]>> {
         const result = await lib.db
             .select()
             .from(this.table)

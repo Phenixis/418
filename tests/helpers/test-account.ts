@@ -15,33 +15,43 @@ export function getTestAccountPassword(): string {
     return process.env.TEST_ACCOUNT_PASSWORD ?? 'MotDePasse1';
 }
 
-export async function ensureTestTeacherAccount(): Promise<void> {
-    const testAccountEmail = getTestAccountEmail();
-    const testAccountPasswordHash = await bcrypt.hash(getTestAccountPassword(), 12);
+export async function ensureTeacherAccountByEmail(teacherEmail: string, plainPassword: string): Promise<void> {
+    const teacherPasswordHash = await bcrypt.hash(plainPassword, 12);
 
     const existingTeacher = await db
         .select({ userMail: teacherTable.userMail })
         .from(teacherTable)
-        .where(eq(teacherTable.userMail, testAccountEmail))
+        .where(eq(teacherTable.userMail, teacherEmail))
         .limit(1);
 
     if (existingTeacher.length > 0) {
         await db
             .update(teacherTable)
             .set({
-                password: testAccountPasswordHash,
+                password: teacherPasswordHash,
                 isTeacher: true,
             })
-            .where(eq(teacherTable.userMail, testAccountEmail));
+            .where(eq(teacherTable.userMail, teacherEmail));
 
         return;
     }
 
     await db.insert(teacherTable).values({
-        userMail: testAccountEmail,
+        userMail: teacherEmail,
         firstName: 'Test',
         lastName: 'Teacher',
-        password: testAccountPasswordHash,
+        password: teacherPasswordHash,
         isTeacher: true,
     });
+}
+
+export async function deleteTeacherAccountByEmail(teacherEmail: string): Promise<void> {
+    await db.delete(teacherTable).where(eq(teacherTable.userMail, teacherEmail));
+}
+
+export async function ensureTestTeacherAccount(): Promise<void> {
+    const testAccountEmail = getTestAccountEmail();
+    const testAccountPassword = getTestAccountPassword();
+
+    await ensureTeacherAccountByEmail(testAccountEmail, testAccountPassword);
 }
