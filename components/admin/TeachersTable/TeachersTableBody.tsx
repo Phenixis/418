@@ -9,7 +9,7 @@ export default async function TeachersTableBody() {
         return (
             <TableBody>
                 <TableRow className="bg-white/80">
-                    <TableCell colSpan={4} className="text-center">
+                    <TableCell colSpan={5} className="text-center">
                         Une erreur est survenue lors du chargement des comptes.
                     </TableCell>
                 </TableRow>

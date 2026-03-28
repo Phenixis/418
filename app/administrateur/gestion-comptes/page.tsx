@@ -1,20 +1,8 @@
 import TeachersTable from "@/components/admin/TeachersTable";
-import { teacherQueries } from "@/lib/db/queries/teacher";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 
-export default async function GestionComptesPage() {
-    const teachers = await teacherQueries.getAll();
-
-    if ("error" in teachers) {
-        return (
-            <div className="p-4">
-                <h1 className="h1">Gestion des comptes</h1>
-                <p>Une erreur est survenue lors du chargement des comptes.</p>
-            </div>
-        );
-    }
-
+export default function GestionComptesPage() {
     return (
         <div className="p-4 space-y-4">
             <h1 className="h1">Gestion des comptes</h1>

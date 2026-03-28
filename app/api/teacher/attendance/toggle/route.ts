@@ -66,19 +66,10 @@ export async function PATCH(request: Request) {
 
     const attendanceResult = await attendanceQueries.getByCourseAndStudent(courseId, studentMail);
 
-    if ("error" in attendanceResult) {
-        return NextResponse.json({ error: attendanceResult.error }, { status: 500 });
-    }
-
     const isStudentPresent = attendanceResult.entity.length > 0;
 
     if (isStudentPresent) {
-        const markNonScanneResult = await attendanceQueries.markNonScanne(courseId, studentMail);
-
-        if ("error" in markNonScanneResult) {
-            return NextResponse.json({ error: markNonScanneResult.error }, { status: 500 });
-        }
-
+        await attendanceQueries.markNonScanne(courseId, studentMail);
         return NextResponse.json({ status: "non-scanne" }, { status: 200 });
     }
 
