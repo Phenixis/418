@@ -1,6 +1,5 @@
 import CourseHeader from '@/components/cours/CourseHeader';
-import CourseInfo from '@/components/cours/CourseInfo';
-import ListeEtudiants from '@/components/cours/ListeEtudiants';
+import CourseLiveSection from '@/components/cours/CourseLiveSection';
 import { CourseStatus } from '@/components/cours/course.types';
 import { fetchCoursActuel } from '@/lib/actions/cours-actuel';
 
@@ -41,21 +40,15 @@ export default async function AppelPage({ params }: Readonly<{ params: Promise<{
             {/* En-tête : matière, statut et actions */}
             <CourseHeader code={data.code} matiere={data.matiere} status={status} />
 
-            {/* Rectangle d'informations du cours */}
-            <CourseInfo
-                idCours={cours_id}
+            <CourseLiveSection
+                courseId={cours_id}
                 date={data.dateDebut}
                 heureDebut={formatHeure(data.dateDebut)}
                 heureFin={formatHeure(data.dateFin)}
                 classe={data.classe}
-                total={data.total}
-                presents={data.presents}
-                nonScannes={data.nonScannes}
                 status={status}
+                etudiants={data.etudiants}
             />
-
-            {/* Liste des étudiants du cours */}
-            <ListeEtudiants courseId={cours_id} etudiants={data.etudiants} />
         </section>
     );
 }

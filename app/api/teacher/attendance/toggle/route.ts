@@ -5,6 +5,7 @@ import { teacherQueries } from "@/lib/db/queries/teacher";
 import { courseTeacherQueries } from "@/lib/db/queries/course-teacher";
 import { courseGroupQueries } from "@/lib/db/queries/course-group";
 import { studentQueries } from "@/lib/db/queries/student";
+import { publishAttendanceRealtimeEvent } from "@/lib/realtime/provider-server";
 
 type ToggleAttendanceBody = {
     courseId?: string;
@@ -92,6 +93,16 @@ export async function PATCH(request: Request) {
 
     if (isStudentPresent) {
         await attendanceQueries.markNonScanne(courseId, studentMail);
+
+        await publishAttendanceRealtimeEvent({
+            eventId: crypto.randomUUID(),
+            courseId,
+            studentMail,
+            status: "non-scanne",
+            source: "teacher-toggle",
+            occurredAt: new Date().toISOString()
+        });
+
         return NextResponse.json({ status: "non-scanne" }, { status: 200 });
     }
 
@@ -100,6 +111,15 @@ export async function PATCH(request: Request) {
     if ("error" in markPresentResult) {
         return NextResponse.json({ error: markPresentResult.error }, { status: 500 });
     }
+
+    await publishAttendanceRealtimeEvent({
+        eventId: crypto.randomUUID(),
+        courseId,
+        studentMail,
+        status: "present",
+        source: "teacher-toggle",
+        occurredAt: new Date().toISOString()
+    });
 
     return NextResponse.json({ status: "present" }, { status: 200 });
 }

@@ -7,6 +7,7 @@ import * as schema from "@/lib/db/schema";
 import { courseQueries } from "@/lib/db/queries/course";
 import { studentQueries } from "@/lib/db/queries/student";
 import { passwordRules } from "@/components/login/rules";
+import { publishAttendanceRealtimeEvent } from "@/lib/realtime/provider-server";
 
 type ServerActionResult<T> =
   | { success: true; data: T }
@@ -158,32 +159,28 @@ async function getValidCourse(courseId: string): Promise<ServerActionResult<Cour
 }
 
 async function hasStudentAccessToCourse(studentMail: string, courseId: string): Promise<boolean> {
-  try {
-    const result = await db
-      .select({ groupId: schema.StudentTable.table.groupId })
-      .from(schema.StudentTable.table)
-      .where(eq(schema.StudentTable.table.userMail, studentMail))
-      .limit(1);
+  const result = await db
+    .select({ groupId: schema.StudentTable.table.groupId })
+    .from(schema.StudentTable.table)
+    .where(eq(schema.StudentTable.table.userMail, studentMail))
+    .limit(1);
 
-    if (result.length === 0 || result[0].groupId === null) {
-      return false;
-    }
-
-    const matchingCourseGroup = await db
-      .select({ courseGroupId: schema.CourseGroupTable.table.courseGroupId })
-      .from(schema.CourseGroupTable.table)
-      .where(
-        and(
-          eq(schema.CourseGroupTable.table.courseId, courseId),
-          eq(schema.CourseGroupTable.table.groupId, result[0].groupId)
-        )
-      )
-      .limit(1);
-
-    return matchingCourseGroup.length > 0;
-  } catch (error) {
-    throw error;
+  if (result.length === 0 || result[0].groupId === null) {
+    return false;
   }
+
+  const matchingCourseGroup = await db
+    .select({ courseGroupId: schema.CourseGroupTable.table.courseGroupId })
+    .from(schema.CourseGroupTable.table)
+    .where(
+      and(
+        eq(schema.CourseGroupTable.table.courseId, courseId),
+        eq(schema.CourseGroupTable.table.groupId, result[0].groupId)
+      )
+    )
+    .limit(1);
+
+  return matchingCourseGroup.length > 0;
 }
 
 export async function getCourseStatusAction(courseId: string): Promise<ServerActionResult<CourseData>> {
@@ -287,6 +284,15 @@ export async function authenticateStudentAction(
       hourDate: new Date(),
     });
 
+    await publishAttendanceRealtimeEvent({
+      eventId: crypto.randomUUID(),
+      courseId: validCourse.data.courseId,
+      studentMail: normalizedEmail,
+      status: "present",
+      source: "student-scan",
+      occurredAt: new Date().toISOString(),
+    });
+
     return { success: true, data: { courseName: validCourse.data.courseName } };
   } catch (error: unknown) {
     return { success: false, error: getActionErrorMessage(error) };
@@ -359,6 +365,15 @@ export async function createStudentPasswordAction(
           schema.AttendanceTable.table.studentMail,
         ],
       });
+
+    await publishAttendanceRealtimeEvent({
+      eventId: crypto.randomUUID(),
+      courseId: validCourse.data.courseId,
+      studentMail: normalizedEmail,
+      status: "present",
+      source: "student-scan",
+      occurredAt: new Date().toISOString(),
+    });
 
     return { success: true, data: { courseName: validCourse.data.courseName } };
   } catch (error: unknown) {
