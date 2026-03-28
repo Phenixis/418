@@ -9,6 +9,8 @@ export default function TeachersTableBodySkeleton() {
                     <TableCell className="h-4 bg-gray-300 rounded col-span-2" />
                     <TableCell className="h-4 bg-gray-300 rounded col-span-1" />
                     <TableCell className="h-4 bg-gray-300 rounded col-span-1" />
+                    <TableCell className="h-4 bg-gray-300 rounded col-span-1" />
+                    <TableCell className="h-4 bg-gray-300 rounded col-span-1" />
                 </TableRow>
             ))}
         </TableBody>
