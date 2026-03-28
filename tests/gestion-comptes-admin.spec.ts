@@ -99,6 +99,17 @@ async function openRefuseAccountAction(page: Page, teacherRow: ReturnType<typeof
     return refuseMenuItem;
 }
 
+async function openDeleteAccountAction(page: Page, teacherRow: ReturnType<typeof getTeacherRowByEmail>) {
+    const deleteMenuItem = page.getByRole('menu', { name: 'Open actions menu' }).getByRole('menuitem', { name: 'Supprimer le compte' });
+
+    if (await deleteMenuItem.count() === 0) {
+        await teacherRow.getByRole('button', { name: 'Open actions menu' }).click();
+    }
+
+    await expect(deleteMenuItem).toBeVisible();
+    return deleteMenuItem;
+}
+
 function buildUniqueTeacherEmail(prefix: string): string {
     const uniqueSuffix = `${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`;
     return `${prefix}.${uniqueSuffix}@univ-rennes.fr`;
@@ -246,5 +257,49 @@ test.describe('Page administrateur - gestion des comptes', () => {
         await authenticatedAdminPage.goto(ADMIN_ACCOUNTS_ROUTE);
         await expandTeachersSection(authenticatedAdminPage);
         await expect(getTeacherRowByEmail(authenticatedAdminPage, pendingTeacherEmail)).toHaveCount(0);
+    });
+
+    test('permet d annuler puis de confirmer la suppression d un compte validé', async ({ authenticatedAdminPage }) => {
+        const validatedTeacherEmail = buildUniqueTeacherEmail('validated-delete');
+        createdTeacherEmails.push(validatedTeacherEmail);
+
+        await ensureTeacherAccountByEmail(validatedTeacherEmail, 'Totoro123', {
+            isAdmin: false,
+            isValidated: true,
+            firstName: 'Validated',
+            lastName: 'Delete',
+        });
+
+        await authenticatedAdminPage.goto(ADMIN_ACCOUNTS_ROUTE);
+        await expandTeachersSection(authenticatedAdminPage);
+
+        const validatedTeacherRow = getTeacherRowByEmail(authenticatedAdminPage, validatedTeacherEmail);
+
+        const firstDeletionAction = await openDeleteAccountAction(authenticatedAdminPage, validatedTeacherRow);
+        await firstDeletionAction.click();
+
+        const firstDeleteDialog = authenticatedAdminPage.getByRole('alertdialog');
+        await expect(firstDeleteDialog).toBeVisible();
+        await expect(firstDeleteDialog).toContainText(validatedTeacherEmail);
+
+        await firstDeleteDialog.getByRole('button', { name: 'Annuler' }).click();
+        await expect(firstDeleteDialog).toHaveCount(0);
+        await expect(getTeacherRowByEmail(authenticatedAdminPage, validatedTeacherEmail)).toHaveCount(1);
+
+        const secondDeletionAction = await openDeleteAccountAction(authenticatedAdminPage, validatedTeacherRow);
+        await secondDeletionAction.click();
+
+        const secondDeleteDialog = authenticatedAdminPage.getByRole('alertdialog');
+        const deleteSubmissionPromise = authenticatedAdminPage.waitForResponse((response) => {
+            return response.url().includes('/administrateur/gestion-comptes')
+                && response.request().method() === 'POST';
+        });
+
+        await secondDeleteDialog.getByRole('button', { name: 'Supprimer' }).click();
+        await deleteSubmissionPromise;
+
+        await authenticatedAdminPage.goto(ADMIN_ACCOUNTS_ROUTE);
+        await expandTeachersSection(authenticatedAdminPage);
+        await expect(getTeacherRowByEmail(authenticatedAdminPage, validatedTeacherEmail)).toHaveCount(0);
     });
 });

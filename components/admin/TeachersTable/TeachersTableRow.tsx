@@ -19,7 +19,7 @@ import {
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { refuseTeacherAccount, validateTeacherAccount } from "@/lib/actions/admin";
+import { deleteTeacherAccount, refuseTeacherAccount, validateTeacherAccount } from "@/lib/actions/admin";
 import { Select as Teacher } from "@/lib/db/schema/teacher";
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { useState } from "react";
@@ -30,6 +30,7 @@ export default function TeachersTableRow({
     teacher: Teacher
 }>) {
     const [isRefuseDialogOpen, setIsRefuseDialogOpen] = useState(false);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
     return (
         <TableRow key={teacher.userMail} className="bg-white/80">
@@ -56,7 +57,13 @@ export default function TeachersTableRow({
                         <DropdownMenuSeparator />
                         {
                             teacher.isValidated ? (
-                                <DropdownMenuItem variant="destructive" disabled title="Cette action n'est pas encore implémentée">
+                                <DropdownMenuItem
+                                    variant="destructive"
+                                    onSelect={(event) => {
+                                        event.preventDefault();
+                                        setIsDeleteDialogOpen(true);
+                                    }}
+                                >
                                     Supprimer le compte
                                 </DropdownMenuItem>
                             ) : (
@@ -97,6 +104,25 @@ export default function TeachersTableRow({
                                 <input type="hidden" name="teacherEmail" value={teacher.userMail} />
                                 <Button variant="destructive" type="submit">
                                     Refuser
+                                </Button>
+                            </AlertDialogFooter>
+                        </form>
+                    </AlertDialogContent>
+                </AlertDialog>
+                <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                    <AlertDialogContent size="sm">
+                        <form action={deleteTeacherAccount}>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Supprimer ce compte ?</AlertDialogTitle>
+                            </AlertDialogHeader>
+                            <AlertDialogDescription>
+                                Cette action supprimera le compte de {teacher.firstName} {teacher.lastName} ({teacher.userMail}).
+                            </AlertDialogDescription>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                <input type="hidden" name="teacherEmail" value={teacher.userMail} />
+                                <Button variant="destructive" type="submit">
+                                    Supprimer
                                 </Button>
                             </AlertDialogFooter>
                         </form>

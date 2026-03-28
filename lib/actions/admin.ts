@@ -54,3 +54,21 @@ export async function refuseTeacherAccount(formData: FormData): Promise<void> {
 
 	revalidatePath("/administrateur/gestion-comptes");
 }
+
+export async function deleteTeacherAccount(formData: FormData): Promise<void> {
+	await teacherQueries.getAdmin();
+
+	const teacherEmail = parseTeacherEmail(formData);
+
+	if (teacherEmail === null) {
+		return;
+	}
+
+	const deletionResult = await teacherQueries.refuseTeacherByEmail(teacherEmail);
+
+	if ("error" in deletionResult) {
+		return;
+	}
+
+	revalidatePath("/administrateur/gestion-comptes");
+}
