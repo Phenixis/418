@@ -34,6 +34,10 @@ function getPusherClient(): Pusher | null {
         return cachedPusherClient;
     }
 
+    if (!process.env.NEXT_PUBLIC_PUSHER_KEY || !process.env.NEXT_PUBLIC_PUSHER_CLUSTER) {
+        throw new Error("Pusher client configuration is incomplete.");
+    }
+
     cachedPusherClient = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
         cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
         channelAuthorization: {
