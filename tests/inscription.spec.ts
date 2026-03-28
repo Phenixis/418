@@ -144,4 +144,30 @@ test.describe('Inscription page', () => {
         const errorMessage = page.getByText('Les mots de passe ne correspondent pas.');
         await expect(errorMessage).toBeVisible();
     });
+
+    test('should toggle password visibility on inscription form', async ({ page }) => {
+        const passwordInput = page.getByLabel('Mot de passe', { exact: true });
+        const showPasswordButton = page.getByRole('button', { name: 'Afficher le mot de passe' }).first();
+
+        await expect(passwordInput).toHaveAttribute('type', 'password');
+
+        await showPasswordButton.click();
+        await expect(passwordInput).toHaveAttribute('type', 'text');
+
+        await page.getByRole('button', { name: 'Cacher le mot de passe' }).first().click();
+        await expect(passwordInput).toHaveAttribute('type', 'password');
+    });
+
+    test('should toggle confirm password visibility on inscription form', async ({ page }) => {
+        const confirmPasswordInput = page.getByLabel('Confirmer le mot de passe', { exact: true });
+        const toggleConfirmPasswordButton = page.locator('button[aria-controls="confirmPassword"]');
+
+        await expect(confirmPasswordInput).toHaveAttribute('type', 'password');
+
+        await toggleConfirmPasswordButton.click();
+        await expect(confirmPasswordInput).toHaveAttribute('type', 'text');
+
+        await toggleConfirmPasswordButton.click();
+        await expect(confirmPasswordInput).toHaveAttribute('type', 'password');
+    });
 });

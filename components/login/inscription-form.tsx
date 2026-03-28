@@ -18,6 +18,7 @@ import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 import { Checkbox } from "../ui/checkbox";
 import { passwordRules } from "./rules";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function InscriptionForm() {
     const router = useRouter();
@@ -28,6 +29,8 @@ export default function InscriptionForm() {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [passwordFocused, setPasswordFocused] = useState(false);
     const [isRememberChecked, setIsRememberChecked] = useState(false);
+    const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+    const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
 
     const passwordValid = passwordRules.every((rule) => rule.test(password));
     const formValid =
@@ -109,18 +112,32 @@ export default function InscriptionForm() {
                     </div>
                     <div className="w-full flex flex-col gap-2">
                         <Label htmlFor="password">Mot de passe</Label>
-                        <Input
-                            id="password"
-                            name="password"
-                            type="password"
-                            placeholder="Mot de passe"
+                        <div className="relative">
+                            <Input
+                                id="password"
+                                name="password"
+                                type={isPasswordVisible ? "text" : "password"}
+                                placeholder="Mot de passe"
 
-                            required
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            onFocus={() => setPasswordFocused(true)}
-                            onBlur={() => setPasswordFocused(false)}
-                        />
+                                required
+                                className="pr-12"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                onFocus={() => setPasswordFocused(true)}
+                                onBlur={() => setPasswordFocused(false)}
+                            />
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="absolute inset-y-0 right-0 my-auto mr-1 h-8 w-8"
+                                aria-label={isPasswordVisible ? "Cacher le mot de passe" : "Afficher le mot de passe"}
+                                aria-pressed={isPasswordVisible}
+                                onClick={() => setIsPasswordVisible((currentValue) => !currentValue)}
+                            >
+                                {isPasswordVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </Button>
+                        </div>
                         {passwordFocused && (
                             <ul className="flex flex-col gap-1 mt-1">
                                 {passwordRules.map((rule) => {
@@ -140,16 +157,31 @@ export default function InscriptionForm() {
                     </div>
                     <div className="w-full flex flex-col gap-2">
                         <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
-                        <Input
-                            id="confirmPassword"
-                            name="confirmPassword"
-                            type="password"
-                            placeholder="Confirmer le mot de passe"
+                        <div className="relative">
+                            <Input
+                                id="confirmPassword"
+                                name="confirmPassword"
+                                type={isConfirmPasswordVisible ? "text" : "password"}
+                                placeholder="Confirmer le mot de passe"
 
-                            required
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                        />
+                                required
+                                className="pr-12"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                            />
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="absolute inset-y-0 right-0 my-auto mr-1 h-8 w-8"
+                                aria-label={isConfirmPasswordVisible ? "Cacher le mot de passe" : "Afficher le mot de passe"}
+                                aria-controls="confirmPassword"
+                                aria-pressed={isConfirmPasswordVisible}
+                                onClick={() => setIsConfirmPasswordVisible((currentValue) => !currentValue)}
+                            >
+                                {isConfirmPasswordVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </Button>
+                        </div>
                         {confirmPassword !== "" && password !== confirmPassword && (
                             <p className="text-xs text-red-500">Les mots de passe ne correspondent pas.</p>
                         )}

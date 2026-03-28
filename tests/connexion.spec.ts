@@ -48,7 +48,7 @@ test.describe('Connexion page', () => {
 
     test('should display the connexion form', async ({ page }) => {
         const emailInput = page.getByLabel('Email');
-        const passwordInput = page.getByLabel('Mot de passe');
+        const passwordInput = page.getByLabel('Mot de passe', { exact: true });
         const rememberCheckbox = page.getByLabel('Rester connecté');
         const submitButton = page.getByRole('button', { name: 'Se connecter' });
 
@@ -70,7 +70,7 @@ test.describe('Connexion page', () => {
 
     test('should show error message on invalid credentials', async ({ page }) => {
         const emailInput = page.getByLabel('Email');
-        const passwordInput = page.getByLabel('Mot de passe');
+        const passwordInput = page.getByLabel('Mot de passe', { exact: true });
         const submitButton = page.getByRole('button', { name: 'Se connecter' });
 
         await emailInput.fill('invaliduser');
@@ -83,7 +83,7 @@ test.describe('Connexion page', () => {
 
     test('should redirect to dashboard on successful login', async ({ page }) => {
         const emailInput = page.getByLabel('Email');
-        const passwordInput = page.getByLabel('Mot de passe');
+        const passwordInput = page.getByLabel('Mot de passe', { exact: true });
         const submitButton = page.getByRole('button', { name: 'Se connecter' });
         const loginTeacherCredentials = await createLoginTeacherCredentials();
         createdTeacherEmails.push(loginTeacherCredentials.email);
@@ -98,7 +98,7 @@ test.describe('Connexion page', () => {
 
     test('should redirect to waiting page when teacher account is not validated', async ({ page }) => {
         const emailInput = page.getByLabel('Email');
-        const passwordInput = page.getByLabel('Mot de passe');
+        const passwordInput = page.getByLabel('Mot de passe', { exact: true });
         const submitButton = page.getByRole('button', { name: 'Se connecter' });
         const loginTeacherCredentials = await createLoginTeacherCredentials({ isValidated: false });
         createdTeacherEmails.push(loginTeacherCredentials.email);
@@ -129,5 +129,20 @@ test.describe('Connexion page', () => {
 
         await expect(mailDomainText).toBeVisible();
         await expect(mailDomainText).toHaveText('@univ-rennes.fr');
+    });
+
+    test('should toggle password visibility on login form', async ({ page }) => {
+        const passwordInput = page.getByLabel('Mot de passe', { exact: true });
+        const showPasswordButton = page.getByRole('button', { name: 'Afficher le mot de passe' });
+
+        await expect(passwordInput).toHaveAttribute('type', 'password');
+
+        await showPasswordButton.click();
+        await expect(passwordInput).toHaveAttribute('type', 'text');
+        await expect(page.getByRole('button', { name: 'Cacher le mot de passe' })).toBeVisible();
+
+        await page.getByRole('button', { name: 'Cacher le mot de passe' }).click();
+        await expect(passwordInput).toHaveAttribute('type', 'password');
+        await expect(page.getByRole('button', { name: 'Afficher le mot de passe' })).toBeVisible();
     });
 });
