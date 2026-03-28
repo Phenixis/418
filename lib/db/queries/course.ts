@@ -38,10 +38,6 @@ class CourseQueries extends QueryModel<NewCourse, Course> {
             .from(this.table)
             .where(lib.inArray(this.table.courseId, courseIds))
 
-        if (lib.resultEmpty(result)) {
-            return { error: "Aucun cours trouvé." }
-        }
-
         return { success: "Cours trouvés pour le professeur.", entity: result as Course[] }
     }
 }

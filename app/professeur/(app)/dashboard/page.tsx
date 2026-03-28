@@ -23,10 +23,6 @@ function getCourseStatusPriority(course: Course, now: Date): number {
 export default async function DashboardPage() {
     const teacher = await teacherQueries.getTeacher();
 
-    if (!teacher) {
-        redirect("/professeur/connexion")
-    }
-
     const coursesQueryResults = await courseQueries.getByTeacherMail(teacher.userMail);
 
     if ('error' in coursesQueryResults) {

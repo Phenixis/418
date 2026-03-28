@@ -19,7 +19,7 @@ export default function TeacherHeader() {
     const pathname = usePathname();
 
     return (
-        <div className="flex flex-column p-4 gap-4 items-center justify-between">
+        <div className="flex p-4 gap-4 items-center justify-between">
             <Link href="/professeur/dashboard">
                 <Logo variant={LogoVariants.NAME_RIGHT} size={LogoSizes.LARGE} />
             </Link>
@@ -32,7 +32,7 @@ export default function TeacherHeader() {
                     </Button>
                 ))}
             </div>
-            <div className="flex flex-column items-center gap-4 md:flex-row">
+            <div className="flex items-center gap-4 md:flex-row">
                 <div className="hidden bg-white rounded-full mx-4 flex items-center gap-2 pl-4 pr-12 py-2 text-sm">
                     <SearchIcon />
                     <p>Rechercher</p>

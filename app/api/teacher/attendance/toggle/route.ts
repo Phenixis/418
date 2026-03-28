@@ -3,6 +3,8 @@ import { attendanceQueries } from "@/lib/db/queries/attendance";
 import { getServerSession } from "@/lib/actions/authentication";
 import { teacherQueries } from "@/lib/db/queries/teacher";
 import { courseTeacherQueries } from "@/lib/db/queries/course-teacher";
+import { courseGroupQueries } from "@/lib/db/queries/course-group";
+import { studentQueries } from "@/lib/db/queries/student";
 
 type ToggleAttendanceBody = {
     courseId?: string;
@@ -62,6 +64,26 @@ export async function PATCH(request: Request) {
 
     if (!isTeacherLinkedToCourse) {
         return NextResponse.json({ error: "Vous n'êtes pas autorisé à modifier ce cours." }, { status: 403 });
+    }
+
+    const studentResult = await studentQueries.getByEmail(studentMail);
+
+    if ("error" in studentResult) {
+        return NextResponse.json({ error: "Étudiant introuvable." }, { status: 404 });
+    }
+
+    const courseGroupsResult = await courseGroupQueries.getByCourseId(courseId);
+
+    if ("error" in courseGroupsResult) {
+        return NextResponse.json({ error: "Aucun groupe associé à ce cours." }, { status: 403 });
+    }
+
+    const isStudentInCourseGroups = courseGroupsResult.entity.some(
+        (courseGroup) => courseGroup.groupId === studentResult.entity.groupId
+    );
+
+    if (!isStudentInCourseGroups) {
+        return NextResponse.json({ error: "L'étudiant n'appartient pas à ce cours." }, { status: 403 });
     }
 
     const attendanceResult = await attendanceQueries.getByCourseAndStudent(courseId, studentMail);
