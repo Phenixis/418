@@ -1,6 +1,9 @@
 import { SignJWT } from 'jose';
-import { test as base, type Page } from '@playwright/test';
-import { ensureTeacherAccountByEmail } from '../helpers/test-account';
+import { test as base, type Page, type TestInfo } from '@playwright/test';
+import {
+    deleteTeacherAccountByEmail,
+    ensureTeacherAccountByEmail,
+} from '../helpers/test-account';
 
 const SESSION_COOKIE_NAME = 'teacher_session';
 const ONE_DAY_IN_MILLISECONDS = 24 * 60 * 60 * 1000;
@@ -16,6 +19,20 @@ type AuthenticatedAdminFixtures = {
     authenticatedAdminPage: Page;
     testAdminEmail: string;
 };
+
+function buildTestAdminEmail(testInfo: TestInfo): string {
+    if (process.env.TEST_ACCOUNT_EMAIL) {
+        return process.env.TEST_ACCOUNT_EMAIL;
+    }
+
+    const projectSuffix = testInfo.project.name.replaceAll(' ', '-').toLowerCase();
+    const normalizedTestId = testInfo.testId
+        .toLowerCase()
+        .replaceAll(/[^a-z0-9]+/g, '-')
+        .slice(-40);
+
+    return `admin.e2e.${projectSuffix}.${normalizedTestId}@univ-rennes.fr`;
+}
 
 function getAuthSecret(): string {
     const authSecret = process.env.AUTH_SECRET;
@@ -63,8 +80,8 @@ async function setAuthenticatedAdminCookie(page: Page, teacherEmail: string, bas
 
 export const test = base.extend<AuthenticatedAdminFixtures>({
     authenticatedAdminPage: async ({ page, baseURL }, use, testInfo) => {
-        const projectSuffix = testInfo.project.name.replaceAll(' ', '-').toLowerCase();
-        const testAdminEmail = process.env.TEST_ACCOUNT_EMAIL ?? `admin.e2e.${projectSuffix}@univ-rennes.fr`;
+        const testAdminEmail = buildTestAdminEmail(testInfo);
+        const shouldCleanupAdminAccount = !process.env.TEST_ACCOUNT_EMAIL;
 
         await ensureTeacherAccountByEmail(testAdminEmail, TEST_ADMIN_PASSWORD, {
             isAdmin: true,
@@ -74,11 +91,17 @@ export const test = base.extend<AuthenticatedAdminFixtures>({
         });
 
         await setAuthenticatedAdminCookie(page, testAdminEmail, baseURL);
-        await use(page);
+
+        try {
+            await use(page);
+        } finally {
+            if (shouldCleanupAdminAccount) {
+                await deleteTeacherAccountByEmail(testAdminEmail);
+            }
+        }
     },
     testAdminEmail: async ({}, use, testInfo) => {
-        const projectSuffix = testInfo.project.name.replaceAll(' ', '-').toLowerCase();
-        const testAdminEmail = process.env.TEST_ACCOUNT_EMAIL ?? `admin.e2e.${projectSuffix}@univ-rennes.fr`;
+        const testAdminEmail = buildTestAdminEmail(testInfo);
         await use(testAdminEmail);
     },
 });

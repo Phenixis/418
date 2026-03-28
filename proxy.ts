@@ -10,7 +10,7 @@ const UNACCESSIBLE_ROUTES_WHEN_CONNECTEd = [
 ]
 
 export async function proxy(request: NextRequest) {
-	const { pathname } = request.nextUrl
+	const { pathname, searchParams } = request.nextUrl
 
 	const sessionCookie = request.cookies.get("teacher_session")
 
@@ -23,6 +23,18 @@ export async function proxy(request: NextRequest) {
 	}
 
 	const isUnaccessibleWhenConnected = UNACCESSIBLE_ROUTES_WHEN_CONNECTEd.some(route => new RegExp(route).exec(pathname))
+	const shouldClearSession = searchParams.get("clearSession") === "1"
+
+	if (isUnaccessibleWhenConnected && shouldClearSession) {
+		const response = NextResponse.next()
+
+		response.cookies.delete({
+			name: "teacher_session",
+			path: "/",
+		})
+
+		return response
+	}
 
 	if (isUnaccessibleWhenConnected && session) {
 		return NextResponse.redirect(new URL("/professeur/dashboard", request.nextUrl))

@@ -1,8 +1,9 @@
 import { SignJWT } from 'jose';
-import { test as base, type Page } from '@playwright/test';
+import { test as base, type Page, type TestInfo } from '@playwright/test';
 import {
-    ensureTestTeacherAccount,
-    getTestAccountEmail,
+    deleteTeacherAccountByEmail,
+    ensureTeacherAccountByEmail,
+    getTestAccountPassword,
 } from '../helpers/test-account';
 
 const SESSION_COOKIE_NAME = 'teacher_session';
@@ -16,7 +17,22 @@ type TeacherSessionPayload = {
 
 type AuthenticatedTeacherFixtures = {
     authenticatedPage: Page;
+    testTeacherEmail: string;
 };
+
+function buildTestTeacherEmail(testInfo: TestInfo): string {
+    if (process.env.TEST_ACCOUNT_EMAIL) {
+        return process.env.TEST_ACCOUNT_EMAIL;
+    }
+
+    const projectSuffix = testInfo.project.name.replaceAll(' ', '-').toLowerCase();
+    const normalizedTestId = testInfo.testId
+        .toLowerCase()
+        .replaceAll(/[^a-z0-9]+/g, '-')
+        .slice(-40);
+
+    return `teacher.e2e.${projectSuffix}.${normalizedTestId}@univ-rennes.fr`;
+}
 
 function getAuthSecret(): string {
     const authSecret = process.env.AUTH_SECRET;
@@ -39,12 +55,12 @@ async function createSessionToken(payload: TeacherSessionPayload): Promise<strin
         .sign(authSecretKey);
 }
 
-async function setAuthenticatedTeacherCookie(page: Page, baseURL = 'http://localhost:3005'): Promise<void> {
+async function setAuthenticatedTeacherCookie(page: Page, teacherEmail: string, baseURL = 'http://localhost:3005'): Promise<void> {
     const cookieDomain = new URL(baseURL).hostname;
     const sessionExpirationDate = new Date(Date.now() + ONE_DAY_IN_MILLISECONDS);
     const sessionToken = await createSessionToken({
         expires: sessionExpirationDate.toISOString(),
-        teacherEmail: getTestAccountEmail(),
+        teacherEmail,
         isPersistentSession: true,
     });
 
@@ -63,10 +79,23 @@ async function setAuthenticatedTeacherCookie(page: Page, baseURL = 'http://local
 }
 
 export const test = base.extend<AuthenticatedTeacherFixtures>({
-    authenticatedPage: async ({ page, baseURL }, use) => {
-        await ensureTestTeacherAccount();
-        await setAuthenticatedTeacherCookie(page, baseURL);
-        await use(page);
+    testTeacherEmail: async ({}, use, testInfo) => {
+        const testTeacherEmail = buildTestTeacherEmail(testInfo);
+        await use(testTeacherEmail);
+    },
+    authenticatedPage: async ({ page, baseURL, testTeacherEmail }, use) => {
+        const shouldCleanupTeacherAccount = !process.env.TEST_ACCOUNT_EMAIL;
+
+        await ensureTeacherAccountByEmail(testTeacherEmail, getTestAccountPassword());
+        await setAuthenticatedTeacherCookie(page, testTeacherEmail, baseURL);
+
+        try {
+            await use(page);
+        } finally {
+            if (shouldCleanupTeacherAccount) {
+                await deleteTeacherAccountByEmail(testTeacherEmail);
+            }
+        }
     },
 });
 

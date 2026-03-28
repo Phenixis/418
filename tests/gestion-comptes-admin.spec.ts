@@ -120,7 +120,7 @@ test.describe('Page administrateur - gestion des comptes', () => {
     test('redirige vers la connexion quand il n y a pas de session', async ({ page }) => {
         await page.goto(ADMIN_ACCOUNTS_ROUTE);
 
-        await expect(page).toHaveURL(new RegExp(`${LOGIN_ROUTE}$`));
+        await expect(page).toHaveURL(new RegExp(`${LOGIN_ROUTE}(\\?.*)?$`));
     });
 
     test('redirige vers le dashboard pour un enseignant non administrateur', async ({ page }) => {
@@ -235,7 +235,13 @@ test.describe('Page administrateur - gestion des comptes', () => {
         await secondRefusalAction.click();
 
         const refusalDialog = authenticatedAdminPage.getByRole('alertdialog');
+        const refusalSubmissionPromise = authenticatedAdminPage.waitForResponse((response) => {
+            return response.url().includes('/administrateur/gestion-comptes')
+                && response.request().method() === 'POST';
+        });
+
         await refusalDialog.getByRole('button', { name: 'Refuser' }).click();
+        await refusalSubmissionPromise;
 
         await authenticatedAdminPage.goto(ADMIN_ACCOUNTS_ROUTE);
         await expandTeachersSection(authenticatedAdminPage);

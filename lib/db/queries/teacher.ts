@@ -75,13 +75,13 @@ class TeacherQueries extends QueryModel<NewTeacher, Teacher> {
         const teacherEmail = email || await this.getTeacherEmailFromSession();
 
         if (!teacherEmail) {
-            redirect('/api/teacher/deconnexion')
+            redirect('/professeur/connexion?clearSession=1')
         }
 
         const user = await this.getByEmail(teacherEmail)
 
         if ("error" in user) {
-            redirect('/api/teacher/deconnexion')
+            redirect('/professeur/connexion?clearSession=1')
         }
 
         if (!user.entity.isValidated) {

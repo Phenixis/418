@@ -4,14 +4,11 @@ import { table as teacherTable } from '@/lib/db/schema/teacher';
 import { table as courseTable } from '@/lib/db/schema/course';
 import { table as courseTeacherTable } from '@/lib/db/schema/course-teacher';
 import { eq } from 'drizzle-orm';
-import {
-    getTestAccountEmail,
-} from './helpers/test-account';
 
 function normalizeStatusLabel(rawStatusText: string): 'En cours' | 'À venir' | 'Terminé' | null {
     const normalizedStatusText = rawStatusText
         .normalize('NFD')
-        .replace(/\p{Diacritic}/gu, '')
+        .replaceAll(/\p{Diacritic}/gu, '')
         .toLowerCase();
 
     if (normalizedStatusText.includes('en cours')) {
@@ -78,8 +75,7 @@ test.describe('Dashboard page', () => {
         }
     });
 
-    test('should only display courses for the connected teacher', async ({ authenticatedPage }) => {
-        const testTeacherEmail = getTestAccountEmail();
+    test('should only display courses for the connected teacher', async ({ authenticatedPage, testTeacherEmail }) => {
         const outsiderTeacherEmail = `outsider.${Date.now()}@univ-rennes.fr`;
         const outsiderCourseId = `outsider-course-${Date.now()}`;
         const outsiderCourseSubject = `Cours outsider ${Date.now()}`;

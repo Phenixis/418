@@ -4,7 +4,6 @@ import { db } from '@/lib/db/drizzle';
 import { table as teacherTable } from '@/lib/db/schema/teacher';
 import {
     deleteTeacherAccountByEmail,
-    ensureTestTeacherAccount,
 } from './helpers/test-account';
 
 type LoginTeacherOptions = {
@@ -38,7 +37,6 @@ test.describe('Connexion page', () => {
 
     test.beforeEach(async ({ page }) => {
         createdTeacherEmails = [];
-        await ensureTestTeacherAccount();
         await page.goto('/professeur/connexion');
     });
 
