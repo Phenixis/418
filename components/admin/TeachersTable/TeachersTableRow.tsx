@@ -1,3 +1,15 @@
+"use client";
+
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,14 +20,18 @@ import {
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { TableCell, TableRow } from "@/components/ui/table";
+import { refuseTeacherAccount, validateTeacherAccount } from "@/lib/actions/admin";
 import { Select as Teacher } from "@/lib/db/schema/teacher";
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import { useState } from "react";
 
 export default function TeachersTableRow({
     teacher
 }: Readonly<{
     teacher: Teacher
 }>) {
+    const [isRefuseDialogOpen, setIsRefuseDialogOpen] = useState(false);
+
     return (
         <TableRow key={teacher.userMail} className="bg-white/80">
             <TableCell>
@@ -46,10 +62,21 @@ export default function TeachersTableRow({
                                 </DropdownMenuItem>
                             ) : (
                                 <>
-                                    <DropdownMenuItem variant="default" disabled title="Cette action n'est pas encore implémentée">
-                                        Valider le compte
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem variant="destructive" disabled title="Cette action n'est pas encore implémentée">
+                                    <form action={validateTeacherAccount}>
+                                        <input type="hidden" name="teacherEmail" value={teacher.userMail} />
+                                        <DropdownMenuItem asChild variant="default">
+                                            <button type="submit" className="w-full text-left cursor-pointer">
+                                                Valider le compte
+                                            </button>
+                                        </DropdownMenuItem>
+                                    </form>
+                                    <DropdownMenuItem
+                                        variant="destructive"
+                                        onSelect={(event) => {
+                                            event.preventDefault();
+                                            setIsRefuseDialogOpen(true);
+                                        }}
+                                    >
                                         Refuser le compte
                                     </DropdownMenuItem>
                                 </>
@@ -57,6 +84,25 @@ export default function TeachersTableRow({
                         }
                     </DropdownMenuContent>
                 </DropdownMenu>
+                <AlertDialog open={isRefuseDialogOpen} onOpenChange={setIsRefuseDialogOpen}>
+                    <form action={refuseTeacherAccount}>
+                        <AlertDialogContent size="sm">
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Refuser ce compte ?</AlertDialogTitle>
+                            </AlertDialogHeader>
+                            <AlertDialogDescription>
+                                Cette action supprimera le compte de {teacher.firstName} {teacher.lastName} ({teacher.userMail}).
+                            </AlertDialogDescription>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                <input type="hidden" name="teacherEmail" value={teacher.userMail} />
+                                <AlertDialogAction variant="destructive" type="submit">
+                                    Refuser
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </form>
+                </AlertDialog>
             </TableCell>
         </TableRow>
     )

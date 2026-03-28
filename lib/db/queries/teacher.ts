@@ -26,33 +26,33 @@ class TeacherQueries extends QueryModel<NewTeacher, Teacher> {
         return { success: "Enseignant trouvé.", entity: result[0] as Teacher }
     }
 
-    async validateTeacher(id: number) {
+    async validateTeacherByEmail(teacherEmail: string) {
         const result = await lib.db
             .update(this.table)
             .set({ isValidated: true })
-            .where(lib.eq(this.table.id, id))
+            .where(lib.eq(this.table.userMail, teacherEmail))
             .returning()
 
         if (lib.resultEmpty(result)) {
-            return { error: "Enseignant introuvable avec cet id." }
+            return { error: "Enseignant introuvable avec cet email." }
         }
 
-        /* TODO: send an email */
+        /* Email notification can be added here later. */
 
         return { success: "Enseignant validé.", entity: result[0] as Teacher }
     }
 
-    async refuseTeacher(id: number) {
+    async refuseTeacherByEmail(teacherEmail: string) {
         const result = await lib.db
             .delete(this.table)
-            .where(lib.eq(this.table.id, id))
+            .where(lib.eq(this.table.userMail, teacherEmail))
             .returning()
 
         if (lib.resultEmpty(result)) {
-            return { error: "Enseignant introuvable avec cet id." }
+            return { error: "Enseignant introuvable avec cet email." }
         }
 
-        /* TODO: send an email */
+        /* Email notification can be added here later. */
 
         return { success: "Enseignant refusé.", entity: result[0] as Teacher }
     }
