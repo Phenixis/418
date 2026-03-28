@@ -45,12 +45,6 @@ export default async function DashboardPage() {
 
     const groupsQueryResult = await groupQueries.getByIds(groupIds);
 
-    if ('error' in groupsQueryResult) {
-        return (
-            <p>{groupsQueryResult.error}</p>
-        );
-    }
-
     const groups = groupsQueryResult.entity as Group[];
 
     const now = new Date();
