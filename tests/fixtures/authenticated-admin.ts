@@ -4,7 +4,7 @@ import { ensureTeacherAccountByEmail } from '../helpers/test-account';
 
 const SESSION_COOKIE_NAME = 'teacher_session';
 const ONE_DAY_IN_MILLISECONDS = 24 * 60 * 60 * 1000;
-const TEST_ADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD ?? 'MotDePasse1';
+const TEST_ADMIN_PASSWORD = process.env.TEST_ACCOUNT_PASSWORD ?? 'MotDePasse1';
 
 type TeacherSessionPayload = {
     expires: string;
@@ -64,7 +64,7 @@ async function setAuthenticatedAdminCookie(page: Page, teacherEmail: string, bas
 export const test = base.extend<AuthenticatedAdminFixtures>({
     authenticatedAdminPage: async ({ page, baseURL }, use, testInfo) => {
         const projectSuffix = testInfo.project.name.replaceAll(' ', '-').toLowerCase();
-        const testAdminEmail = process.env.TEST_ADMIN_EMAIL ?? `admin.e2e.${projectSuffix}@univ-rennes.fr`;
+        const testAdminEmail = process.env.TEST_ACCOUNT_EMAIL ?? `admin.e2e.${projectSuffix}@univ-rennes.fr`;
 
         await ensureTeacherAccountByEmail(testAdminEmail, TEST_ADMIN_PASSWORD, {
             isAdmin: true,
@@ -78,7 +78,7 @@ export const test = base.extend<AuthenticatedAdminFixtures>({
     },
     testAdminEmail: async ({}, use, testInfo) => {
         const projectSuffix = testInfo.project.name.replaceAll(' ', '-').toLowerCase();
-        const testAdminEmail = process.env.TEST_ADMIN_EMAIL ?? `admin.e2e.${projectSuffix}@univ-rennes.fr`;
+        const testAdminEmail = process.env.TEST_ACCOUNT_EMAIL ?? `admin.e2e.${projectSuffix}@univ-rennes.fr`;
         await use(testAdminEmail);
     },
 });
