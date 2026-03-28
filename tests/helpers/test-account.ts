@@ -15,33 +15,42 @@ export function getTestAccountPassword(): string {
     return process.env.TEST_ACCOUNT_PASSWORD ?? 'MotDePasse1';
 }
 
-export async function ensureTeacherAccountByEmail(teacherEmail: string, plainPassword: string): Promise<void> {
+type TeacherAccountOptions = {
+    isValidated?: boolean;
+    isAdmin?: boolean;
+    firstName?: string;
+    lastName?: string;
+};
+
+export async function ensureTeacherAccountByEmail(
+    teacherEmail: string,
+    plainPassword: string,
+    options: TeacherAccountOptions = {},
+): Promise<void> {
+    const isTeacherValidated = options.isValidated ?? true;
+    const isTeacherAdmin = options.isAdmin ?? false;
+    const teacherFirstName = options.firstName ?? 'Test';
+    const teacherLastName = options.lastName ?? 'Teacher';
     const teacherPasswordHash = await bcrypt.hash(plainPassword, 12);
-
-    const existingTeacher = await db
-        .select({ userMail: teacherTable.userMail })
-        .from(teacherTable)
-        .where(eq(teacherTable.userMail, teacherEmail))
-        .limit(1);
-
-    if (existingTeacher.length > 0) {
-        await db
-            .update(teacherTable)
-            .set({
-                password: teacherPasswordHash,
-                isTeacher: true,
-            })
-            .where(eq(teacherTable.userMail, teacherEmail));
-
-        return;
-    }
 
     await db.insert(teacherTable).values({
         userMail: teacherEmail,
-        firstName: 'Test',
-        lastName: 'Teacher',
+        firstName: teacherFirstName,
+        lastName: teacherLastName,
         password: teacherPasswordHash,
         isTeacher: true,
+        isValidated: isTeacherValidated,
+        isAdmin: isTeacherAdmin,
+    }).onConflictDoUpdate({
+        target: teacherTable.userMail,
+        set: {
+            firstName: teacherFirstName,
+            lastName: teacherLastName,
+            password: teacherPasswordHash,
+            isTeacher: true,
+            isValidated: isTeacherValidated,
+            isAdmin: isTeacherAdmin,
+        },
     });
 }
 

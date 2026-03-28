@@ -2,7 +2,6 @@
 
 import {
     AlertDialog,
-    AlertDialogAction,
     AlertDialogCancel,
     AlertDialogContent,
     AlertDialogDescription,
@@ -85,8 +84,8 @@ export default function TeachersTableRow({
                     </DropdownMenuContent>
                 </DropdownMenu>
                 <AlertDialog open={isRefuseDialogOpen} onOpenChange={setIsRefuseDialogOpen}>
-                    <form action={refuseTeacherAccount}>
-                        <AlertDialogContent size="sm">
+                    <AlertDialogContent size="sm">
+                        <form action={refuseTeacherAccount}>
                             <AlertDialogHeader>
                                 <AlertDialogTitle>Refuser ce compte ?</AlertDialogTitle>
                             </AlertDialogHeader>
@@ -96,12 +95,12 @@ export default function TeachersTableRow({
                             <AlertDialogFooter>
                                 <AlertDialogCancel>Annuler</AlertDialogCancel>
                                 <input type="hidden" name="teacherEmail" value={teacher.userMail} />
-                                <AlertDialogAction variant="destructive" type="submit">
+                                <Button variant="destructive" type="submit">
                                     Refuser
-                                </AlertDialogAction>
+                                </Button>
                             </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </form>
+                        </form>
+                    </AlertDialogContent>
                 </AlertDialog>
             </TableCell>
         </TableRow>
