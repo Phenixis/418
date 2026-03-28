@@ -13,10 +13,6 @@ async function deleteSessionCookieAndRedirect(requestUrl: string) {
     return NextResponse.redirect(new URL('/professeur/connexion', requestUrl))
 }
 
-export async function GET(request: Request) {
-    return deleteSessionCookieAndRedirect(request.url)
-}
-
 export async function POST(request: Request) {
     return deleteSessionCookieAndRedirect(request.url)
 }
