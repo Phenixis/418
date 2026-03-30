@@ -4,7 +4,6 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
-import Link from "next/link";
 
 interface ProfilBadgeProps {
     firstName: string;
@@ -14,15 +13,15 @@ interface ProfilBadgeProps {
 export default function ProfilBadge({ firstName, lastName }: Readonly<ProfilBadgeProps>) {
     return (
         <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center justify-center rounded-full bg-white w-10 h-10 border border-color-black">
+            <DropdownMenuTrigger className="flex items-center justify-center rounded-full bg-white w-10 h-10 border border-color-black uppercase">
                 <p className="">{firstName.charAt(0)}{lastName.charAt(0)}</p>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-                <form action="/api/teacher/deconnexion" method="POST">
-                    <DropdownMenuItem variant="destructive" asChild>
-                        <button type="submit">Déconnexion</button>
-                    </DropdownMenuItem>
-                </form>
+                <DropdownMenuItem variant="destructive">
+                    <form action="/api/teacher/deconnexion" method="POST">
+                        <button type="submit" aria-label="Se déconnecter">Déconnexion</button>
+                    </form>
+                </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
     );

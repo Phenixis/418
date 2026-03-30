@@ -4,6 +4,7 @@ import { courseGroupQueries } from "../db/queries/course-group";
 import { courseQueries } from "../db/queries/course";
 import { ActionResult } from "./types";
 import { fromZonedTime } from "date-fns-tz";
+import { courseTeacherQueries } from "../db/queries/course-teacher";
 
 const PARIS_TIME_ZONE = "Europe/Paris";
 
@@ -13,10 +14,11 @@ export async function creerCours(prevState: ActionResult, formData: FormData): P
     const startTimeString = formData.get("start-time");
     const duration = formData.get("duration");
     const groups = formData.getAll("groups");
+    const teachers = formData.getAll("teacherEmail");
 
-    if (typeof label !== "string" || typeof startDateString !== "string" || typeof startTimeString !== "string" || typeof duration !== "string" || groups.some(group => typeof group !== "string")) {
+    if (typeof label !== "string" || typeof startDateString !== "string" || typeof startTimeString !== "string" || typeof duration !== "string" || groups.some(group => typeof group !== "string") || teachers.some(teacher => typeof teacher !== "string") || teachers.length === 0) {
         return { error: true, message: "Données de formulaire invalides." };
-    }9
+    }
 
     const durationInMinutes = Number.parseInt(duration, 10);
 
@@ -67,6 +69,19 @@ export async function creerCours(prevState: ActionResult, formData: FormData): P
 
     if (hasCourseGroupCreationError) {
         return { error: true, message: "Le cours a été créé, mais la liaison avec les groupes a échoué." };
+    }
+
+    const courseTeachersCreationResults = await Promise.all(
+        teachers.map((teacherMail) => courseTeacherQueries.create({
+            courseId: uuid,
+            teacherMail: teacherMail as string,
+        }))
+    );
+
+    const hasCourseTeacherCreationError = courseTeachersCreationResults.some((creationResult) => "error" in creationResult);
+
+    if (hasCourseTeacherCreationError) {
+        return { error: true, message: "Le cours a été créé, mais la liaison avec les enseignants a échoué." };
     }
 
     return {

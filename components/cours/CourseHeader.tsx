@@ -17,9 +17,11 @@ export interface CourseHeaderProps {
     onModifier?: () => void;
     /** Callback déclenché au clic sur "Terminer" */
     onTerminer?: () => void;
+    /** Callback déclenché au clic sur "Démarrer le cours" */
+    onDemarrer?: () => void;
 }
 
-export default function CourseHeader({ code, matiere, status, onModifier, onTerminer }: CourseHeaderProps) {
+export default function CourseHeader({ code, matiere, status, onModifier, onTerminer, onDemarrer }: Readonly<CourseHeaderProps>) {
     return (
         <div className="flex items-center justify-between">
             {/* Titre et vignette de statut */}
@@ -45,6 +47,11 @@ export default function CourseHeader({ code, matiere, status, onModifier, onTerm
                     {onTerminer && (
                         <Button variant="default" onClick={onTerminer}>
                             Terminer
+                        </Button>
+                    )}
+                    {onDemarrer && (
+                        <Button variant="default" onClick={onDemarrer}>
+                            Démarrer le cours
                         </Button>
                     )}
                 </div>

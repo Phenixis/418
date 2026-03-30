@@ -1,6 +1,5 @@
 import CourseHeader from '@/components/cours/CourseHeader';
-import CourseInfo from '@/components/cours/CourseInfo';
-import ListeEtudiants from '@/components/cours/ListeEtudiants';
+import CourseLiveSection from '@/components/cours/CourseLiveSection';
 import { CourseStatus } from '@/components/cours/course.types';
 import { fetchCoursActuel } from '@/lib/actions/cours-actuel';
 
@@ -19,7 +18,7 @@ function formatHeure(date: Date): string {
     return `${heures}h${minutes}`;
 }
 
-export default async function AppelPage({ params }: { params: Promise<{ cours_id: string }> }) {
+export default async function AppelPage({ params }: Readonly<{ params: Promise<{ cours_id: string }> }>) {
     const { cours_id } = await params;
 
     const result = await fetchCoursActuel(cours_id);
@@ -41,20 +40,15 @@ export default async function AppelPage({ params }: { params: Promise<{ cours_id
             {/* En-tête : matière, statut et actions */}
             <CourseHeader code={data.code} matiere={data.matiere} status={status} />
 
-            {/* Rectangle d'informations du cours */}
-            <CourseInfo
-                idCours={cours_id}
+            <CourseLiveSection
+                courseId={cours_id}
                 date={data.dateDebut}
                 heureDebut={formatHeure(data.dateDebut)}
                 heureFin={formatHeure(data.dateFin)}
                 classe={data.classe}
-                total={data.total}
-                presents={data.presents}
-                nonScannes={data.nonScannes}
+                status={status}
+                etudiants={data.etudiants}
             />
-
-            {/* Liste des étudiants du cours */}
-            <ListeEtudiants etudiants={data.etudiants} />
         </section>
     );
 }

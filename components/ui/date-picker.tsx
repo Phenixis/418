@@ -38,6 +38,7 @@ export function DatePicker(
             <Button
                 type="button"
                 variant="outline"
+                size="icon"
                 className="hidden bg-transparent md:block px-2"
                 onClick={() => {
                     const newDate = new Date(value.getTime() - 24 * 60 * 60 * 1000)
@@ -54,7 +55,7 @@ export function DatePicker(
                     }
                 }}
             >
-                <Minus className="!size-5"/>
+                <Minus className="!size-4"/>
             </Button>
 
             <Popover open={showCalendar} onOpenChange={setShowCalendar}>
@@ -62,7 +63,7 @@ export function DatePicker(
                     <Button
                         type="button"
                         variant="outline"
-                        className="bg-transparent"
+                        className="bg-transparent text-sm"
                     >
                         {format(value, "dd/MM/yyyy")}
                     </Button>
@@ -91,6 +92,7 @@ export function DatePicker(
 
             <Button
                 type="button"
+                size="icon"
                 variant="outline"
                 className="hidden bg-transparent md:block px-2"
                 onClick={() => {
@@ -108,7 +110,7 @@ export function DatePicker(
                     }
                 }}
             >
-                <Plus className="!size-5"/>
+                <Plus className="!size-4"/>
             </Button>
         </div>
     )

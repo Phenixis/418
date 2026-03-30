@@ -11,7 +11,7 @@ import {
 } from 'react';
 
 type TeacherContextType = {
-    teacher: Teacher | null;
+    teacher: Teacher;
 };
 
 const TeacherContext = createContext<TeacherContextType | null>(null);
@@ -29,10 +29,10 @@ export function TeacherProvider({
     teacherPromise,
 }: Readonly<{
     children: ReactNode;
-    teacherPromise: Promise<Teacher | null>;
+    teacherPromise: Promise<Teacher>;
 }>) {
     let initialTeacher = use(teacherPromise)
-    const [teacher, setTeacher] = useState<Teacher | null>(initialTeacher)
+    const [teacher, setTeacher] = useState<Teacher>(initialTeacher)
 
     useEffect(() => {
         setTeacher(initialTeacher)

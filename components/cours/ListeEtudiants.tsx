@@ -1,140 +1,206 @@
-import EtudiantCard, { Etudiant } from '@/components/cours/EtudiantCard';
-import { StatutEtudiant } from '@/components/cours/course.types';
+"use client";
 
-// --- Données mockées (à remplacer par les interfaces ORM une fois établies) ---
-const mockEtudiants: Etudiant[] = [
-    {
-        id: '1',
-        prenom: 'Maxime',
-        nom: 'Duhamel',
-        photoUrl: 'https://randomuser.me/api/portraits/women/44.jpg',
-        statut: StatutEtudiant.PRESENT
-    },
-    {
-        id: '2',
-        prenom: 'Nathan',
-        nom: 'Thuault',
-        photoUrl: 'https://randomuser.me/api/portraits/men/32.jpg',
-        statut: StatutEtudiant.ABSENT
-    },
-    {
-        id: '3',
-        prenom: 'Peter',
-        nom: 'Parker',
-        photoUrl: 'https://randomuser.me/api/portraits/men/75.jpg',
-        statut: StatutEtudiant.PRESENT
-    },
-    {
-        id: '4',
-        prenom: 'Marlène',
-        nom: 'Dubois',
-        photoUrl: 'https://randomuser.me/api/portraits/women/68.jpg',
-        statut: StatutEtudiant.PRESENT
-    },
-    {
-        id: '5',
-        prenom: 'Enzo',
-        nom: 'Letaillandier',
-        photoUrl: 'https://randomuser.me/api/portraits/women/22.jpg',
-        statut: StatutEtudiant.ABSENT
-    },
-    {
-        id: '6',
-        prenom: 'Jean-Marie',
-        nom: 'De La Grande Botte Sur La Meur',
-        photoUrl: 'https://randomuser.me/api/portraits/men/11.jpg',
-        statut: StatutEtudiant.PRESENT
-    },
-    {
-        id: '7',
-        prenom: 'Olivier',
-        nom: 'Minne',
-        photoUrl: 'https://randomuser.me/api/portraits/men/52.jpg',
-        statut: StatutEtudiant.ABSENT
-    },
-    {
-        id: '8',
-        prenom: 'Scarlett',
-        nom: 'Johansson',
-        photoUrl: 'https://randomuser.me/api/portraits/women/55.jpg',
-        statut: StatutEtudiant.PRESENT
-    },
-    {
-        id: '9',
-        prenom: 'Dora',
-        nom: "L'Exploratrice",
-        photoUrl: 'https://randomuser.me/api/portraits/women/33.jpg',
-        statut: StatutEtudiant.ABSENT
-    },
-    {
-        id: '10',
-        prenom: 'Maxence',
-        nom: 'Dahemul',
-        photoUrl: 'https://randomuser.me/api/portraits/men/41.jpg',
-        statut: StatutEtudiant.PRESENT
-    },
-    {
-        id: '11',
-        prenom: 'André',
-        nom: 'Agassi',
-        photoUrl: 'https://randomuser.me/api/portraits/men/28.jpg',
-        statut: StatutEtudiant.PRESENT
-    },
-    {
-        id: '12',
-        prenom: 'Valérie',
-        nom: 'Bourdeau',
-        photoUrl: 'https://randomuser.me/api/portraits/women/17.jpg',
-        statut: StatutEtudiant.ABSENT
-    },
-    { id: '13', prenom: 'Sophie', nom: 'Martin', photoUrl: null, statut: StatutEtudiant.ABSENT },
-    {
-        id: '14',
-        prenom: 'Lucas',
-        nom: 'Bernard',
-        photoUrl: 'https://randomuser.me/api/portraits/men/63.jpg',
-        statut: StatutEtudiant.PRESENT
-    },
-    {
-        id: '15',
-        prenom: 'Camille',
-        nom: 'Lefebvre',
-        photoUrl: 'https://randomuser.me/api/portraits/men/19.jpg',
-        statut: StatutEtudiant.PRESENT
-    },
-    {
-        id: '16',
-        prenom: 'Rayan',
-        nom: 'Chouaib',
-        photoUrl: 'https://randomuser.me/api/portraits/men/88.jpg',
-        statut: StatutEtudiant.ABSENT
-    },
-    {
-        id: '17',
-        prenom: 'Inès',
-        nom: 'Rousseau',
-        photoUrl: 'https://randomuser.me/api/portraits/women/29.jpg',
-        statut: StatutEtudiant.PRESENT
-    },
-    {
-        id: '18',
-        prenom: 'Tom',
-        nom: 'Girard',
-        photoUrl: 'https://randomuser.me/api/portraits/men/5.jpg',
-        statut: StatutEtudiant.ABSENT
-    }
-];
-// ----------------------------------------------------------------------------
+import { useEffect, useState } from 'react';
+import EtudiantCard from '@/components/cours/EtudiantCard';
+import { StatutEtudiant } from '@/components/cours/course.types';
+import { StudentWithStatus } from '@/lib/actions/cours-actuel';
+import { useAttendanceRealtime } from '@/hooks/use-attendance-realtime';
 
 interface ListeEtudiantsProps {
-    etudiants?: Etudiant[];
+    courseId: string;
+    etudiants: StudentWithStatus[];
+    onStudentsChange?: (students: StudentWithStatus[]) => void;
 }
 
-export default function ListeEtudiants({ etudiants = mockEtudiants }: ListeEtudiantsProps) {
+type ToggleAttendanceResponse = {
+    status: StatutEtudiant;
+};
+
+function applyPresenceSnapshot(
+    previousStudents: StudentWithStatus[],
+    pendingStudentMails: Set<string>,
+    presentStudentMails: Set<string>
+): StudentWithStatus[] {
+    return previousStudents.map((previousStudent) => {
+        if (pendingStudentMails.has(previousStudent.userMail)) {
+            return previousStudent;
+        }
+
+        return {
+            ...previousStudent,
+            statut: presentStudentMails.has(previousStudent.userMail)
+                ? StatutEtudiant.PRESENT
+                : StatutEtudiant["NON-SCANNE"]
+        };
+    });
+}
+
+export default function ListeEtudiants({ courseId, etudiants, onStudentsChange }: Readonly<ListeEtudiantsProps>) {
+    const [students, setStudents] = useState<StudentWithStatus[]>(etudiants);
+    const [pendingStudentMails, setPendingStudentMails] = useState<Set<string>>(new Set());
+
+    useEffect(() => {
+        setStudents(etudiants);
+    }, [etudiants]);
+
+    useEffect(() => {
+        onStudentsChange?.(students);
+    }, [students, onStudentsChange]);
+
+    const { connectionState } = useAttendanceRealtime({
+        courseId,
+        pendingStudentMails,
+        onAttendanceEvent: (attendanceEvent) => {
+            setStudents((previousStudents) => previousStudents.map((previousStudent) => {
+                if (previousStudent.userMail !== attendanceEvent.studentMail) {
+                    return previousStudent;
+                }
+
+                return {
+                    ...previousStudent,
+                    statut: attendanceEvent.status === "present"
+                        ? StatutEtudiant.PRESENT
+                        : StatutEtudiant["NON-SCANNE"]
+                };
+            }));
+        }
+    });
+
+    useEffect(() => {
+        if (connectionState === "connected" || connectionState === "connecting") {
+            return;
+        }
+
+        const syncAttendanceStatus = async () => {
+            try {
+                const response = await fetch(`/api/teacher/attendance/status?courseId=${encodeURIComponent(courseId)}`, {
+                    method: "GET",
+                    cache: "no-store"
+                });
+
+                if (!response.ok) {
+                    return;
+                }
+
+                const responseData = await response.json() as { presentStudentMails?: string[] };
+
+                if (!Array.isArray(responseData.presentStudentMails)) {
+                    return;
+                }
+
+                const presentStudentMails = new Set(responseData.presentStudentMails);
+                setStudents((previousStudents) => (
+                    applyPresenceSnapshot(previousStudents, pendingStudentMails, presentStudentMails)
+                ));
+            } catch {
+                return;
+            }
+        };
+
+        void syncAttendanceStatus();
+        const intervalId = setInterval(() => {
+            void syncAttendanceStatus();
+        }, 3000);
+
+        return () => {
+            clearInterval(intervalId);
+        };
+    }, [connectionState, courseId, pendingStudentMails]);
+
+    async function handleStudentClick(student: StudentWithStatus) {
+        if (pendingStudentMails.has(student.userMail)) {
+            return;
+        }
+
+        const previousStudentStatus = student.statut;
+        const optimisticStudentStatus = previousStudentStatus === StatutEtudiant.PRESENT
+            ? StatutEtudiant["NON-SCANNE"]
+            : StatutEtudiant.PRESENT;
+
+        setStudents((previousStudents) => previousStudents.map((previousStudent) => {
+            if (previousStudent.userMail !== student.userMail) {
+                return previousStudent;
+            }
+
+            return {
+                ...previousStudent,
+                statut: optimisticStudentStatus
+            };
+        }));
+
+        setPendingStudentMails((previousPendingStudentMails) => {
+            const nextPendingStudentMails = new Set(previousPendingStudentMails);
+            nextPendingStudentMails.add(student.userMail);
+            return nextPendingStudentMails;
+        });
+
+        try {
+            const response = await fetch('/api/teacher/attendance/toggle', {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    courseId,
+                    studentMail: student.userMail
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error("Impossible de mettre à jour la présence de l'étudiant.");
+            }
+
+            const responseData = await response.json() as ToggleAttendanceResponse;
+
+            setStudents((previousStudents) => previousStudents.map((previousStudent) => {
+                if (previousStudent.userMail !== student.userMail) {
+                    return previousStudent;
+                }
+
+                return {
+                    ...previousStudent,
+                    statut: responseData.status
+                };
+            }));
+        } catch (error) {
+            console.error(error);
+
+            setStudents((previousStudents) => previousStudents.map((previousStudent) => {
+                if (previousStudent.userMail !== student.userMail) {
+                    return previousStudent;
+                }
+
+                return {
+                    ...previousStudent,
+                    statut: previousStudentStatus
+                };
+            }));
+        } finally {
+            setPendingStudentMails((previousPendingStudentMails) => {
+                const nextPendingStudentMails = new Set(previousPendingStudentMails);
+                nextPendingStudentMails.delete(student.userMail);
+                return nextPendingStudentMails;
+            });
+        }
+    }
+
     return (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-            {etudiants.map(etudiant => (
-                <EtudiantCard key={etudiant.id} etudiant={etudiant} />
+            {students.slice()
+            .sort((a, b) => {
+                const groupComparison = a.groupName.localeCompare(b.groupName, 'fr', { sensitivity: 'base' });
+                if (groupComparison !== 0) return groupComparison;
+                const lastNameComparison = a.lastName.localeCompare(b.lastName, 'fr', { sensitivity: 'base' });
+                if (lastNameComparison !== 0) return lastNameComparison;
+                return a.firstName.localeCompare(b.firstName, 'fr', { sensitivity: 'base' });
+            })
+            .map(etudiant => (
+                <EtudiantCard
+                    key={etudiant.userMail}
+                    etudiant={etudiant}
+                    isDisabled={pendingStudentMails.has(etudiant.userMail)}
+                    onClick={handleStudentClick}
+                />
             ))}
         </div>
     );

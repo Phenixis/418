@@ -18,8 +18,13 @@ import { creerCours } from "@/lib/actions/cours";
 import { ActionResult } from "@/lib/actions/types";
 import { useActionState, useEffect, useState } from "react";
 import SelectGroupComponent from "./select-group";
+import { useTeacher } from "@/lib/hooks/useTeacher";
+import { useRouter } from "next/navigation";
 
 export default function CreerCours() {
+    const { teacher } = useTeacher();
+    const router = useRouter();
+    
     const [isCreateCourseDialogOpen, setIsCreateCourseDialogOpen] = useState(false);
 
     const [date, setDate] = useState(new Date());
@@ -36,7 +41,7 @@ export default function CreerCours() {
 
     useEffect(() => {
         if ("success" in state) {
-            globalThis.location.href = "/professeur/cours/" + state.course.id
+            router.push("/professeur/cours/" + state.course.id);
             setLabel("");
             setDate(new Date());
             setHeureDebut("");
@@ -80,6 +85,7 @@ export default function CreerCours() {
                         </DialogDescription>
                     </DialogHeader>
                     <form action={formAction} className="w-full">
+                        <input type="hidden" name="teacherEmail" value={teacher.userMail} className="hidden" readOnly />
                         <div className="w-full flex flex-col gap-2 mb-2">
                             <Label htmlFor="label">Nom du cours</Label>
                             <Input 

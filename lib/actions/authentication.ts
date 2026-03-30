@@ -200,7 +200,6 @@ export async function getServerSession() {
 		const parsed = await verifyToken(credentialsSession)
 
 		if (!parsed?.teacherEmail) {
-			await removeSession()
 			return null
 		}
 

@@ -3,8 +3,6 @@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import type { Select as Group } from "@/lib/db/schema/group";
 import type { Select as Student } from "@/lib/db/schema/student";
-import ChevronUpIcon from '@mui/icons-material/ExpandLess';
-import ChevronDownIcon from '@mui/icons-material/ExpandMore';
 import { useEffect, useState } from "react";
 import EtudiantCard from "../etudiant/etudiant-card";
 import EtudiantCardSkeleton from '../etudiant/etudiant-card-skeleton';
@@ -57,11 +55,6 @@ export default function CollapsibleGroup({
     return (
         <Collapsible open={open} onOpenChange={setOpen}>
             <CollapsibleTrigger className="cursor-pointer flex w-full items-center gap-2 h3">
-                {open ? (
-                    <ChevronUpIcon className="shrink-0" />
-                ) : (
-                    <ChevronDownIcon className="shrink-0" />
-                )}
                 {group.td}{group.tp}
             </CollapsibleTrigger>
             <CollapsibleContent>

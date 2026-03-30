@@ -15,11 +15,15 @@ import { login } from "@/lib/actions/authentication";
 import { ActionResult } from "@/lib/actions/types";
 import { useActionState, useEffect, useState } from "react";
 import { Checkbox } from "../ui/checkbox";
+import { useRouter } from "next/navigation";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function ConnexionForm() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isRememberChecked, setIsRememberChecked] = useState(false);
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
   const formValid = email.trim() !== "" && password.trim() !== "";
 
@@ -29,9 +33,9 @@ export default function ConnexionForm() {
 
   useEffect(() => {
     if ("success" in state) {
-      globalThis.location.href = state.redirectTo;
+      router.push(state.redirectTo);
     }
-  }, [state]);
+  }, [state, router]);
 
   return (
     <form className="h-screen w-screen flex items-center justify-center" action={formAction}>
@@ -66,16 +70,29 @@ export default function ConnexionForm() {
           </div>
           <div className="w-full flex flex-col">
             <Label htmlFor="password" className="mb-2">Mot de passe</Label>
-            <Input
-              id="password"
-              type="password"
-              name="password"
-              placeholder="Mot de passe"
-              className="mb-2"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+            <div className="relative">
+              <Input
+                id="password"
+                type={isPasswordVisible ? "text" : "password"}
+                name="password"
+                placeholder="Mot de passe"
+                className="pr-12"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="absolute inset-y-0 right-0 my-auto mr-1 h-8 w-8"
+                aria-label={isPasswordVisible ? "Cacher le mot de passe" : "Afficher le mot de passe"}
+                aria-pressed={isPasswordVisible}
+                onClick={() => setIsPasswordVisible((currentValue) => !currentValue)}
+              >
+                {isPasswordVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </Button>
+            </div>
           </div>
         </CardContent>
         <CardFooter className="gap-4 flex-col-reverse justify-end">

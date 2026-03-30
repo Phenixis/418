@@ -1,7 +1,10 @@
 import { PgTableWithColumns } from "drizzle-orm/pg-core";
 import * as lib from "./lib";
 
-export type QueryResult = { success: string; entity: any } | { error: string };
+export type QueryResult<T> = SuccessQueryResult<T> | ErrorQueryResult;
+
+export type SuccessQueryResult<T> = { success: string; entity: T };
+export type ErrorQueryResult = { error: string };
 
 export class QueryModel<NewEntityModel extends { [x: string]: any; }, ExistingEntityModel extends { [x: string]: any; }> {
     table: PgTableWithColumns<any>;
@@ -10,7 +13,7 @@ export class QueryModel<NewEntityModel extends { [x: string]: any; }, ExistingEn
         this.table = table;
     }
 
-    async create(data: NewEntityModel): Promise<QueryResult> {
+    async create(data: NewEntityModel): Promise<QueryResult<ExistingEntityModel>> {
         const result = await lib.db
             .insert(this.table)
             .values(data)
@@ -22,42 +25,16 @@ export class QueryModel<NewEntityModel extends { [x: string]: any; }, ExistingEn
 
         return { success: "Created successfully.", entity: result[0] as ExistingEntityModel };
     }
-    
-    async getAll(): Promise<QueryResult> {
-            const result = await lib.db
-                .select()
-                .from(this.table)
-    
-            return { success: "Data trouvées.", entity: result as ExistingEntityModel[] }
-        }
 
-    // async getByIds(ids: number[], with_deleted: boolean = false): Promise<{ success: string; entities: ExistingEntityModel[] } | { error: string }> {
-    //     const result = await lib.db
-    //         .select()
-    //         .from(this.table)
-    //         .where(lib.and(
-    //             lib.inArray(this.table.id, ids),
-    //             with_deleted ? lib.sql`true` : lib.isNull(this.table.deletedAt)
-    //         ));
+    async getAll(): Promise<QueryResult<ExistingEntityModel[]>> {
+        const result = await lib.db
+            .select()
+            .from(this.table)
 
-    //     if (lib.resultEmpty(result)) {
-    //         return { error: "No data found for the provided IDs." };
-    //     }
+        return { success: "Data trouvées.", entity: result as ExistingEntityModel[] }
+    }
 
-    //     return { success: "Data retrieved successfully.", entities: result };
-    // }
-
-    // async getById(id: number, with_deleted: boolean = false): Promise<{ success: string; entity: ExistingEntityModel } | { error: string }> {
-    //     const result = await this.getByIds([id], with_deleted);
-
-    //     if ("error" in result) {
-    //         return { error: result.error };
-    //     }
-
-    //     return { success: "Data retrieved successfully.", entity: result.entities[0] };
-    // }
-
-    async update(id: number, data: Partial<NewEntityModel>): Promise<QueryResult> {
+    async update(id: number, data: Partial<NewEntityModel>): Promise<QueryResult<ExistingEntityModel>> {
         const result = await lib.db
             .update(this.table)
             .set({
@@ -74,7 +51,7 @@ export class QueryModel<NewEntityModel extends { [x: string]: any; }, ExistingEn
         return { success: "Updated successfully.", entity: result[0] as ExistingEntityModel };
     }
 
-    async delete(id: number): Promise<QueryResult> {
+    async delete(id: number): Promise<QueryResult<ExistingEntityModel>> {
         const result = await lib.db
             .update(this.table)
             .set({ deletedAt: new Date() })
@@ -88,7 +65,7 @@ export class QueryModel<NewEntityModel extends { [x: string]: any; }, ExistingEn
         return { success: "Deleted successfully.", entity: result[0] as ExistingEntityModel };
     }
 
-    async deleteAll(confirm?: boolean): Promise<QueryResult> {
+    async deleteAll(confirm?: boolean): Promise<QueryResult<ExistingEntityModel[]>> {
         if (!confirm) {
             return { error: "Are you really sure you want to delete all entities? Pass 'true' as the confirm parameter to proceed." };
         }
@@ -101,7 +78,7 @@ export class QueryModel<NewEntityModel extends { [x: string]: any; }, ExistingEn
         return { success: "All entities deleted successfully.", entity: result as ExistingEntityModel[] };
     }
 
-    async hardDelete(id: number): Promise<QueryResult> {
+    async hardDelete(id: number): Promise<QueryResult<number>> {
         // First check if the addiction is soft-deleted
         const existingEntity = await lib.db
             .select()
@@ -130,7 +107,7 @@ export class QueryModel<NewEntityModel extends { [x: string]: any; }, ExistingEn
         return { success: "Hard deleted successfully.", entity: id };
     }
 
-    async hardDeleteAll(confirm?: boolean): Promise<QueryResult> {
+    async hardDeleteAll(confirm?: boolean): Promise<QueryResult<number>> {
         if (!confirm) {
             return { error: "Are you really sure you want to hard delete all entities? Pass 'true' as the confirm parameter to proceed." };
         }

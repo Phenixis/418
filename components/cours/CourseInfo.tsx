@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import QRCode from './QrCode';
-
+import { CourseStatus } from './course.types';
 
 export interface CourseInfoProps {
     /** Date du cours */
@@ -20,6 +20,8 @@ export interface CourseInfoProps {
     nonScannes: number;
     /** ID du cours pour le lien du QRCode */
     idCours: string;
+    /** Statut du cours pour adapter l'affichage si besoin */
+    status: CourseStatus;
 }
 
 // Formatte une date en "18 mars 2026"
@@ -32,7 +34,7 @@ function formatDate(date: Date): string {
 }
 
 // Champ d'information individuel (label + valeur)
-function InfoField({ label, value }: { label: string; value: string }) {
+function InfoField({ label, value }: Readonly<{ label: string; value: string }>) {
     return (
         <div className="flex flex-col gap-1">
             <span className="font-faded">{label}</span>
@@ -49,11 +51,12 @@ export default function CourseInfo({
     total,
     presents,
     nonScannes,
-    idCours
+    idCours,
+    status
 }: Readonly<CourseInfoProps>) {
     const dateFormatee = formatDate(date);
     const horaireFormate = `${heureDebut} — ${heureFin}`;
-    const ENT_PAGE_URL = 'https://418.maximeduhamel.com/etudiant?cours_id=' + idCours;
+    const ENT_PAGE_URL = (process.env.NEXT_PUBLIC_BASE_URL ?? '') + '/etudiant?cours_id=' + idCours;
 
     return (
         <div className="flex items-stretch gap-4">
@@ -79,10 +82,13 @@ export default function CourseInfo({
                 </CardContent>
             </Card>
 
-            {/* Placeholder QR Code — carré de même hauteur que le rectangle d'informations */}
-            <div className="self-stretch shrink-0 flex items-center justify-center">
-                <QRCode codePin={ENT_PAGE_URL}/>
-            </div>
+            {
+                status === CourseStatus.EN_COURS && (
+                    <div className="self-stretch shrink-0 flex items-center justify-center">
+                        <QRCode codePin={ENT_PAGE_URL} />
+                    </div>
+                )
+            }
         </div>
     );
 }

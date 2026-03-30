@@ -1,10 +1,22 @@
 import { passwordRules } from '@/components/login/rules';
 import { expect, test } from '@playwright/test';
+import {
+    deleteTeacherAccountByEmail,
+    ensureTeacherAccountByEmail,
+} from './helpers/test-account';
 
 test.describe('Inscription page', () => {
+    let createdTeacherEmails: string[] = [];
 
     test.beforeEach(async ({ page }) => {
+        createdTeacherEmails = [];
         await page.goto('/professeur/inscription?invite_id=123');
+    });
+
+    test.afterEach(async () => {
+        for (const teacherEmail of createdTeacherEmails) {
+            await deleteTeacherAccountByEmail(teacherEmail);
+        }
     });
 
     test("should show Not found if the invite_id is empty", async ({ page }) => {
@@ -31,6 +43,12 @@ test.describe('Inscription page', () => {
     });
 
     test('should show error message on creation with email already registered', async ({ page }) => {
+        const uniqueTeacherLocalPart = `inscription.existing.${Date.now()}`;
+        const uniqueTeacherEmail = `${uniqueTeacherLocalPart}@univ-rennes.fr`;
+
+        await ensureTeacherAccountByEmail(uniqueTeacherEmail, 'Totoro123');
+        createdTeacherEmails.push(uniqueTeacherEmail);
+
         const firstNameInput = page.getByLabel('Prénom', { exact: true });
         const lastNameInput = page.getByLabel('Nom', { exact: true });
         const emailInput = page.getByLabel('Email', { exact: true });
@@ -40,7 +58,7 @@ test.describe('Inscription page', () => {
 
         await firstNameInput.fill('Benoit');
         await lastNameInput.fill('Tottereau');
-        await emailInput.fill('benoit.tottereau');
+        await emailInput.fill(uniqueTeacherEmail);
         await passwordInput.fill('Totoro123');
         await confirmPasswordInput.fill('Totoro123');
         await submitButton.click();
@@ -125,5 +143,31 @@ test.describe('Inscription page', () => {
 
         const errorMessage = page.getByText('Les mots de passe ne correspondent pas.');
         await expect(errorMessage).toBeVisible();
+    });
+
+    test('should toggle password visibility on inscription form', async ({ page }) => {
+        const passwordInput = page.getByLabel('Mot de passe', { exact: true });
+        const showPasswordButton = page.getByRole('button', { name: 'Afficher le mot de passe' }).first();
+
+        await expect(passwordInput).toHaveAttribute('type', 'password');
+
+        await showPasswordButton.click();
+        await expect(passwordInput).toHaveAttribute('type', 'text');
+
+        await page.getByRole('button', { name: 'Cacher le mot de passe' }).first().click();
+        await expect(passwordInput).toHaveAttribute('type', 'password');
+    });
+
+    test('should toggle confirm password visibility on inscription form', async ({ page }) => {
+        const confirmPasswordInput = page.getByLabel('Confirmer le mot de passe', { exact: true });
+        const toggleConfirmPasswordButton = page.locator('button[aria-controls="confirmPassword"]');
+
+        await expect(confirmPasswordInput).toHaveAttribute('type', 'password');
+
+        await toggleConfirmPasswordButton.click();
+        await expect(confirmPasswordInput).toHaveAttribute('type', 'text');
+
+        await toggleConfirmPasswordButton.click();
+        await expect(confirmPasswordInput).toHaveAttribute('type', 'password');
     });
 });
