@@ -6,6 +6,7 @@ import type { Select as Course } from '@/lib/db/schema/course';
 import type { Select as CourseGroup } from '@/lib/db/schema/course-group';
 import type { Select as Group } from '@/lib/db/schema/group';
 import TableauCours from '@/components/cours/TableauCours';
+import FiltresCours from '@/components/cours/FiltresCours';
 
 function getCourseStatusPriority(course: Course, now: Date): number {
     if (now >= course.startAt && now <= course.endAt) {
@@ -55,6 +56,9 @@ export default async function DashboardPage() {
     });
 
     return (
+        <>
+        <FiltresCours />
         <TableauCours courses={sortedCourses} groupCourses={groupCourses} groups={groups} />
+        </>
     );
 }
