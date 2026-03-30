@@ -6,7 +6,6 @@ import type { Select as Course } from '@/lib/db/schema/course';
 import type { Select as CourseGroup } from '@/lib/db/schema/course-group';
 import type { Select as Group } from '@/lib/db/schema/group';
 import TableauCours from '@/components/cours/TableauCours';
-import { redirect } from 'next/navigation';
 
 function getCourseStatusPriority(course: Course, now: Date): number {
     if (now >= course.startAt && now <= course.endAt) {

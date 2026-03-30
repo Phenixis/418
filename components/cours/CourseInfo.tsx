@@ -56,7 +56,7 @@ export default function CourseInfo({
 }: Readonly<CourseInfoProps>) {
     const dateFormatee = formatDate(date);
     const horaireFormate = `${heureDebut} — ${heureFin}`;
-    const ENT_PAGE_URL = (process.env.BASE_URL ?? '') + '/etudiant?cours_id=' + idCours;
+    const ENT_PAGE_URL = (process.env.NEXT_PUBLIC_BASE_URL ?? '') + '/etudiant?cours_id=' + idCours;
 
     return (
         <div className="flex items-stretch gap-4">

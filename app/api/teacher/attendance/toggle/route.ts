@@ -27,6 +27,9 @@ export async function PATCH(request: Request) {
         return NextResponse.json({ error: "Enseignant non autorisé." }, { status: 403 });
     }
 
+    if (!teacherResult.entity?.isValidated) {
+        return NextResponse.json({ error: "Compte enseignant non validé." }, { status: 403 });
+    }
     try {
         requestBody = await request.json();
     } catch {

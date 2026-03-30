@@ -10,7 +10,7 @@ async function deleteSessionCookieAndRedirect(requestUrl: string) {
         path: '/',
     })
 
-    return NextResponse.redirect(new URL('/professeur/connexion', requestUrl))
+    return NextResponse.redirect(new URL('/professeur/connexion', requestUrl), { status: 303 })
 }
 
 export async function POST(request: Request) {
