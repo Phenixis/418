@@ -3,7 +3,6 @@
 import { useState } from "react";
 import FiltresCours, { CourseFilter } from "./FiltresCours";
 import TableauCours from "./TableauCours";
-import CreerCours from '@/components/cours/creation/creer-cours';
 import type { Select as Course } from '@/lib/db/schema/course';
 import type { Select as CourseGroup } from '@/lib/db/schema/course-group';
 import type { Select as Group } from '@/lib/db/schema/group';

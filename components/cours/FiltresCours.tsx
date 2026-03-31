@@ -42,10 +42,10 @@ export default function FiltresCours({ selectedFilters, onFilterChange }: Filtre
                             variant={isSelected ? "default" : "outline"}
                             onClick={() => toggleFilter(filter)}
                             className={cn(
-                                "transition-all duration-150 ease-out w-28 font-medium border-1 ",
+                                "transition-all duration-150 ease-out w-28 font-medium border",
                                 isSelected
                                     ? "translate-y-[4px] shadow-none"
-                                    : "shadow-[0_4px_0_0_rgba(0,0,0,0.15)] active:translate-y-[4px] active:shadow-none "
+                                    : "shadow-[0_4px_0_0_rgba(0,0,0,0.15)] active:translate-y-[4px] active:shadow-none"
                             )}
 
                         >
