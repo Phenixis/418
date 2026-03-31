@@ -2,6 +2,7 @@ import bcrypt from 'bcrypt';
 import { eq } from 'drizzle-orm';
 import { db } from '@/lib/db/drizzle';
 import { table as teacherTable } from '@/lib/db/schema/teacher';
+import { table as studentTable } from '@/lib/db/schema/student';
 
 export function getTestAccountEmail(): string {
     return process.env.TEST_ACCOUNT_EMAIL ?? 'test@univ-rennes.fr';
@@ -64,3 +65,41 @@ export async function ensureTestTeacherAccount(): Promise<void> {
 
     await ensureTeacherAccountByEmail(testAccountEmail, testAccountPassword);
 }
+
+type StudentAccountOptions = {
+    firstName?: string;
+    lastName?: string;
+    groupId?: string | null;
+};
+
+export async function ensureStudentAccountByEmail(
+    studentEmail: string,
+    plainPassword: string,
+    options: StudentAccountOptions = {},
+): Promise<void> {
+    const studentFirstName = options.firstName ?? 'Test';
+    const studentLastName = options.lastName ?? 'Student';
+    const studentGroupId = options.groupId ?? null;
+    const studentPasswordHash = await bcrypt.hash(plainPassword, 12);
+
+    await db.insert(studentTable).values({
+        userMail: studentEmail,
+        firstName: studentFirstName,
+        lastName: studentLastName,
+        password: studentPasswordHash,
+        groupId: studentGroupId,
+    }).onConflictDoUpdate({
+        target: studentTable.userMail,
+        set: {
+            firstName: studentFirstName,
+            lastName: studentLastName,
+            password: studentPasswordHash,
+            groupId: studentGroupId,
+        },
+    });
+}
+
+export async function deleteStudentAccountByEmail(studentEmail: string): Promise<void> {
+    await db.delete(studentTable).where(eq(studentTable.userMail, studentEmail));
+}
+
