@@ -132,10 +132,6 @@ export default function CourseTableRow({ cours, groups }: Readonly<CoursProps>) 
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
-                        <DropdownMenuItem disabled title="Cette action n'est pas encore implémentée">
-                            Modifier le Cours
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
                         <DropdownMenuItem
                             data-ignore-row-click
                             variant="destructive"
