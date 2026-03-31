@@ -5,8 +5,7 @@ import { teacherQueries } from '@/lib/db/queries/teacher';
 import type { Select as Course } from '@/lib/db/schema/course';
 import type { Select as CourseGroup } from '@/lib/db/schema/course-group';
 import type { Select as Group } from '@/lib/db/schema/group';
-import TableauCours from '@/components/cours/TableauCours';
-import FiltresCours from '@/components/cours/FiltresCours';
+import CoursContainer from '@/components/cours/CoursContainer';
 
 function getCourseStatusPriority(course: Course, now: Date): number {
     if (now >= course.startAt && now <= course.endAt) {
@@ -58,8 +57,11 @@ export default async function DashboardPage() {
     return (
         <>
         {/*Ajout des filtres et tris pour les cours*/}
-        <FiltresCours />
-        <TableauCours courses={sortedCourses} groupCourses={groupCourses} groups={groups} />
+        <CoursContainer 
+            courses={sortedCourses} 
+            groupCourses={groupCourses} 
+            groups={groups} 
+        />
         </>
     );
 }
