@@ -3,10 +3,15 @@
 import Search from "@mui/icons-material/Search";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/Switch";
 import { cn } from "@/lib/utils";
 
 /** Filtres disponibles sur la liste des étudiants */
 export type FiltrePresence = "tous" | "absents" | "presents";
+
+/** Modes d'affichage de la liste */
+export type ModeAffichage = "grille" | "liste";
 
 const FILTRES: { valeur: FiltrePresence; label: string }[] = [
     { valeur: "tous", label: "Tous" },
@@ -23,6 +28,10 @@ interface BarreActionsProps {
     filtreActif: FiltrePresence;
     /** Callback déclenché au clic sur un badge de filtre */
     onFiltreChange: (filtre: FiltrePresence) => void;
+    /** Mode d'affichage actuel */
+    modeAffichage: ModeAffichage;
+    /** Callback déclenché au changement de mode */
+    onModeAffichageChange: (mode: ModeAffichage) => void;
 }
 
 export default function BarreActions({
@@ -30,7 +39,11 @@ export default function BarreActions({
     onRechercheChange,
     filtreActif,
     onFiltreChange,
+    modeAffichage,
+    onModeAffichageChange,
 }: Readonly<BarreActionsProps>) {
+    const isListeActive = modeAffichage === "liste";
+
     return (
         <div className="flex items-center gap-3">
             {/* Barre de recherche */}
@@ -64,6 +77,20 @@ export default function BarreActions({
                         </Badge>
                     );
                 })}
+            </div>
+
+            {/* Toggle vue liste (poussé à droite) */}
+            <div className="ml-auto flex items-center gap-2">
+                <Label htmlFor="toggle-vue-liste" className="text-sm text-faded cursor-pointer">
+                    Vue liste
+                </Label>
+                <Switch
+                    id="toggle-vue-liste"
+                    checked={isListeActive}
+                    onCheckedChange={(checked) =>
+                        onModeAffichageChange(checked ? "liste" : "grille")
+                    }
+                />
             </div>
         </div>
     );

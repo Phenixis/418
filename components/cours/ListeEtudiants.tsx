@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import EtudiantCard from '@/components/cours/EtudiantCard';
-import BarreActions, { type FiltrePresence } from '@/components/cours/BarreActions';
+import EtudiantRow from '@/components/cours/EtudiantRow';
+import BarreActions, { type FiltrePresence, type ModeAffichage } from '@/components/cours/BarreActions';
 import { StatutEtudiant } from '@/components/cours/course.types';
 import { StudentWithStatus } from '@/lib/actions/cours-actuel';
 import { useAttendanceRealtime } from '@/hooks/use-attendance-realtime';
@@ -64,6 +65,7 @@ export default function ListeEtudiants({ courseId, etudiants, onStudentsChange }
     const [pendingStudentMails, setPendingStudentMails] = useState<Set<string>>(new Set());
     const [recherche, setRecherche] = useState('');
     const [filtreActif, setFiltreActif] = useState<FiltrePresence>('tous');
+    const [modeAffichage, setModeAffichage] = useState<ModeAffichage>('grille');
 
     useEffect(() => {
         setStudents(etudiants);
@@ -234,18 +236,33 @@ export default function ListeEtudiants({ courseId, etudiants, onStudentsChange }
                 onRechercheChange={setRecherche}
                 filtreActif={filtreActif}
                 onFiltreChange={setFiltreActif}
+                modeAffichage={modeAffichage}
+                onModeAffichageChange={setModeAffichage}
             />
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                {etudiantsFiltres.map((etudiant) => (
-                    <EtudiantCard
-                        key={etudiant.userMail}
-                        etudiant={etudiant}
-                        isDisabled={pendingStudentMails.has(etudiant.userMail)}
-                        onClick={handleStudentClick}
-                    />
-                ))}
-            </div>
+            {modeAffichage === "grille" ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                    {etudiantsFiltres.map((etudiant) => (
+                        <EtudiantCard
+                            key={etudiant.userMail}
+                            etudiant={etudiant}
+                            isDisabled={pendingStudentMails.has(etudiant.userMail)}
+                            onClick={handleStudentClick}
+                        />
+                    ))}
+                </div>
+            ) : (
+                <div className="flex flex-col gap-2">
+                    {etudiantsFiltres.map((etudiant) => (
+                        <EtudiantRow
+                            key={etudiant.userMail}
+                            etudiant={etudiant}
+                            isDisabled={pendingStudentMails.has(etudiant.userMail)}
+                            onClick={handleStudentClick}
+                        />
+                    ))}
+                </div>
+            )}
         </div>
     );
 }
