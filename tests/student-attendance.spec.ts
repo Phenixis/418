@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { db } from '@/lib/db/drizzle';
 import { table as studentTable } from '@/lib/db/schema/student';
+import { table as courseTable } from '@/lib/db/schema/course';
 import { ensureStudentAccountByEmail, deleteStudentAccountByEmail } from './helpers/test-account';
 import { eq } from 'drizzle-orm';
 
@@ -10,6 +11,11 @@ type StudentCredentials = {
     email: string;
     password: string;
     localPart: string;
+};
+
+type CourseFixture = {
+    courseId: string;
+    courseName: string;
 };
 
 async function createStudentCredentials(): Promise<StudentCredentials> {
@@ -31,16 +37,41 @@ async function deleteStudentByEmail(studentEmail: string): Promise<void> {
     await deleteStudentAccountByEmail(studentEmail);
 }
 
+async function createActiveCourseFixture(): Promise<CourseFixture> {
+    const randomSuffix = `${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`;
+    const courseId = `student-ui-course-${randomSuffix}`;
+    const courseName = `Cours UI ${randomSuffix}`;
+
+    await db.insert(courseTable).values({
+        courseId,
+        subject: courseName,
+        startAt: new Date(Date.now() - 5 * 60 * 1000),
+        endAt: new Date(Date.now() + 60 * 60 * 1000),
+    });
+
+    return { courseId, courseName };
+}
+
+async function deleteCourseById(courseId: string): Promise<void> {
+    await db.delete(courseTable).where(eq(courseTable.courseId, courseId));
+}
+
 test.describe('Student attendance UI and session persistence', () => {
     let createdStudentEmails: string[] = [];
+    let createdCourseIds: string[] = [];
 
     test.beforeEach(async () => {
         createdStudentEmails = [];
+        createdCourseIds = [];
     });
 
     test.afterEach(async () => {
         for (const studentEmail of createdStudentEmails) {
             await deleteStudentByEmail(studentEmail);
+        }
+
+        for (const courseId of createdCourseIds) {
+            await deleteCourseById(courseId);
         }
     });
 
@@ -61,24 +92,23 @@ test.describe('Student attendance UI and session persistence', () => {
         await expect(errorMessage).toBeVisible();
     });
 
-    test('should show email input when page loads with invalid course', async ({ page }) => {
-        const invalidCourseId = 'invalid-course-12345';
-        await page.goto(`/etudiant?cours_id=${invalidCourseId}`);
+    test('should show email input when page loads with valid course', async ({ page }) => {
+        const activeCourse = await createActiveCourseFixture();
+        createdCourseIds.push(activeCourse.courseId);
 
-        // Vérifier que le titre de présence est visible
-        const presenceTitle = page.getByRole('heading', { name: 'Présence' });
-        await expect(presenceTitle).toBeVisible();
+        await page.goto(`/etudiant?cours_id=${activeCourse.courseId}`);
+
+        const emailInput = page.getByLabel('Adresse email IUT');
+        await expect(emailInput).toBeVisible();
     });
 
     test('should allow entering student email', async ({ page }) => {
         const credentials = await createStudentCredentials();
         createdStudentEmails.push(credentials.email);
 
-        const invalidCourseId = 'invalid-course-12345';
-        await page.goto(`/etudiant?cours_id=${invalidCourseId}`);
-
-        // Attendre que l'erreur soit affichée, puis continuer
-        await page.waitForTimeout(500);
+        const activeCourse = await createActiveCourseFixture();
+        createdCourseIds.push(activeCourse.courseId);
+        await page.goto(`/etudiant?cours_id=${activeCourse.courseId}`);
 
         // Remplir l'email
         const emailInput = page.getByLabel('Adresse email IUT');
@@ -91,8 +121,9 @@ test.describe('Student attendance UI and session persistence', () => {
     });
 
     test('should format email input correctly on blur', async ({ page }) => {
-        const invalidCourseId = 'invalid-course-12345';
-        await page.goto(`/etudiant?cours_id=${invalidCourseId}`);
+        const activeCourse = await createActiveCourseFixture();
+        createdCourseIds.push(activeCourse.courseId);
+        await page.goto(`/etudiant?cours_id=${activeCourse.courseId}`);
 
         const emailInput = page.getByLabel('Adresse email IUT');
         await expect(emailInput).toBeVisible();
@@ -107,8 +138,9 @@ test.describe('Student attendance UI and session persistence', () => {
     });
 
     test('should display domain suffix next to email input', async ({ page }) => {
-        const invalidCourseId = 'invalid-course-12345';
-        await page.goto(`/etudiant?cours_id=${invalidCourseId}`);
+        const activeCourse = await createActiveCourseFixture();
+        createdCourseIds.push(activeCourse.courseId);
+        await page.goto(`/etudiant?cours_id=${activeCourse.courseId}`);
 
         // Vérifier que le suffixe de domaine est affiché
         const domainSuffix = page.getByText(`@${STUDENT_EMAIL_DOMAIN}`);

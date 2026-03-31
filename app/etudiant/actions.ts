@@ -295,9 +295,10 @@ export async function authenticateStudentAction(
       occurredAt: new Date().toISOString(),
     });
 
-    if (rememberSession) {
-      await setStudentSession({ studentEmail: normalizedEmail, isPersistentSession: true });
-    }
+    await setStudentSession({
+      studentEmail: normalizedEmail,
+      isPersistentSession: rememberSession,
+    });
 
     return { success: true, data: { courseName: validCourse.data.courseName } };
   } catch (error: unknown) {
@@ -376,9 +377,10 @@ export async function createStudentPasswordAction(
       occurredAt: new Date().toISOString(),
     });
 
-    if (rememberSession) {
-      await setStudentSession({ studentEmail: normalizedEmail, isPersistentSession: true });
-    }
+    await setStudentSession({
+      studentEmail: normalizedEmail,
+      isPersistentSession: rememberSession,
+    });
 
     return { success: true, data: { courseName: validCourse.data.courseName } };
   } catch (error: unknown) {
