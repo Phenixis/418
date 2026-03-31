@@ -27,8 +27,6 @@ import {
     AlertDialogHeader,
     AlertDialogTitle
 } from "@/components/ui/alert-dialog";
-import CreerCours from '@/components/cours/creation/creer-cours';
-import ModifierCours from '@/components/cours/modification/modifier-cours';
 
 
 const PARIS_TIME_ZONE = 'Europe/Paris';
