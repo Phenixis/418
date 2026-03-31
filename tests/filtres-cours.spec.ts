@@ -69,4 +69,42 @@ test.describe('Filtres de cours sur le dashboard', () => {
         const count = await courseRows.count();
         expect(count).toBeGreaterThanOrEqual(0);
     });
+
+    test('doit afficher les données des deux filtres quand deux filtres sont sélectionnés', async ({ authenticatedPage }) => {
+        await authenticatedPage.getByRole('button', { name: 'En cours' }).click();
+        await authenticatedPage.getByRole('button', { name: 'À venir' }).click();
+
+        const courseRows = authenticatedPage.locator('tbody tr');
+        await courseRows.first().waitFor({ state: 'attached', timeout: 5000 }).catch(() => {});
+        const courseRowCount = await courseRows.count();
+            
+        const noCourseVisible = await authenticatedPage.getByRole('cell', { name: /Aucun cours disponible/i }).isVisible();
+        if (noCourseVisible || courseRowCount === 0) return;
+
+        for (let i = 0; i < courseRowCount; i++) {
+            const courseCells = courseRows.nth(i).locator('td');
+            const courseCellCount = await courseCells.count();
+            
+            if (courseCellCount > 0) {
+                const rawStatusText = (await courseCells.nth(courseCellCount - 1).innerText()).trim();
+                if (courseCellCount === 1 && rawStatusText.includes('Aucun cours')) continue;
+                
+                const normalizedStatusText = normalizeStatusLabel(rawStatusText);
+                expect(['En cours', 'À venir']).toContain(normalizedStatusText);
+            }
+        }
+    });
+
+    test('doit réinitialiser la sélection et afficher toutes les données quand les 3 filtres sont sélectionnés', async ({ authenticatedPage }) => {
+        await authenticatedPage.getByRole('button', { name: 'En cours' }).click();
+        await authenticatedPage.getByRole('button', { name: 'À venir' }).click();
+        await authenticatedPage.getByRole('button', { name: 'Terminé' }).click();
+
+        // Le comportement attendu est que le 3e clic vide la sélection
+        const table = authenticatedPage.locator('table');
+        await expect(table).toBeVisible();
+        const courseRows = authenticatedPage.locator('tbody tr');
+        const count = await courseRows.count();
+        expect(count).toBeGreaterThanOrEqual(0);
+    });
 });

@@ -14,6 +14,8 @@ interface CoursContainerProps {
     groups: Group[];
 }
 
+import { PortalToBreadcrumb } from "@/app/professeur/(app)/dashboard/breadcrumb-context";
+
 export default function CoursContainer({ courses, groupCourses, groups }: CoursContainerProps) {
     const [selectedFilters, setSelectedFilters] = useState<CourseFilter[]>([]);
 
@@ -36,11 +38,13 @@ export default function CoursContainer({ courses, groupCourses, groups }: CoursC
 
     return (
         <>
-
-            <FiltresCours
-                selectedFilters={selectedFilters}
-                onFilterChange={setSelectedFilters}
-            />
+            <PortalToBreadcrumb>
+                <FiltresCours
+                    selectedFilters={selectedFilters}
+                    onFilterChange={setSelectedFilters}
+                />
+            </PortalToBreadcrumb>
+            
             <TableauCours
                 courses={filteredCourses}
                 groupCourses={groupCourses}

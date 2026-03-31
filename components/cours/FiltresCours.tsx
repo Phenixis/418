@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
+import { cn } from "@/lib/utils";
 
 export const courseFilters = [
     "En cours",
@@ -31,7 +32,7 @@ export default function FiltresCours({ selectedFilters, onFilterChange }: Filtre
     };
 
     return (
-        <div className="flex justify-end mb-4">
+        <div className="flex justify-center mb-4">
             <ButtonGroup>
                 {courseFilters.map((filter) => {
                     const isSelected = selectedFilters.includes(filter);
@@ -40,7 +41,13 @@ export default function FiltresCours({ selectedFilters, onFilterChange }: Filtre
                             key={filter}
                             variant={isSelected ? "default" : "outline"}
                             onClick={() => toggleFilter(filter)}
-                            className="transition-colors w-24"
+                            className={cn(
+                                "transition-all duration-150 ease-out w-28 font-medium border-1 ",
+                                isSelected
+                                    ? "translate-y-[4px] shadow-none"
+                                    : "shadow-[0_4px_0_0_rgba(0,0,0,0.15)] active:translate-y-[4px] active:shadow-none "
+                            )}
+
                         >
                             {filter}
                         </Button>
