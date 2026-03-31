@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react';
+import {Badge} from '@/components/ui/badge';
 
 
 type CourseFilter = 'all' | 'current' | 'upcoming' | 'past';
@@ -22,17 +23,14 @@ export default function FiltresCours() {
     return (
         <div className="mb-4 flex gap-2">
             {filterButtons.map((button) => (
-                <button
+                <Badge
                     key={button.id}
                     onClick={() => handleFilterChange(button.id)}
-                    className={`px-4 py-2 rounded transition-colors ${
-                        selectedFilter === button.id
-                            ? 'bg-primary hover:bg-primary-dark'
-                            : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
-                    }`}
+                    variant={selectedFilter === button.id ? 'default' : 'outline'}
+                    className="cursor-pointer hover:bg-gray-800 hover:text-white transition-colors"
                 >
                     {button.label}
-                </button>
+                </Badge>
             ))}
         </div>
     );

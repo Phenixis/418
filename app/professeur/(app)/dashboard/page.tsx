@@ -57,6 +57,7 @@ export default async function DashboardPage() {
 
     return (
         <>
+        {/*Ajout des filtres et tris pour les cours*/}
         <FiltresCours />
         <TableauCours courses={sortedCourses} groupCourses={groupCourses} groups={groups} />
         </>
