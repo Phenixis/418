@@ -89,6 +89,14 @@ function PresenceForm() {
                 return;
             }
 
+            if (autoAttendResult.error) {
+                toast.error("Accès refusé", {
+                    description: autoAttendResult.error,
+                });
+                setStep('LOADING');
+                return;
+            }
+
             const result = await getCourseStatusAction(courseId);
             if (shouldIgnoreResult) {
                 return;

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { randomUUID } from 'crypto';
 import { db } from '@/lib/db/drizzle';
 import { table as studentTable } from '@/lib/db/schema/student';
 import { table as courseTable } from '@/lib/db/schema/course';
@@ -38,8 +39,8 @@ async function deleteStudentByEmail(studentEmail: string): Promise<void> {
 }
 
 async function createActiveCourseFixture(): Promise<CourseFixture> {
-    const randomSuffix = Math.random().toString(36).slice(2, 14);
-    const courseId = `student-ui-${randomSuffix}`;
+    const randomSuffix = Math.random().toString(36).slice(2, 10);
+    const courseId = randomUUID();
     const courseName = `Cours UI ${randomSuffix}`;
 
     await db.insert(courseTable).values({
