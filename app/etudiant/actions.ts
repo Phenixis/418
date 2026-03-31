@@ -434,7 +434,7 @@ export async function autoAttendStudentAction(courseId: string): Promise<ServerA
         courseId: validCourse.data.courseId,
         studentMail: normalizedEmail,
         status: "present",
-        source: "auto-session",
+        source: "student-scan",
         occurredAt: new Date().toISOString(),
       });
     }
