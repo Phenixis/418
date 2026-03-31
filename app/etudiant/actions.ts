@@ -448,3 +448,16 @@ export async function autoAttendStudentAction(courseId: string): Promise<ServerA
     return { success: false, error: getActionErrorMessage(error) };
   }
 }
+
+export async function getStudentSessionEmailAction() {
+  try {
+    const session = await getStudentServerSession();
+    if (!session || !session.studentEmail) {
+      return { success: false, error: "" };
+    }
+
+    return { success: true, data: { studentEmail: session.studentEmail } };
+  } catch (error: unknown) {
+    return { success: false, error: getActionErrorMessage(error) };
+  }
+}

@@ -9,7 +9,9 @@ import {
     createStudentPasswordAction,
     getCourseStatusAction,
     autoAttendStudentAction,
+    getStudentSessionEmailAction,
 } from './actions';
+import { removeStudentSession } from '@/lib/actions/student-auth';
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,6 +53,8 @@ function PresenceForm() {
     const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
     const [courseName, setCourseName] = useState<string>('');
     const [isSubmittingForm, setIsSubmittingForm] = useState(false);
+    const [showWrongAccountDialog, setShowWrongAccountDialog] = useState(false);
+    const [connectedEmail, setConnectedEmail] = useState<string>('');
 
     // Re-masque les champs sensibles a chaque changement d'etape.
     useEffect(() => {
@@ -90,6 +94,19 @@ function PresenceForm() {
             }
 
             if (autoAttendResult.error) {
+                // If error is "Personne non attendue", show dialog to confirm if user is on right account
+                if (autoAttendResult.error.includes("Personne non attendue")) {
+                    // Fetch the connected email for display in dialog
+                    const emailResult = await getStudentSessionEmailAction();
+                    if (emailResult.success && emailResult.data) {
+                        setConnectedEmail(emailResult.data.studentEmail);
+                    }
+                    setShowWrongAccountDialog(true);
+                    setStep('LOADING');
+                    return;
+                }
+                
+                // Other errors: show toast and stay in LOADING
                 toast.error("Accès refusé", {
                     description: autoAttendResult.error,
                 });
@@ -182,6 +199,21 @@ function PresenceForm() {
         setCourseName(result.data.courseName);
 
         setStep('SUCCESS');
+    };
+
+    const handleWrongAccountNo = async () => {
+        // User says they are on wrong account: clear session and fallback to email form
+        await removeStudentSession();
+        setShowWrongAccountDialog(false);
+        setStep('EMAIL');
+    };
+
+    const handleWrongAccountYes = () => {
+        // User confirms they are on right account: stay blocked with error, close dialog
+        setShowWrongAccountDialog(false);
+        toast.error("Accès refusé", {
+            description: "Vous n'êtes pas inscrit à ce cours.",
+        });
     };
 
     // Etape d'activation: creation du premier mot de passe.
@@ -525,6 +557,53 @@ function PresenceForm() {
                     )}
                 </CardContent>
             </Card>
+
+            {/* Dialog de confirmation si compte probablement erroné */}
+            <Dialog open={showWrongAccountDialog} onOpenChange={setShowWrongAccountDialog}>
+                <DialogContent className="w-[90vw] sm:w-auto max-w-sm sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="text-lg">Vérification du compte</DialogTitle>
+                        <DialogDescription className="text-base mt-1">
+                            Êtes-vous sûr d&apos;être connecté au bon compte ?
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="space-y-4">
+                        {connectedEmail && (
+                            <div className="rounded-md bg-blue-50 border border-blue-200 p-3">
+                                <p className="text-xs text-blue-600 font-medium mb-1">Compte connecté :</p>
+                                <p className="text-sm text-blue-900 font-semibold">{connectedEmail}</p>
+                            </div>
+                        )}
+                        <div className="rounded-md bg-amber-50 border border-amber-200 p-4">
+                            <p className="text-sm text-amber-900 font-medium">
+                                ⚠️ Ce compte n&apos;est pas inscrit à ce cours.
+                            </p>
+                        </div>
+                        <p className="text-sm text-gray-700 leading-relaxed">
+                            Si c&apos;est le bon compte, veuillez contacter votre enseignant pour être ajouté au cours.
+                        </p>
+                    </div>
+
+                    <DialogFooter className="flex flex-col-reverse gap-3 sm:flex-row sm:gap-2">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={handleWrongAccountNo}
+                            className="w-full sm:w-auto"
+                        >
+                            Non, changer de compte
+                        </Button>
+                        <Button
+                            type="button"
+                            onClick={handleWrongAccountYes}
+                            className="w-full sm:w-auto"
+                        >
+                            Oui, c&apos;est bon
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
