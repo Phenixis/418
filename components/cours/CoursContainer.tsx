@@ -3,6 +3,7 @@
 import { useState } from "react";
 import FiltresCours, { CourseFilter } from "./FiltresCours";
 import TableauCours from "./TableauCours";
+import CreerCours from '@/components/cours/creation/creer-cours';
 import type { Select as Course } from '@/lib/db/schema/course';
 import type { Select as CourseGroup } from '@/lib/db/schema/course-group';
 import type { Select as Group } from '@/lib/db/schema/group';
@@ -14,30 +15,31 @@ interface CoursContainerProps {
 }
 
 export default function CoursContainer({ courses, groupCourses, groups }: CoursContainerProps) {
-    const [selectedFilter, setSelectedFilter] = useState<CourseFilter>('all');
+    const [selectedFilters, setSelectedFilters] = useState<CourseFilter[]>([]);
 
     const now = new Date();
 
     const filteredCourses = courses.filter(course => {
-        if (selectedFilter === 'all') return true;
+        if (selectedFilters.length === 0) return true;
 
         const isCurrent = now >= course.startAt && now <= course.endAt;
-        if (selectedFilter === 'current') return isCurrent;
+        if (selectedFilters.includes('En cours') && isCurrent) return true;
 
         const isUpcoming = now < course.startAt;
-        if (selectedFilter === 'upcoming') return isUpcoming;
+        if (selectedFilters.includes('À venir') && isUpcoming) return true;
 
         const isPast = now > course.endAt;
-        if (selectedFilter === 'past') return isPast;
+        if (selectedFilters.includes('Terminé') && isPast) return true;
 
-        return true;
+        return false;
     });
 
     return (
         <>
+
             <FiltresCours
-                selectedFilter={selectedFilter}
-                onFilterChange={setSelectedFilter}
+                selectedFilters={selectedFilters}
+                onFilterChange={setSelectedFilters}
             />
             <TableauCours
                 courses={filteredCourses}

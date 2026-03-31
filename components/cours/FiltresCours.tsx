@@ -1,52 +1,86 @@
 "use client";
 
+import * as React from "react";
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuLabel,
-    DropdownMenuRadioGroup,
-    DropdownMenuRadioItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { ListFilter } from "lucide-react";
+  Combobox,
+  ComboboxChip,
+  ComboboxChips,
+  ComboboxChipsInput,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxItem,
+  ComboboxList,
+  ComboboxValue,
+  useComboboxAnchor,
+  ComboboxTrigger,
+} from "@/components/ui/combobox";
 
-export type CourseFilter = 'all' | 'current' | 'upcoming' | 'past';
+export const courseFilters = [
+    "En cours",
+    "À venir",
+    "Terminé",
+] as const;
+
+export type CourseFilter = typeof courseFilters[number];
 
 interface FiltresCoursProps {
-    selectedFilter: CourseFilter;
-    onFilterChange: (filter: CourseFilter) => void;
+    selectedFilters: CourseFilter[];
+    onFilterChange: (filters: CourseFilter[]) => void;
 }
 
-export default function FiltresCours({ selectedFilter, onFilterChange }: FiltresCoursProps) {
-    const filterButtons: Array<{ id: CourseFilter; label: string }> = [
-        { id: 'all', label: 'Tous les cours' },
-        { id: 'current', label: 'En cours' },
-        { id: 'upcoming', label: 'À venir' },
-        { id: 'past', label: 'Terminé' },
-    ];
+export default function FiltresCours({ selectedFilters, onFilterChange }: FiltresCoursProps) {
+    const anchor = useComboboxAnchor();
 
     return (
-        <div className="mb-4">
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button variant="default" className="font-action">
-                        <ListFilter /> Filtres
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-48">
-                    <DropdownMenuLabel>Filtrer par état</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuRadioGroup value={selectedFilter} onValueChange={(val) => onFilterChange(val as CourseFilter)}>
-                        {filterButtons.map((button) => (
-                            <DropdownMenuRadioItem key={button.id} value={button.id}>
-                                {button.label}
-                            </DropdownMenuRadioItem>
-                        ))}
-                    </DropdownMenuRadioGroup>
-                </DropdownMenuContent>
-            </DropdownMenu>
+        <div className="flex justify-end items-center">
+            <Combobox
+                multiple
+                autoHighlight
+                items={courseFilters as unknown as string[]}
+                value={selectedFilters}
+                onValueChange={(val) => onFilterChange(val as CourseFilter[])}
+            >
+                <div className="flex items-center gap-2">
+                    <ComboboxChips 
+                        ref={anchor} 
+                        className="w-full max-w-xs min-w-[200px] border border-black/10 shadow-sm rounded-[18px] bg-white px-3 py-1.5 cursor-text hover:border-black/30 transition-colors"
+                        onClick={(e) => {
+                            const input = e.currentTarget.querySelector('input');
+                            if (input) input.focus();
+                        }}
+                    >
+                        <ComboboxValue>
+                            {(values) => {
+                                const safeValues = values || [];
+                                return (
+                                    <React.Fragment>
+                                        {safeValues.map((value: string) => (
+                                            <ComboboxChip key={value} className="rounded-full bg-primary/20 text-black border-transparent">
+                                                {value}
+                                            </ComboboxChip>
+                                        ))}
+                                        <ComboboxChipsInput 
+                                            placeholder={safeValues.length === 0 ? "Filtrer les cours..." : ""} 
+                                            className="min-w-[120px] ml-1 bg-transparent border-none focus:ring-0 text-sm flex-1 !shadow-none" 
+                                        />
+                                    </React.Fragment>
+                                );
+                            }}
+                        </ComboboxValue>
+                    </ComboboxChips>
+                    <ComboboxTrigger className="flex items-center justify-center p-2 rounded-full border border-black/10 bg-white hover:bg-gray-50 transition-colors shadow-sm cursor-pointer" />
+                </div>
+                <ComboboxContent anchor={anchor}>
+                    <ComboboxEmpty>Aucun filtre trouvé.</ComboboxEmpty>
+                    <ComboboxList>
+                        {(item: string) => (
+                            <ComboboxItem key={item} value={item}>
+                                {item}
+                            </ComboboxItem>
+                        )}
+                    </ComboboxList>
+                </ComboboxContent>
+            </Combobox>
         </div>
     );
 }
