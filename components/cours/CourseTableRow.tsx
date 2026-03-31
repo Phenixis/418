@@ -9,25 +9,6 @@ import { CourseStatus } from '@/components/cours/course.types';
 import { fr } from 'date-fns/locale/fr';
 import { formatInTimeZone } from 'date-fns-tz';
 import { useRouter } from 'next/navigation';
-import { Button } from "@/components/ui/button";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import {
-    AlertDialog,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle
-} from "@/components/ui/alert-dialog";
-
 
 const PARIS_TIME_ZONE = 'Europe/Paris';
 
