@@ -69,7 +69,7 @@ export async function ensureTestTeacherAccount(): Promise<void> {
 type StudentAccountOptions = {
     firstName?: string;
     lastName?: string;
-    groupId?: string | null;
+    groupId?: number | null;
 };
 
 export async function ensureStudentAccountByEmail(
