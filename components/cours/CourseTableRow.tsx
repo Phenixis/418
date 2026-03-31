@@ -27,6 +27,9 @@ import {
     AlertDialogHeader,
     AlertDialogTitle
 } from "@/components/ui/alert-dialog";
+import CreerCours from '@/components/cours/creation/creer-cours';
+import ModifierCours from '@/components/cours/modification/modifier-cours';
+
 
 const PARIS_TIME_ZONE = 'Europe/Paris';
 
@@ -94,17 +97,19 @@ export default function CourseTableRow({ cours, groups }: Readonly<CoursProps>) 
             <TableCell>
                 <Vignette status={status} />
             </TableCell>
-            <TableCell>
+            <TableCell onClick={(event) => {event.stopPropagation();}}>
                 <DropdownMenu>
-                    <DropdownMenuTrigger className="cursor-pointer p-2" title="Actions" asChild>
+                    <DropdownMenuTrigger className="cursor-pointer p-2" title="Actions" asChild >
                         <Button variant="ghost" size="icon">
                             <span className="sr-only">Open actions menu</span>
                             <MoreVertIcon />
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
-                        <DropdownMenuItem disabled title="Cette action n'est pas encore implémentée">
-                            Modifier le Cours
+                        <ModifierCours />
+                        <DropdownMenuItem>
+                            Modifier le cours
+                            <CreerCours />
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         {/* {
