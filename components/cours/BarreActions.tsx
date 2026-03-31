@@ -1,22 +1,23 @@
-"use client";
+'use client';
 
-import Search from "@mui/icons-material/Search";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/Switch";
-import { cn } from "@/lib/utils";
+import Search from '@mui/icons-material/Search';
+import ViewModuleRoundedIcon from '@mui/icons-material/ViewModuleRounded';
+import ViewListRoundedIcon from '@mui/icons-material/ViewListRounded';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 /** Filtres disponibles sur la liste des étudiants */
-export type FiltrePresence = "tous" | "absents" | "presents";
+export type FiltrePresence = 'tous' | 'absents' | 'presents';
 
 /** Modes d'affichage de la liste */
-export type ModeAffichage = "grille" | "liste";
+export type ModeAffichage = 'grille' | 'liste';
 
 const FILTRES: { valeur: FiltrePresence; label: string }[] = [
-    { valeur: "tous", label: "Tous" },
-    { valeur: "absents", label: "Absents" },
-    { valeur: "presents", label: "Présents" },
+    { valeur: 'tous', label: 'Tous' },
+    { valeur: 'absents', label: 'Absents' },
+    { valeur: 'presents', label: 'Présents' }
 ];
 
 interface BarreActionsProps {
@@ -40,10 +41,8 @@ export default function BarreActions({
     filtreActif,
     onFiltreChange,
     modeAffichage,
-    onModeAffichageChange,
+    onModeAffichageChange
 }: Readonly<BarreActionsProps>) {
-    const isListeActive = modeAffichage === "liste";
-
     return (
         <div className="flex items-center gap-3">
             {/* Barre de recherche */}
@@ -53,7 +52,7 @@ export default function BarreActions({
                     type="text"
                     placeholder="Rechercher un étudiant…"
                     value={recherche}
-                    onChange={(e) => onRechercheChange(e.target.value)}
+                    onChange={e => onRechercheChange(e.target.value)}
                     className="pl-10 h-10 bg-white rounded-lg"
                 />
             </div>
@@ -66,11 +65,8 @@ export default function BarreActions({
                     return (
                         <Badge
                             key={valeur}
-                            variant={isActif ? "default" : "outline"}
-                            className={cn(
-                                "cursor-pointer select-none px-3 py-1",
-                                !isActif && "hover:bg-black/5"
-                            )}
+                            variant={isActif ? 'default' : 'outline'}
+                            className={cn('cursor-pointer select-none px-3 py-1', !isActif && 'hover:bg-black/5')}
                             onClick={() => onFiltreChange(valeur)}
                         >
                             {label}
@@ -79,18 +75,26 @@ export default function BarreActions({
                 })}
             </div>
 
-            {/* Toggle vue liste (poussé à droite) */}
-            <div className="ml-auto flex items-center gap-2">
-                <Label htmlFor="toggle-vue-liste" className="text-sm text-faded cursor-pointer">
-                    Vue liste
-                </Label>
-                <Switch
-                    id="toggle-vue-liste"
-                    checked={isListeActive}
-                    onCheckedChange={(checked) =>
-                        onModeAffichageChange(checked ? "liste" : "grille")
-                    }
-                />
+            {/* Toggle grille / liste (poussé à droite) */}
+            <div className="ml-auto flex items-center rounded-md border border-faded">
+                <Button
+                    variant={modeAffichage === 'grille' ? 'default' : 'ghost'}
+                    size="icon"
+                    onClick={() => onModeAffichageChange('grille')}
+                    className="rounded-r-none"
+                    aria-label="Affichage en grille"
+                >
+                    <ViewModuleRoundedIcon className="!size-5" />
+                </Button>
+                <Button
+                    variant={modeAffichage === 'liste' ? 'default' : 'ghost'}
+                    size="icon"
+                    onClick={() => onModeAffichageChange('liste')}
+                    className="rounded-l-none"
+                    aria-label="Affichage en liste"
+                >
+                    <ViewListRoundedIcon className="!size-5" />
+                </Button>
             </div>
         </div>
     );
