@@ -27,7 +27,7 @@ export const userAttributes = {
     userMail: varchar("user_mail", { length: 60 }).primaryKey(),
     lastName: varchar("last_name", { length: 30 }).notNull(),
     firstName: varchar("first_name", { length: 30 }).notNull(),
-    password: varchar("password", { length: 100 }),
+    password: varchar("password", { length: 100 }).notNull(),
     isTeacher: boolean("is_teacher").default(false).notNull(),
     ...baseAttributes
 }
