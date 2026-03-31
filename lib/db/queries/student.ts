@@ -11,6 +11,20 @@ class StudentQueries extends QueryModel<NewStudent, Student> {
         super(studentTable)
     }
 
+    async updatePassword(userMail: string, newPassword: string): Promise<QueryResult<string>> {
+        const result = await lib.db
+            .update(this.table)
+            .set({ password: newPassword })
+            .where(lib.eq(this.table.userMail, userMail))
+            .returning()
+
+        if (lib.resultEmpty(result)) {
+            return { error: "Étudiant introuvable avec cet email." }
+        }
+
+        return { success: "Mot de passe mis à jour.", entity: result[0].userMail }
+    }
+
     async getByEmail(email: string): Promise<QueryResult<Student>> {
         const result = await lib.db
             .select()
