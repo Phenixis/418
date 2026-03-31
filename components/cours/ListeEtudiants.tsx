@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import EtudiantCard from '@/components/cours/EtudiantCard';
-import BarreActions from '@/components/cours/BarreActions';
+import BarreActions, { type FiltrePresence } from '@/components/cours/BarreActions';
 import { StatutEtudiant } from '@/components/cours/course.types';
 import { StudentWithStatus } from '@/lib/actions/cours-actuel';
 import { useAttendanceRealtime } from '@/hooks/use-attendance-realtime';
@@ -47,10 +47,23 @@ function correspondALaRecherche(etudiant: StudentWithStatus, recherche: string):
     return prenomNom.includes(termeNormalise) || nomPrenom.includes(termeNormalise);
 }
 
+/** Vérifie si un étudiant correspond au filtre de présence sélectionné */
+function correspondAuFiltre(etudiant: StudentWithStatus, filtre: FiltrePresence): boolean {
+    switch (filtre) {
+        case "tous":
+            return true;
+        case "presents":
+            return etudiant.statut === StatutEtudiant.PRESENT;
+        case "absents":
+            return etudiant.statut !== StatutEtudiant.PRESENT;
+    }
+}
+
 export default function ListeEtudiants({ courseId, etudiants, onStudentsChange }: Readonly<ListeEtudiantsProps>) {
     const [students, setStudents] = useState<StudentWithStatus[]>(etudiants);
     const [pendingStudentMails, setPendingStudentMails] = useState<Set<string>>(new Set());
     const [recherche, setRecherche] = useState('');
+    const [filtreActif, setFiltreActif] = useState<FiltrePresence>('tous');
 
     useEffect(() => {
         setStudents(etudiants);
@@ -60,7 +73,7 @@ export default function ListeEtudiants({ courseId, etudiants, onStudentsChange }
         onStudentsChange?.(students);
     }, [students, onStudentsChange]);
 
-    // Étudiants triés puis filtrés par la recherche
+    // Étudiants triés puis filtrés par recherche et par statut
     const etudiantsFiltres = useMemo(() => {
         return students
             .slice()
@@ -71,8 +84,11 @@ export default function ListeEtudiants({ courseId, etudiants, onStudentsChange }
                 if (lastNameComparison !== 0) return lastNameComparison;
                 return a.firstName.localeCompare(b.firstName, 'fr', { sensitivity: 'base' });
             })
-            .filter((etudiant) => correspondALaRecherche(etudiant, recherche));
-    }, [students, recherche]);
+            .filter((etudiant) =>
+                correspondALaRecherche(etudiant, recherche) &&
+                correspondAuFiltre(etudiant, filtreActif)
+            );
+    }, [students, recherche, filtreActif]);
 
     const { connectionState } = useAttendanceRealtime({
         courseId,
@@ -216,6 +232,8 @@ export default function ListeEtudiants({ courseId, etudiants, onStudentsChange }
             <BarreActions
                 recherche={recherche}
                 onRechercheChange={setRecherche}
+                filtreActif={filtreActif}
+                onFiltreChange={setFiltreActif}
             />
 
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
