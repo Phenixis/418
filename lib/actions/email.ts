@@ -25,7 +25,7 @@ export async function sendEmail(to: string, subject: string, htmlContent: string
             }
         });
 
-        if (response.status !== 200) {
+        if (response.status < 200 || response.status >= 300) {
             throw new Error(`Failed to send email: ${response.statusText}`);
         }
 

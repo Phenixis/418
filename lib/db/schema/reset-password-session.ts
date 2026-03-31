@@ -12,10 +12,16 @@ export const table = lib.pgTable('reset_password_session', {
     ...lib.baseAttributes,
 });
 
-export const relations = lib.relations(table, ({ many }) => ({
-    students: many(StudentTable.table),
-    teachers: many(TeacherTable.table),
-}))
+export const relations = lib.relations(table, ({ one }) => ({
+    student: one(StudentTable.table, {
+        fields: [table.userMailStudent],
+        references: [StudentTable.table.userMail],
+    }),
+    teacher: one(TeacherTable.table, {
+        fields: [table.userMailTeacher],
+        references: [TeacherTable.table.userMail],
+    }),
+}));
 
 export type Select = typeof table.$inferSelect;
 export type Insert = typeof table.$inferInsert;

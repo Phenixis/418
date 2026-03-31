@@ -22,7 +22,8 @@ export async function createResetPasswordSession(_prevState: ActionResult, formD
         };
     }
 
-    const completeEmail = email + (target === "student" ? "@etudiant.univ-rennes.fr" : "@univ-rennes.fr");
+    const emailLocalPart = email.split("@")[0];
+    const completeEmail = emailLocalPart + (target === "student" ? "@etudiant.univ-rennes.fr" : "@univ-rennes.fr");
 
     let user: Teacher | Student | null = null;
 
@@ -78,8 +79,17 @@ export async function createResetPasswordSession(_prevState: ActionResult, formD
         };
     }
 
-    const resetLink = `${process.env.NEXT_PUBLIC_BASE_URL}/reset-password?session_id=${sessionData.id}`;
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
 
+    if (!baseUrl) {
+        console.error("NEXT_PUBLIC_BASE_URL n'est pas défini. Impossible de construire le lien de réinitialisation de mot de passe.");
+        return {
+            error: true,
+            message: "Une erreur interne est survenue. Veuillez réessayer plus tard.",
+        };
+    }
+
+    const resetLink = `${baseUrl}/reset-password?session_id=${sessionData.id}`;
     const emailContent = `<p>Bonjour ${user.firstName},</p>
     <p>Vous avez demandé à réinitialiser votre mot de passe. Cliquez sur le lien ci-dessous pour procéder :</p>
     <a href="${resetLink}">Réinitialiser mon mot de passe</a>
@@ -200,8 +210,14 @@ export async function resetPassword(_prevState: ActionResult, formData: FormData
         };
     }
 
-    await resetPasswordSessionQueries.markSessionAsUsed(sessionId);
+    const markSessionResult = await resetPasswordSessionQueries.markSessionAsUsed(sessionId);
 
+    if ("error" in markSessionResult) {
+        return {
+            error: true,
+            message: "Erreur lors de la finalisation de la réinitialisation du mot de passe.",
+        };
+    }
     return {
         success: true,
         message: "Mot de passe réinitialisé avec succès. Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.",

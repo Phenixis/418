@@ -63,8 +63,9 @@ class ResetPasswordSessionQueries extends QueryModel<Insert, Select> {
             .update(this.table)
             .set({ expiresAt: new Date() })
             .where(lib.eq(this.table.id, sessionId))
+            .returning({ id: this.table.id })
 
-        if (result.rowCount === 0) {
+        if (lib.resultEmpty(result)) {
             return { error: "Aucune session de réinitialisation trouvée avec cet ID." }
         }
 

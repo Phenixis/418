@@ -65,9 +65,8 @@ export default function CreateResetPasswordSession({
                                 placeholder="Email"
                                 required
                                 value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                onBlur={() => {
-                                    const emailWithoutDomain = email.split("@")[0];
+                                onChange={(event) => {
+                                    const emailWithoutDomain = event.target.value.split("@")[0];
                                     setEmail(emailWithoutDomain);
                                 }}
                             />

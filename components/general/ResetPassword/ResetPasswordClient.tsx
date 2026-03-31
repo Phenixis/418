@@ -76,10 +76,9 @@ export default function ResetPasswordFormClient({
                                     placeholder="Email"
                                     required
                                     value={email}
-                                    onChange={(event) => setEmail(event.target.value)}
-                                    onBlur={() => {
-                                        const emailWithoutDomain = email.split("@")[0];
-                                        setEmail(emailWithoutDomain);
+                                    onChange={(event) => {
+                                        const emailLocalPart = event.target.value.split("@")[0];
+                                        setEmail(emailLocalPart);
                                     }}
                                 />
                                 <p className="text-faded shrink-0">{emailSuffix}</p>
