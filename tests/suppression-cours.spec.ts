@@ -51,6 +51,54 @@ test.describe('Suppression de cours', () => {
         await expect(authenticatedPage.getByRole('cell', { name: courseSubject })).toHaveCount(0);
     });
 
+    test('doit supprimer un cours depuis l’interface professeur', async ({ authenticatedPage, testTeacherEmail }) => {
+        const courseId = generateCourseId();
+        const courseSubject = `Test suppression UI ${Date.now()}`;
+
+        await db.insert(courseTable).values({
+            courseId,
+            subject: courseSubject,
+            startAt: new Date(Date.now() + 3600_000),
+            endAt: new Date(Date.now() + 7200_000),
+        });
+
+        await db.insert(courseTeacherTable).values({
+            courseId,
+            teacherMail: testTeacherEmail,
+        });
+
+        createdCourseIds.push(courseId);
+
+        await authenticatedPage.goto('/professeur/dashboard');
+
+        const courseCell = authenticatedPage.getByRole('cell', { name: courseSubject });
+        await expect(courseCell).toBeVisible();
+
+        const courseRow = courseCell.locator('xpath=ancestor::tr');
+        await courseRow.getByRole('button', { name: 'Open actions menu' }).click();
+        await authenticatedPage.getByText('Supprimer le cours', { exact: true }).click();
+
+        const dialog = authenticatedPage.locator('[data-slot="alert-dialog-content"]');
+        await expect(dialog).toBeVisible();
+
+        const confirmDeleteButton = dialog.getByRole('button', { name: 'Supprimer' });
+        await confirmDeleteButton.click();
+
+        await expect(authenticatedPage).toHaveURL(/\/professeur\/dashboard/);
+
+        await expect(authenticatedPage.getByRole('cell', { name: courseSubject })).toHaveCount(0);
+
+        await expect.poll(async () => {
+            const deletedCourse = await db.select().from(courseTable).where(eq(courseTable.courseId, courseId));
+            if (deletedCourse.length === 0) return null;
+            return deletedCourse[0].deletedAt;
+        }, { timeout: 5000 }).not.toBeNull();
+
+        const deletedCourse = await db.select().from(courseTable).where(eq(courseTable.courseId, courseId));
+        expect(deletedCourse).toHaveLength(1);
+
+    });
+
     test('doit supprimer en cascade le lien course-teacher lorsque le cours est supprimé', async ({ testTeacherEmail }) => {
         const courseId = generateCourseId();
 
