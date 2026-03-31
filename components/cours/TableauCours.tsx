@@ -13,6 +13,14 @@ export default function TableauCours({
     groupCourses: CourseGroup[];
     groups: Group[];
 }>) {
+    if (courses.length === 0) {
+        return (
+            <p>
+                Aucun cours trouvé.
+            </p>
+        )
+    }
+
     return (
         <Table className="text-center">
             <TableHeader>
@@ -27,7 +35,7 @@ export default function TableauCours({
                 </TableRow>
             </TableHeader>
             <TableBody className="rounded-lg overflow-hidden">
-                {courses.length > 0 ? courses.map(course => (
+                {courses.map(course => (
                     <CourseTableRow
                         key={course.courseId}
                         cours={course}
@@ -39,13 +47,7 @@ export default function TableauCours({
                             )
                         )}
                     />
-                )) : (
-                    <TableRow className="bg-white/80">
-                        <td colSpan={6} className="text-center">
-                            Aucun cours disponible.
-                        </td>
-                    </TableRow>
-                )}
+                ))}
             </TableBody>
         </Table>
     )
