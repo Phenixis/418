@@ -8,7 +8,6 @@ import { courseQueries } from "@/lib/db/queries/course";
 import { studentQueries } from "@/lib/db/queries/student";
 import { passwordRules } from "@/components/login/rules";
 import { publishAttendanceRealtimeEvent } from "@/lib/realtime/provider-server";
-import { ActionResult } from "@/lib/actions/types";
 
 type ServerActionResult<T> =
   | { success: true; data: T }
@@ -115,11 +114,11 @@ async function checkPasswordMatch(rawPassword: string, storedPassword: string): 
   return bcrypt.compare(rawPassword, normalizedHash);
 }
 
-async function getValidCourse(courseId: string): Promise<ActionResult> {
+async function getValidCourse(courseId: string): Promise<ServerActionResult<CourseData>> {
   try {
     const foundCourse = await courseQueries.getByStringId(courseId);
     if ("error" in foundCourse) {
-      return { error: true, message: "Cours non reconnu (ID invalide)." };
+      return { success: false, error: "Cours non reconnu (ID invalide)." };
     }
 
     const course = foundCourse.entity;
@@ -127,7 +126,7 @@ async function getValidCourse(courseId: string): Promise<ActionResult> {
     const courseEndAt = parseDateValue(course.endAt);
 
     if (!courseStartAt || !courseEndAt) {
-      return { error: true, message: "Le cours a des dates invalides." };
+      return { success: false, error: "Le cours a des dates invalides." };
     }
 
     const normalizedCourseStartAt = new Date(courseStartAt);
@@ -140,11 +139,11 @@ async function getValidCourse(courseId: string): Promise<ActionResult> {
 
     const now = new Date();
     if (normalizedCourseStartAt > now) {
-      return { error: true, message: "La connexion à ce cours n'est pas encore ouverte." };
+      return { success: false, error: "La connexion à ce cours n'est pas encore ouverte." };
     }
 
     if (normalizedCourseEndAt < now) {
-      return { error: true, message: "La connexion à ce cours est terminée." };
+      return { success: false, error: "La connexion à ce cours est terminée." };
     }
 
     return {
@@ -155,7 +154,7 @@ async function getValidCourse(courseId: string): Promise<ActionResult> {
       },
     };
   } catch (error: unknown) {
-    return { error: true, message: getActionErrorMessage(error) };
+    return { success: false, error: getActionErrorMessage(error) };
   }
 }
 
@@ -184,9 +183,9 @@ async function hasStudentAccessToCourse(studentMail: string, courseId: string): 
   return matchingCourseGroup.length > 0;
 }
 
-export async function getCourseStatusAction(courseId: string): Promise<ActionResult> {
+export async function getCourseStatusAction(courseId: string): Promise<ServerActionResult<CourseData>> {
   if (!courseId?.trim()) {
-    return { error: true, message: "Aucun cours détecté. Veuillez scanner un QR Code." };
+    return { success: false, error: "Aucun cours détecté. Veuillez scanner un QR Code." };
   }
 
   return getValidCourse(courseId.trim());
@@ -206,8 +205,8 @@ export async function checkStudentEmailAction(
     }
 
     const validCourse = await getValidCourse(courseId);
-    if ("error" in validCourse) {
-      return validCourse;
+    if (!validCourse.success) {
+      return { success: false, error: validCourse.error };
     }
 
     const foundStudent = await studentQueries.getByEmail(normalizedEmail);
@@ -220,7 +219,7 @@ export async function checkStudentEmailAction(
       return { success: false, error: "Personne non attendue dans ce cours." };
     }
 
-    const nextStep = foundStudent.entity.password?.trim() === "" ? "CREATE_PASSWORD" : "PASSWORD";
+    const nextStep = foundStudent.entity.password?.trim() ? "PASSWORD" : "CREATE_PASSWORD";
     return {
       success: true,
       data: {
@@ -246,7 +245,7 @@ export async function authenticateStudentAction(
 
     const validCourse = await getValidCourse(courseId);
     if (!validCourse.success) {
-      return validCourse;
+      return { success: false, error: validCourse.error };
     }
 
     const foundStudent = await studentQueries.getByEmail(normalizedEmail);
@@ -256,9 +255,9 @@ export async function authenticateStudentAction(
 
     if (foundStudent.entity.password === null) {
       return {
-        error: true,
-
-      }
+        success: false,
+        error: "Vous devez d'abord créer votre mot de passe.",
+      };
     }
 
     const isPasswordValid = await checkPasswordMatch(password, foundStudent.entity.password);
@@ -324,7 +323,8 @@ export async function createStudentPasswordAction(
       return { success: false, error: "Compte introuvable." };
     }
 
-    if (foundStudent.entity.password.trim() !== "") {
+    const existingPassword = foundStudent.entity.password;
+    if (existingPassword !== null && existingPassword.trim() !== "") {
       return { success: false, error: "Un mot de passe existe déjà pour ce compte." };
     }
 
@@ -342,7 +342,7 @@ export async function createStudentPasswordAction(
 
     const validCourse = await getValidCourse(courseId);
     if (!validCourse.success) {
-      return validCourse;
+      return { success: false, error: validCourse.error };
     }
 
     const hasAccess = await hasStudentAccessToCourse(normalizedEmail, validCourse.data.courseId);
