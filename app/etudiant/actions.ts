@@ -8,6 +8,7 @@ import { courseQueries } from "@/lib/db/queries/course";
 import { studentQueries } from "@/lib/db/queries/student";
 import { passwordRules } from "@/components/login/rules";
 import { publishAttendanceRealtimeEvent } from "@/lib/realtime/provider-server";
+import { getStudentServerSession, setStudentSession } from "@/lib/actions/student-auth";
 
 type ServerActionResult<T> =
   | { success: true; data: T }
@@ -235,7 +236,8 @@ export async function checkStudentEmailAction(
 export async function authenticateStudentAction(
   email: string,
   password: string,
-  courseId: string
+  courseId: string,
+  rememberSession: boolean = false
 ): Promise<ServerActionResult<{ courseName: string }>> {
   try {
     const normalizedEmail = getValidatedStudentEmail(email);
@@ -293,6 +295,10 @@ export async function authenticateStudentAction(
       occurredAt: new Date().toISOString(),
     });
 
+    if (rememberSession) {
+      await setStudentSession({ studentEmail: normalizedEmail, isPersistentSession: true });
+    }
+
     return { success: true, data: { courseName: validCourse.data.courseName } };
   } catch (error: unknown) {
     return { success: false, error: getActionErrorMessage(error) };
@@ -303,7 +309,8 @@ export async function createStudentPasswordAction(
   email: string,
   password: string,
   confirmPassword: string,
-  courseId: string
+  courseId: string,
+  rememberSession: boolean = false
 ): Promise<ServerActionResult<{ courseName: string }>> {
   try {
     const normalizedEmail = getValidatedStudentEmail(email);
@@ -374,6 +381,63 @@ export async function createStudentPasswordAction(
       source: "student-scan",
       occurredAt: new Date().toISOString(),
     });
+
+    if (rememberSession) {
+      await setStudentSession({ studentEmail: normalizedEmail, isPersistentSession: true });
+    }
+
+    return { success: true, data: { courseName: validCourse.data.courseName } };
+  } catch (error: unknown) {
+    return { success: false, error: getActionErrorMessage(error) };
+  }
+}
+
+export async function autoAttendStudentAction(courseId: string): Promise<ServerActionResult<{ courseName: string }>> {
+  try {
+    const session = await getStudentServerSession();
+    if (!session || !session.studentEmail) {
+      return { success: false, error: "No session" };
+    }
+
+    const normalizedEmail = session.studentEmail;
+
+    const validCourse = await getValidCourse(courseId);
+    if (!validCourse.success) {
+      return validCourse;
+    }
+
+    const hasAccess = await hasStudentAccessToCourse(normalizedEmail, validCourse.data.courseId);
+    if (!hasAccess) {
+      return { success: false, error: "Personne non attendue dans ce cours." };
+    }
+
+    const existingAttendance = await db
+      .select({ attendanceId: schema.AttendanceTable.table.attendanceId })
+      .from(schema.AttendanceTable.table)
+      .where(
+        and(
+          eq(schema.AttendanceTable.table.courseId, validCourse.data.courseId),
+          eq(schema.AttendanceTable.table.studentMail, normalizedEmail)
+        )
+      )
+      .limit(1);
+
+    if (existingAttendance.length === 0) {
+      await db.insert(schema.AttendanceTable.table).values({
+        courseId: validCourse.data.courseId,
+        studentMail: normalizedEmail,
+        hourDate: new Date(),
+      });
+
+      await publishAttendanceRealtimeEvent({
+        eventId: crypto.randomUUID(),
+        courseId: validCourse.data.courseId,
+        studentMail: normalizedEmail,
+        status: "present",
+        source: "auto-session",
+        occurredAt: new Date().toISOString(),
+      });
+    }
 
     return { success: true, data: { courseName: validCourse.data.courseName } };
   } catch (error: unknown) {

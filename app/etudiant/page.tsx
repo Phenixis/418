@@ -8,6 +8,7 @@ import {
     checkStudentEmailAction,
     createStudentPasswordAction,
     getCourseStatusAction,
+    autoAttendStudentAction,
 } from './actions';
 
 import { Button } from "@/components/ui/button";
@@ -76,6 +77,18 @@ function PresenceForm() {
         let shouldIgnoreResult = false;
 
         async function initializeCourseFlow() {
+            // First, check if the student is already authenticated
+            const autoAttendResult = await autoAttendStudentAction(courseId);
+            if (shouldIgnoreResult) {
+                return;
+            }
+
+            if (autoAttendResult.success) {
+                setCourseName(autoAttendResult.data.courseName);
+                setStep('SUCCESS');
+                return;
+            }
+
             const result = await getCourseStatusAction(courseId);
             if (shouldIgnoreResult) {
                 return;
@@ -148,7 +161,7 @@ function PresenceForm() {
         }
 
         setIsSubmittingForm(true);
-        const result = await authenticateStudentAction(email, password, coursId);
+        const result = await authenticateStudentAction(email, password, coursId, shouldRememberSession);
         setIsSubmittingForm(false);
 
         if (!result.success) {
@@ -173,7 +186,7 @@ function PresenceForm() {
         }
 
         setIsSubmittingForm(true);
-        const result = await createStudentPasswordAction(email, password, confirmPassword, coursId);
+        const result = await createStudentPasswordAction(email, password, confirmPassword, coursId, shouldRememberSession);
         setIsSubmittingForm(false);
 
         if (!result.success) {
@@ -462,6 +475,20 @@ function PresenceForm() {
                                             );
                                         })}
                                     </ul>
+
+                                    <div className="flex items-center justify-between gap-3 rounded-md border border-gray-200 bg-gray-50 px-3 py-2">
+                                        <div className="flex items-center gap-2.5">
+                                            <Checkbox
+                                                id="remember-session-create"
+                                                className="mt-0.5"
+                                                checked={shouldRememberSession}
+                                                onCheckedChange={(value) => setShouldRememberSession(value === true)}
+                                            />
+                                            <Label htmlFor="remember-session-create" className="text-sm leading-none text-gray-700 cursor-pointer">
+                                                Rester connecté
+                                            </Label>
+                                        </div>
+                                    </div>
 
                                     <div className="pt-2 space-y-3">
                                         <Button type="submit" variant="big" className="w-full" disabled={isSubmittingForm}>
