@@ -23,7 +23,6 @@ export default function TableauCours({
                     <TableHead className="w-full text-xl">Cours</TableHead>
                     <TableHead>Groupes</TableHead>
                     <TableHead>Statut</TableHead>
-                    <TableHead></TableHead>
                 </TableRow>
             </TableHeader>
             <TableBody className="rounded-lg overflow-hidden">
