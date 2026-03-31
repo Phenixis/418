@@ -274,13 +274,16 @@ function PresenceForm() {
                                         name="email"
                                         type="text"
                                         value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
+                                        onChange={(e) => setEmail(e.target.value.toLowerCase())}
                                         onBlur={() => {
                                             const emailWithoutDomain = email.split("@")[0]?.trim().toLowerCase() ?? "";
                                             setEmail(emailWithoutDomain);
                                         }}
                                         disabled={step === 'PASSWORD' || step === 'CREATE_PASSWORD'}
                                         placeholder="prenom.nom"
+                                        autoCapitalize="none"
+                                        autoCorrect="off"
+                                        spellCheck="false"
                                         required
                                         className={`sm:flex-1 ${step === 'PASSWORD' || step === 'CREATE_PASSWORD' ? "bg-gray-100 text-gray-500 cursor-not-allowed" : ""}`}
                                     />

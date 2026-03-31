@@ -365,12 +365,6 @@ export async function createStudentPasswordAction(
         courseId: validCourse.data.courseId,
         studentMail: normalizedEmail,
         hourDate: new Date(),
-      })
-      .onConflictDoNothing({
-        target: [
-          schema.AttendanceTable.table.courseId,
-          schema.AttendanceTable.table.studentMail,
-        ],
       });
 
     await publishAttendanceRealtimeEvent({
@@ -394,14 +388,22 @@ export async function createStudentPasswordAction(
 
 export async function autoAttendStudentAction(courseId: string): Promise<ServerActionResult<{ courseName: string }>> {
   try {
+    // Validate and normalize courseId (match getCourseStatusAction behavior)
+    if (!courseId?.trim()) {
+      return { success: false, error: "Aucun cours détecté. Veuillez scanner un QR Code." };
+    }
+
+    const normalizedCourseId = courseId.trim();
+
     const session = await getStudentServerSession();
     if (!session || !session.studentEmail) {
-      return { success: false, error: "No session" };
+      // No active session - return silent failure so client falls back to email/password form
+      return { success: false, error: "" };
     }
 
     const normalizedEmail = session.studentEmail;
 
-    const validCourse = await getValidCourse(courseId);
+    const validCourse = await getValidCourse(normalizedCourseId);
     if (!validCourse.success) {
       return validCourse;
     }

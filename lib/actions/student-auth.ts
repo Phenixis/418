@@ -37,6 +37,18 @@ export async function verifyStudentToken(input: string) {
 		});
 
 		const typedPayload = payload as Record<string, unknown>;
+		
+		// Validate required fields
+		if (typeof typedPayload.studentEmail !== "string" || !typedPayload.studentEmail) {
+			console.error("Invalid token: missing or invalid studentEmail");
+			return null;
+		}
+
+		// Validate isPersistentSession is actually a boolean, default to false if missing/invalid
+		const isPersistentSession = typeof typedPayload.isPersistentSession === "boolean" 
+			? typedPayload.isPersistentSession 
+			: false;
+
 		const tokenExpirationInSeconds =
 			typeof typedPayload.exp === "number" ? typedPayload.exp : Math.floor(Date.now() / 1000);
 		const expirationFromPayload =
@@ -46,8 +58,8 @@ export async function verifyStudentToken(input: string) {
 
 		return {
 			expires: expirationFromPayload,
-			studentEmail: typeof typedPayload.studentEmail === "string" ? typedPayload.studentEmail : "",
-			isPersistentSession: typedPayload.isPersistentSession !== false,
+			studentEmail: typedPayload.studentEmail,
+			isPersistentSession,
 		} as StudentSessionData;
 	} catch (error) {
 		console.error("Student token verification failed:", error);
