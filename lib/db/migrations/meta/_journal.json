@@ -71,6 +71,13 @@
       "when": 1774962574372,
       "tag": "0009_typical_night_nurse",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1774963727405,
+      "tag": "0010_lumpy_captain_midlands",
+      "breakpoints": true
     }
   ]
 }
