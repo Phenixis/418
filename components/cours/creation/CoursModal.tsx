@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { creerCours, modifierCours } from "@/lib/actions/cours";
+import { creerCours } from "@/lib/actions/cours";
 import { ActionResult } from "@/lib/actions/types";
 import { useActionState, useEffect, useState } from "react";
 import SelectGroupComponent from "./select-group";
@@ -38,10 +38,10 @@ export default function CoursModal({ initLabel, initDate, initGroupsSelected, in
     const [isFormValid, setIsFormValid] = useState(false);
 
     const [state, formAction, pending] = useActionState<ActionResult, FormData>(async (prevState, formData) => {
-        if (initLabel === "") {
+        // if (initLabel === "") {
             return await creerCours(prevState, formData)
-        }
-        return await modifierCours(prevState, formData)
+        // }
+        // return await modifierCours(prevState, formData)
     }, { pending: true })
 
     useEffect(() => {

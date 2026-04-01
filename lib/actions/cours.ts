@@ -93,9 +93,9 @@ export async function creerCours(prevState: ActionResult, formData: FormData): P
     };
 }
 
-export async function modifierCours(prevState: ActionResult, formData: FormData): Promise<ActionResult> {
-    await teacherQueries.getTeacher();
+// export async function modifierCours(prevState: ActionResult, formData: FormData): Promise<ActionResult> {
+//     await teacherQueries.getTeacher();
 
-    const updateResult = await courseQueries.update({
-    });
-}
+//     // const updateResult = await courseQueries.update({
+//     // });
+// }
