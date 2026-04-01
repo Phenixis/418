@@ -9,11 +9,12 @@ import { CourseStatus } from '@/components/cours/course.types';
 import { fr } from 'date-fns/locale/fr';
 import { formatInTimeZone } from 'date-fns-tz';
 import { useRouter } from 'next/navigation';
+import { CourseWithStatus } from './TableauCours';
 
 const PARIS_TIME_ZONE = 'Europe/Paris';
 
 interface CoursProps {
-    cours: Course;
+    cours: CourseWithStatus;
     groups: Group[];
     showStatus?: boolean;
 }
@@ -48,14 +49,6 @@ export default function CourseTableRow({ cours, groups, showStatus = true }: Rea
     const now = new Date();
     const router = useRouter();
 
-    let status: CourseStatus = CourseStatus.EN_COURS;
-
-    if (now < cours.startAt) {
-        status = CourseStatus.A_VENIR;
-    } else if (now > cours.endAt) {
-        status = CourseStatus.TERMINE;
-    }
-
     return (
         <TableRow
             className="even:bg-background odd:bg-white outline-2 outline-transparent hover:bg-white/50 hover:outline-primary cursor-pointer"
@@ -63,10 +56,11 @@ export default function CourseTableRow({ cours, groups, showStatus = true }: Rea
                 router.push(`/professeur/cours/${cours.courseId}`);
             }}
         >
-            <TableCell className="w-px">{formatDate(cours.startAt)}</TableCell>
-            <TableCell className="w-px text-lg">{formatInTimeZone(cours.startAt, PARIS_TIME_ZONE, 'HH:mm', { locale: fr })}</TableCell>
-            <TableCell className="w-px text-lg">{formatInTimeZone(cours.endAt, PARIS_TIME_ZONE, 'HH:mm', { locale: fr })}</TableCell>
-            <TableCell className="font-bold text-left">{cours.subject}</TableCell>
+                {showStatus && (
+                    <TableCell>
+                        <Vignette status={cours.status} />
+                    </TableCell>
+                )}
             <TableCell className="flex flex-row text-center justify-center gap-1">
                 {groups.map((group, index) => (
                     <span key={group.groupId}>
@@ -74,11 +68,10 @@ export default function CourseTableRow({ cours, groups, showStatus = true }: Rea
                     </span>
                 ))}
             </TableCell>
-            {showStatus && (
-                <TableCell>
-                    <Vignette status={status} />
-                </TableCell>
-            )}
+            <TableCell className="font-bold text-left">{cours.subject}</TableCell>
+            <TableCell className="w-px text-lg">{formatInTimeZone(cours.startAt, PARIS_TIME_ZONE, 'HH:mm', { locale: fr })}</TableCell>
+            <TableCell className="w-px text-lg">{formatInTimeZone(cours.endAt, PARIS_TIME_ZONE, 'HH:mm', { locale: fr })}</TableCell>
+            <TableCell className="w-px">{formatDate(cours.startAt)}</TableCell>
         </TableRow>
     );
 }

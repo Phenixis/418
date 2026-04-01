@@ -6,6 +6,8 @@ import type { Select as Course } from '@/lib/db/schema/course';
 import type { Select as CourseGroup } from '@/lib/db/schema/course-group';
 import type { Select as Group } from '@/lib/db/schema/group';
 import CoursContainer from '@/components/cours/CoursContainer';
+import { CourseWithStatus } from '@/components/cours/TableauCours';
+import { CourseStatus } from '@/components/cours/course.types';
 
 function getCourseStatusPriority(course: Course, now: Date): number {
     if (now >= course.startAt && now <= course.endAt) {
@@ -43,7 +45,23 @@ export default async function DashboardPage() {
     const groups = groupsQueryResult.entity as Group[];
 
     const now = new Date();
-    const sortedCourses = courses.slice().sort((firstCourse, secondCourse) => {
+
+    const courseWithStatus: CourseWithStatus[] = courses.map(course => {
+        let status = CourseStatus.EN_COURS;
+
+        if (now < course.startAt) {
+            status = CourseStatus.A_VENIR;
+        } else if (now > course.endAt) {
+            status = CourseStatus.TERMINE;
+        }
+
+        return {
+            ...course,
+            status
+        };
+    });
+
+    const sortedCourses = courseWithStatus.slice().sort((firstCourse, secondCourse) => {
         const firstCourseStatusPriority = getCourseStatusPriority(firstCourse, now);
         const secondCourseStatusPriority = getCourseStatusPriority(secondCourse, now);
 
@@ -51,17 +69,14 @@ export default async function DashboardPage() {
             return firstCourseStatusPriority - secondCourseStatusPriority;
         }
 
-        return firstCourse.startAt.getTime() - secondCourse.startAt.getTime();
+        return secondCourse.startAt.getTime() - firstCourse.startAt.getTime();
     });
 
     return (
-        <>
-        {/*Ajout des filtres et tris pour les cours*/}
-        <CoursContainer 
-            courses={sortedCourses} 
-            groupCourses={groupCourses} 
-            groups={groups} 
+        <CoursContainer
+            courses={sortedCourses}
+            groupCourses={groupCourses}
+            groups={groups}
         />
-        </>
     );
 }
