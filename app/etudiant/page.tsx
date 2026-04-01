@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { CheckCircle2, Eye, EyeOff } from "lucide-react";
 import {
     authenticateStudentAction,
@@ -40,6 +40,7 @@ const STUDENT_EMAIL_DOMAIN = "etudiant.univ-rennes.fr";
 
 // Flux de pointage etudiant pilote par cours_id.
 function PresenceForm() {
+    const router = useRouter();
     const searchParams = useSearchParams();
     const coursId = searchParams.get('cours_id');
 
@@ -411,9 +412,7 @@ function PresenceForm() {
                                                     <Button
                                                         type="button"
                                                         onClick={() => {
-                                                            toast.info("Fonctionnalité à venir", {
-                                                                description: "La fonctionnalité n'est pas encore fonctionnelle.",
-                                                            });
+                                                            router.push('/reset-password?new=true&target=student');
                                                         }}
                                                     >
                                                         Envoyer le lien

@@ -28,6 +28,15 @@ const DATABASE_CONNECTION_ERROR_MESSAGE =
   "Impossible de contacter la base de données pour le moment. Réessayez dans quelques instants.";
 
 const STUDENT_EMAIL_DOMAIN = "etudiant.univ-rennes.fr";
+const EMPTY_STUDENT_PASSWORD_PLACEHOLDER = "null";
+
+function hasStudentPassword(storedPassword: string | null | undefined): boolean {
+  const normalizedPassword = (storedPassword ?? "").trim();
+  return (
+    normalizedPassword !== "" &&
+    normalizedPassword.toLowerCase() !== EMPTY_STUDENT_PASSWORD_PLACEHOLDER
+  );
+}
 
 function getValidatedStudentEmail(email: string): string | null {
   const normalizedEmail = email.trim().toLowerCase();
@@ -97,15 +106,20 @@ function getActionErrorMessage(error: unknown): string {
   return "Une erreur inattendue est survenue.";
 }
 
-async function checkPasswordMatch(rawPassword: string, storedPassword: string): Promise<boolean> {
-  if (!storedPassword.trim()) {
+async function checkPasswordMatch(
+  rawPassword: string,
+  storedPassword: string | null | undefined
+): Promise<boolean> {
+  if (!hasStudentPassword(storedPassword)) {
     return false;
   }
 
+  const normalizedStoredPassword = (storedPassword ?? "").trim();
+
   // Bcrypt PHP/MySQL utilise souvent le prefixe $2y$; Node attend $2b$.
-  const normalizedHash = storedPassword.startsWith("$2y$")
-    ? `$2b$${storedPassword.slice(4)}`
-    : storedPassword;
+  const normalizedHash = normalizedStoredPassword.startsWith("$2y$")
+    ? `$2b$${normalizedStoredPassword.slice(4)}`
+    : normalizedStoredPassword;
 
   // Compatibilite: autorise les anciens mots de passe non haches pendant la transition.
   if (!normalizedHash.startsWith("$2")) {
@@ -205,6 +219,10 @@ export async function checkStudentEmailAction(
       };
     }
 
+    if (!courseId?.trim()) {
+      return { success: false, error: "Aucun cours détecté. Veuillez scanner un QR Code." };
+    }
+
     const validCourse = await getValidCourse(courseId);
     if (!validCourse.success) {
       return validCourse;
@@ -220,7 +238,7 @@ export async function checkStudentEmailAction(
       return { success: false, error: "Personne non attendue dans ce cours." };
     }
 
-    const nextStep = foundStudent.entity.password.trim() === "" ? "CREATE_PASSWORD" : "PASSWORD";
+    const nextStep = hasStudentPassword(foundStudent.entity.password) ? "PASSWORD" : "CREATE_PASSWORD";
     return {
       success: true,
       data: {
@@ -241,7 +259,7 @@ export async function authenticateStudentAction(
 ): Promise<ServerActionResult<{ courseName: string }>> {
   try {
     const normalizedEmail = getValidatedStudentEmail(email);
-    if (!normalizedEmail || !password.trim()) {
+    if (!normalizedEmail || password === "") {
       return { success: false, error: "Email ou mot de passe incorrect." };
     }
 
@@ -319,12 +337,16 @@ export async function createStudentPasswordAction(
       return { success: false, error: "Compte introuvable." };
     }
 
+    if (!courseId?.trim()) {
+      return { success: false, error: "Aucun cours détecté. Veuillez scanner un QR Code." };
+    }
+
     const foundStudent = await studentQueries.getByEmail(normalizedEmail);
     if ("error" in foundStudent) {
       return { success: false, error: "Compte introuvable." };
     }
 
-    if (foundStudent.entity.password.trim() !== "") {
+    if (hasStudentPassword(foundStudent.entity.password)) {
       return { success: false, error: "Un mot de passe existe déjà pour ce compte." };
     }
 
