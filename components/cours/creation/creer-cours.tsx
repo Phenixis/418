@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button";
-import { DatePicker } from "@/components/ui/date-picker";
+import { DateTimePicker } from "@/components/ui/date-time-picker";
 import {
     Dialog,
     DialogContent,
@@ -16,18 +16,27 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { creerCours } from "@/lib/actions/cours";
 import { ActionResult } from "@/lib/actions/types";
-import { useActionState, useEffect, useState } from "react";
-import SelectGroupComponent from "./select-group";
 import { useTeacher } from "@/lib/hooks/useTeacher";
 import { useRouter } from "next/navigation";
+import { useActionState, useEffect, useState } from "react";
+import SelectGroupComponent from "./select-group";
 
 export default function CreerCours() {
     const { teacher } = useTeacher();
     const router = useRouter();
-    
+
     const [isCreateCourseDialogOpen, setIsCreateCourseDialogOpen] = useState(false);
 
-    const [date, setDate] = useState(new Date());
+    const getNextQuarterHour = () => {
+        const now = new Date();
+        const minutes = now.getMinutes();
+        const roundedMinutes = Math.floor(minutes / 15) * 15;
+        now.setMinutes(roundedMinutes);
+        now.setSeconds(0);
+        return now;
+    };
+
+    const [date, setDate] = useState(getNextQuarterHour());
     const [groupsSelected, setGroupsSelected] = useState<string[]>([]);
     const [heureDebut, setHeureDebut] = useState("");
     const [duration, setDuration] = useState("");
@@ -88,27 +97,30 @@ export default function CreerCours() {
                         <input type="hidden" name="teacherEmail" value={teacher.userMail} className="hidden" readOnly />
                         <div className="w-full flex flex-col gap-2 mb-2">
                             <Label htmlFor="label">Nom du cours</Label>
-                            <Input 
-                                id="label" 
-                                name="label" 
-                                type="text" 
-                                placeholder="Nom du cours" 
-                                value={label} 
+                            <Input
+                                id="label"
+                                name="label"
+                                type="text"
+                                placeholder="Nom du cours"
+                                value={label}
                                 onChange={(e) => setLabel(e.target.value.slice(0, 50))}
                                 maxLength={50}
                             />
                         </div>
                         <div className="flex items-center justify-between gap-4 mb-2">
-                            <div className="flex-1 flex flex-col gap-1">
+                            <div className="flex-1 flex flex-col gap-2">
                                 <Label id="start-date-label">Date de début</Label>
-                                <DatePicker
+                                <DateTimePicker
                                     id="start-date"
                                     aria-labelledby="start-date-label"
-                                    value={date}
-                                    onChange={setDate}
+                                    date={date}
+                                    onDateChange={setDate}
+                                    dateLabel=""
+                                    timeLabel=""
+                                    step={60*15}
                                 />
                             </div>
-                            <div className="flex flex-col gap-2">
+                            {/* <div className="flex flex-col gap-2">
                                 <input type="text" id="start-time-hidden" name="start-time" className="hidden" value={heureDebut} readOnly />
                                 <Label htmlFor="start-time">Heure de début</Label>
                                 <Select value={heureDebut} onValueChange={setHeureDebut}>
@@ -128,7 +140,7 @@ export default function CreerCours() {
                                         </SelectGroup>
                                     </SelectContent>
                                 </Select>
-                            </div>
+                            </div> */}
                             <div className="flex flex-col gap-2">
                                 <input type="text" id="duration-hidden" name="duration" className="hidden" value={duration} readOnly />
                                 <Label htmlFor="duration">Durée</Label>
