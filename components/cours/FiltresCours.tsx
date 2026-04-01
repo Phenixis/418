@@ -32,7 +32,7 @@ export default function FiltresCours({ selectedFilters, onFilterChange }: Filtre
     };
 
     return (
-        <div className="flex justify-center mb-4">
+        <div className="flex items-center justify-center gap-3 mb-4">
             <ButtonGroup>
                 {courseFilters.map((filter) => {
                     const isSelected = selectedFilters.includes(filter);
@@ -47,7 +47,6 @@ export default function FiltresCours({ selectedFilters, onFilterChange }: Filtre
                                     ? "translate-y-[4px] shadow-none"
                                     : "shadow-[0_4px_0_0_rgba(0,0,0,0.15)] active:translate-y-[4px] active:shadow-none"
                             )}
-
                         >
                             {filter}
                         </Button>

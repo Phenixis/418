@@ -14,18 +14,25 @@ export default function TableauCours({
     courses,
     groupCourses,
     groups,
-    filtered = false
+    filtered = false,
+    alphaSorted = false,
 }: Readonly<{
     courses: CourseWithStatus[];
     groupCourses: CourseGroup[];
     groups: Group[];
-    filtered?: boolean
+    filtered?: boolean;
+    alphaSorted?: boolean;
 }>) {
 
+    const sortGroup = (group: CourseWithStatus[]) =>
+        alphaSorted
+            ? group.slice().sort((a, b) => a.subject.localeCompare(b.subject, 'fr'))
+            : group;
+
     const groupByStatus: Record<CourseStatus, CourseWithStatus[]> = {
-        [CourseStatus.EN_COURS]: courses.filter(course => course.status === CourseStatus.EN_COURS),
-        [CourseStatus.A_VENIR]: courses.filter(course => course.status === CourseStatus.A_VENIR),
-        [CourseStatus.TERMINE]: courses.filter(course => course.status === CourseStatus.TERMINE)
+        [CourseStatus.EN_COURS]: sortGroup(courses.filter(course => course.status === CourseStatus.EN_COURS)),
+        [CourseStatus.A_VENIR]: sortGroup(courses.filter(course => course.status === CourseStatus.A_VENIR)),
+        [CourseStatus.TERMINE]: sortGroup(courses.filter(course => course.status === CourseStatus.TERMINE)),
     };
 
     return (

@@ -9,6 +9,7 @@ import {
     useEffect,
     useState
 } from 'react';
+import { useRouter } from 'next/navigation';
 
 type TeacherContextType = {
     teacher: Teacher;
@@ -31,10 +32,14 @@ export function TeacherProvider({
     children: ReactNode;
     teacherPromise: Promise<Teacher>;
 }>) {
+    const router = useRouter()
     let initialTeacher = use(teacherPromise)
     const [teacher, setTeacher] = useState<Teacher>(initialTeacher)
 
     useEffect(() => {
+        if (!initialTeacher.isValidated) {
+            router.push('/professeur/en-attente')
+        }
         setTeacher(initialTeacher)
     }, [initialTeacher])
 
