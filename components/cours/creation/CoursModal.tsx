@@ -14,44 +14,49 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { creerCours } from "@/lib/actions/cours";
+import { creerCours, modifierCours } from "@/lib/actions/cours";
 import { ActionResult } from "@/lib/actions/types";
 import { useActionState, useEffect, useState } from "react";
 import SelectGroupComponent from "./select-group";
 import { useTeacher } from "@/lib/hooks/useTeacher";
 import { useRouter } from "next/navigation";
+import type { Select as Course } from "@/lib/db/schema/course";
+import type { Select as Group } from "@/lib/db/schema/group";
 
-export default function CoursModal({ initLabel, initDate, initGroupsSelected, initHeureDebut, initDuration }: { initLabel?: string; initDate?: Date; initGroupsSelected?: string[]; initHeureDebut?: string; initDuration?: string }) {
-
+export default function CoursModal({
+    initCourse,
+}: Readonly<{
+    initCourse?: Course & { groups: Group[] };
+}>) {
     const { teacher } = useTeacher();
     const router = useRouter();
 
     const [isCreateCourseDialogOpen, setIsCreateCourseDialogOpen] = useState(false);
 
     // Valeurs du formulaire
-    const [label, setLabel] = useState(initLabel || "");
-    const [date, setDate] = useState(initDate || new Date());
-    const [groupsSelected, setGroupsSelected] = useState<string[]>(initGroupsSelected || []);
-    const [heureDebut, setHeureDebut] = useState(initHeureDebut || "");
-    const [duration, setDuration] = useState(initDuration || "");
-
+    const [label, setLabel] = useState(initCourse?.subject || "");
+    const [date, setDate] = useState(initCourse?.startAt || new Date());
+    const [groupsSelected, setGroupsSelected] = useState<string[]>(initCourse?.groups.map((g) => "" + g.groupId) || []);
+    const [heureDebut, setHeureDebut] = useState("");
+    const [duration, setDuration] = useState("");
     const [isFormValid, setIsFormValid] = useState(false);
 
     const [state, formAction, pending] = useActionState<ActionResult, FormData>(async (prevState, formData) => {
-        // if (initLabel === "") {
+        if (initCourse === undefined) {
             return await creerCours(prevState, formData)
-        // }
-        // return await modifierCours(prevState, formData)
+        }
+        return await modifierCours(prevState, formData)
     }, { pending: true })
 
     useEffect(() => {
         if ("success" in state) {
             router.push("/professeur/cours/" + state.course.id);
-            setLabel("");
-            setDate(new Date());
+            setIsCreateCourseDialogOpen(false);
+            setLabel(initCourse?.subject || "");
+            setDate(initCourse?.startAt || new Date());
             setHeureDebut("");
             setDuration("");
-            setGroupsSelected([]);
+            setGroupsSelected(initCourse?.groups.map((g) => "" + g.groupId) || []);
         }
     }, [state]);
 
@@ -80,16 +85,29 @@ export default function CoursModal({ initLabel, initDate, initGroupsSelected, in
                 onOpenChange={setIsCreateCourseDialogOpen}
             >
                 <DialogTrigger asChild>
-                    <Button variant="default">Créer un cours</Button>
+                    <Button variant="default">
+                        {
+                            initCourse === undefined ? "Créer un cours" : "Modifier le cours"
+                        }
+                    </Button>
                 </DialogTrigger>
                 <DialogContent className="z-50">
                     <DialogHeader>
-                        <DialogTitle className="h2 font-normal">Créer un cours</DialogTitle>
+                        <DialogTitle className="h2 font-normal">
+                            {
+                                initCourse === undefined ? "Créer un cours" : "Modifier le cours"
+                            }
+                        </DialogTitle>
                         <DialogDescription hidden>
                             Dialogue de création de cours
                         </DialogDescription>
                     </DialogHeader>
                     <form action={formAction} className="w-full">
+                        {
+                            initCourse !== undefined && (
+                                <input type="hidden" name="courseId" value={initCourse.courseId} className="hidden" readOnly />
+                            )
+                        }
                         <input type="hidden" name="teacherEmail" value={teacher.userMail} className="hidden" readOnly />
                         <div className="w-full flex flex-col gap-2 mb-2">
                             <Label htmlFor="label">Nom du cours</Label>
@@ -150,6 +168,7 @@ export default function CoursModal({ initLabel, initDate, initGroupsSelected, in
                                 </Select>
                             </div>
                         </div>
+
                         <SelectGroupComponent groupsSelected={groupsSelected} setGroupsSelected={setGroupsSelected} />
 
                         <DialogFooter className="flex-col sm:flex-col">
@@ -161,7 +180,9 @@ export default function CoursModal({ initLabel, initDate, initGroupsSelected, in
                                 )
                             }
                             <Button type="submit" variant="big" className="w-full" disabled={pending || !isFormValid}>
-                                Créer le cours
+                                {
+                                    initCourse === undefined ? "Créer le cours" : "Modifier le cours"
+                                }
                             </Button>
                         </DialogFooter>
                     </form>
