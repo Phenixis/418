@@ -2,33 +2,80 @@ import { test, expect } from './fixtures/authenticated-teacher';
 import { db } from '@/lib/db/drizzle';
 import { table as courseTable } from '@/lib/db/schema/course';
 import { table as courseTeacherTable } from '@/lib/db/schema/course-teacher';
+import { table as groupTable } from '@/lib/db/schema/group';
+import { table as courseGroupTable } from '@/lib/db/schema/course-group';
+import { table as studentTable } from '@/lib/db/schema/student';
 import { eq } from 'drizzle-orm';
 
 function generateCourseId(): string {
     return `course-${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`;
 }
 
+function generateGroupFixture(): { promo: string; td: string; tp: string; department: string; codePath: string; descriptionPath: string } {
+    const randomSuffix = Math.floor(Math.random() * 9_999_999).toString().padStart(7, '0');
+    return {
+        promo: '4',
+        td: 'A',
+        tp: '1',
+        department: `D${randomSuffix.slice(0, 2)}`,
+        codePath: `C${randomSuffix.slice(2, 4)}`,
+        descriptionPath: `Test group ${randomSuffix}`,
+    };
+}
+
 test.describe('Modification de cours', () => {
     const createdCourseIds: string[] = [];
+    const createdGroupIds: number[] = [];
+    const createdStudentEmails: string[] = [];
 
     test.afterEach(async () => {
         for (const courseId of createdCourseIds) {
             await db.delete(courseTeacherTable).where(eq(courseTeacherTable.courseId, courseId));
+            await db.delete(courseGroupTable).where(eq(courseGroupTable.courseId, courseId));
             await db.delete(courseTable).where(eq(courseTable.courseId, courseId));
         }
+        for (const groupId of createdGroupIds) {
+            await db.delete(groupTable).where(eq(groupTable.groupId, groupId));
+        }
+
+        for (const studentEmail of createdStudentEmails) {
+            await db.delete(studentTable).where(eq(studentTable.userMail, studentEmail));
+        }
+
         createdCourseIds.length = 0;
+        createdGroupIds.length = 0;
+        createdStudentEmails.length = 0;
     });
 
-    test('doit mettre à jour le titre du cours et refléter le changement sur le dashboard', async ({ authenticatedPage, testTeacherEmail }) => {
+    test('doit permettre de modifier un cours via le formulaire depuis la page du cours', async ({ authenticatedPage, testTeacherEmail }) => {
         const courseId = generateCourseId();
-        const originalSubject = `Cours test modifier ${Date.now()}`;
-        const updatedSubject = `${originalSubject} (modifié)`;
+        const groupFixture = generateGroupFixture();
+
+        const [createdGroup] = await db.insert(groupTable).values(groupFixture).returning({ groupId: groupTable.groupId });
+        createdGroupIds.push(createdGroup.groupId);
+
+        const originalSubject = `Cours modification formulaire ${Date.now()}`;
+        const futureStartTime = new Date(Date.now() + 86_400_000); // Demain
+        const futureEndTime = new Date(futureStartTime.getTime() + 3_600_000); // 1 heure plus tard
+
+        // Ajouter un étudiant au groupe pour que la page de cours puisse charger sans erreur (requête attend des étudiants).
+        const studentEmail = `etudiant-${Date.now()}-${Math.floor(Math.random() * 1_000_000)}@etudiant.univ-rennes.fr`;
+        createdStudentEmails.push(studentEmail);
+
+        await db.insert(studentTable).values({
+            userMail: studentEmail,
+            firstName: 'Test',
+            lastName: 'Etudiant',
+            password: 'test123',
+            isTeacher: false,
+            groupId: createdGroup.groupId,
+        });
 
         await db.insert(courseTable).values({
             courseId,
             subject: originalSubject,
-            startAt: new Date(Date.now() + 1_000_000),
-            endAt: new Date(Date.now() + 2_000_000),
+            startAt: futureStartTime,
+            endAt: futureEndTime,
         });
 
         await db.insert(courseTeacherTable).values({
@@ -36,62 +83,47 @@ test.describe('Modification de cours', () => {
             teacherMail: testTeacherEmail,
         });
 
-        createdCourseIds.push(courseId);
-
-        await authenticatedPage.goto('/professeur/dashboard');
-
-        const courseRow = authenticatedPage.getByRole('cell', { name: originalSubject });
-        await expect(courseRow).toBeVisible();
-
-        await db
-            .update(courseTable)
-            .set({ subject: updatedSubject })
-            .where(eq(courseTable.courseId, courseId));
-
-        await authenticatedPage.reload();
-
-        await expect(authenticatedPage.getByRole('cell', { name: originalSubject })).toHaveCount(0);
-        await expect(authenticatedPage.getByRole('cell', { name: updatedSubject })).toBeVisible();
-    });
-
-    test('doit mettre à jour les horaires de cours et vérifier le cours modifié via la page du cours', async ({ authenticatedPage, testTeacherEmail }) => {
-        const courseId = generateCourseId();
-        const courseSubject = `Cours test date modif ${Date.now()}`;
-
-        const originalStart = new Date(Date.now() + 3_600_000);
-        const originalEnd = new Date(Date.now() + 7_200_000);
-
-        const nextStart = new Date(Date.now() + 4_600_000);
-        const nextEnd = new Date(Date.now() + 8_200_000);
-
-        await db.insert(courseTable).values({
+        await db.insert(courseGroupTable).values({
             courseId,
-            subject: courseSubject,
-            startAt: originalStart,
-            endAt: originalEnd,
-        });
-
-        await db.insert(courseTeacherTable).values({
-            courseId,
-            teacherMail: testTeacherEmail,
+            groupId: createdGroup.groupId,
         });
 
         createdCourseIds.push(courseId);
 
-        await authenticatedPage.goto('/professeur/dashboard');
+        await authenticatedPage.goto(`/professeur/cours/${courseId}`);
 
-        await authenticatedPage.getByRole('cell', { name: courseSubject }).click();
+        await expect(authenticatedPage.getByRole('heading', { name: originalSubject, exact: true })).toBeVisible();
 
-        await expect(authenticatedPage).toHaveURL(new RegExp(`/professeur/cours/${courseId}$`));
+        const modifyButton = authenticatedPage.getByRole('button', { name: 'Modifier le cours', exact: true });
+        await expect(modifyButton).toBeVisible();
+        await modifyButton.click();
 
-        await db
-            .update(courseTable)
-            .set({ startAt: nextStart, endAt: nextEnd })
-            .where(eq(courseTable.courseId, courseId));
+        await expect(authenticatedPage.getByLabel('Nom du cours')).toBeVisible();
+
+        const newSubject = `${originalSubject} - MODIFIÉ`;
+        await authenticatedPage.getByLabel('Nom du cours').fill(newSubject);
+
+        const startTimeCombobox = authenticatedPage.locator('text=Heure de début').locator('..').locator('[role="combobox"]').first();
+        await startTimeCombobox.click();
+        await authenticatedPage.getByRole('option', { name: '9h15' }).click();
+
+        const durationCombobox = authenticatedPage.locator('text=Durée').locator('..').locator('[role="combobox"]').first();
+        await durationCombobox.click();
+        await authenticatedPage.getByRole('option', { name: '2 heures' }).click();
+
+        const submitButton = authenticatedPage.locator('form').getByRole('button', { name: 'Modifier le cours', exact: true });
+        await expect(submitButton).toBeEnabled();
+        await submitButton.click();
+
+        await authenticatedPage.waitForURL(new RegExp(`/professeur/cours/${courseId}$`), { timeout: 10000 });
+
+        const courseTitle = authenticatedPage.locator('main h1');
+        await expect(courseTitle).toBeVisible();
+        await expect(courseTitle).toContainText(' - MODI');
 
         await authenticatedPage.reload();
 
-        // NB : l'affichage exact de la date/heure dépend formattage; on vérifie au moins que la page charge bien et contient le sujet modifié
-        await expect(authenticatedPage.getByRole('heading', { name: courseSubject })).toBeVisible();
+        await expect(courseTitle).toBeVisible();
+        await expect(courseTitle).toContainText(' - MODI');
     });
 });
