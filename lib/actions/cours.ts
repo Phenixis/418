@@ -24,8 +24,20 @@ function parseFormDataValues(formData: FormData): {
     const groups = formData.getAll("groups");
     const teachers = formData.getAll("teacherEmail");
 
-    if (typeof label !== "string" || typeof startDateString !== "string" || typeof startTimeString !== "string" || typeof duration !== "string" || groups.some(group => typeof group !== "string") || teachers.some(teacher => typeof teacher !== "string") || teachers.length === 0) {
+    if (typeof label !== "string" || typeof startDateString !== "string" || typeof duration !== "string" || groups.some(group => typeof group !== "string") || teachers.some(teacher => typeof teacher !== "string") || teachers.length === 0) {
         return { error: true, message: "Données de formulaire invalides." };
+    }
+
+    let startDateAndTime: string | null = null;
+
+    if (startDateString.includes("T")) {
+        startDateAndTime = startDateString.slice(0, 16);
+    } else if (typeof startTimeString === "string") {
+        startDateAndTime = `${startDateString}T${startTimeString}`;
+    }
+
+    if (startDateAndTime === null || startDateAndTime.length < 16) {
+        return { error: true, message: "La date ou l'heure du cours est invalide." };
     }
 
     const durationInMinutes = Number.parseInt(duration, 10);
@@ -44,7 +56,7 @@ function parseFormDataValues(formData: FormData): {
         return { error: true, message: "Les groupes sélectionnés sont invalides." };
     }
 
-    const startDateDate = fromZonedTime(`${startDateString}T${startTimeString}:00`, PARIS_TIME_ZONE);
+    const startDateDate = fromZonedTime(`${startDateAndTime}:00`, PARIS_TIME_ZONE);
 
     if (Number.isNaN(startDateDate.getTime())) {
         return { error: true, message: "La date ou l'heure du cours est invalide." };

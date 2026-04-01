@@ -30,12 +30,23 @@ export function DateTimePicker({
     id,
     step = 1
 }: Readonly<DateTimePickerProps>) {
+    const formatLocalDateTime = (dateValue: Date) => {
+        const year = dateValue.getFullYear();
+        const month = `${dateValue.getMonth() + 1}`.padStart(2, "0");
+        const day = `${dateValue.getDate()}`.padStart(2, "0");
+        const hours = `${dateValue.getHours()}`.padStart(2, "0");
+        const minutes = `${dateValue.getMinutes()}`.padStart(2, "0");
+        const seconds = `${dateValue.getSeconds()}`.padStart(2, "0");
+
+        return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+    };
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Calculate effective min/max dates
+    // Apply default lower bound only; no implicit upper bound.
     const effectiveMinDate = minDate ?? today;
-    const effectiveMaxDate = maxDate ?? today;
+    const effectiveMaxDate = maxDate;
 
     // Validate and adjust date if it's outside the allowed range
     useEffect(() => {
@@ -78,14 +89,13 @@ export function DateTimePicker({
             const [hours, minutes] = maxTime.split(':').map(Number);
             newDate.setHours(hours, minutes, 0);
             onChange(newDate);
-            return;
         }
     }, [value, minTime, maxTime, onChange]);
 
     return (
-        <div className="flex gap-2">
-            <input type="hidden" id={id} name={id} value={value.toISOString().slice(0, 19)} />
-            <div className="flex-1 flex flex-col gap-1">
+        <div className="flex justify-start gap-2">
+            <input type="hidden" id={id} name={id} value={formatLocalDateTime(value)} />
+            <div className="flex flex-col gap-2">
                 {
                     dateLabel.length > 0 && <Label className="">{dateLabel}</Label>
                 }
@@ -96,7 +106,7 @@ export function DateTimePicker({
                     maxDate={effectiveMaxDate}
                 />
             </div>
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-2">
                 {
                     timeLabel.length > 0 && <Label className="">{timeLabel}</Label>
                 }

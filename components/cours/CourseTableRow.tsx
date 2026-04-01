@@ -2,24 +2,7 @@
 
 import { TableCell, TableRow } from '@/components/ui/table';
 
-import { Select as Course } from '@/lib/db/schema/course';
-import { Select as Group } from '@/lib/db/schema/group';
-import Vignette from '@/components/ui/Vignette';
 import { CourseStatus } from '@/components/cours/course.types';
-import { fr } from 'date-fns/locale/fr';
-import { deleteCourse } from '@/lib/actions/cours';
-import { formatInTimeZone } from 'date-fns-tz';
-import { useRouter } from 'next/navigation';
-import { useActionState, useEffect, useState } from 'react';
-import { Button } from "@/components/ui/button";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
-import MoreVertIcon from '@mui/icons-material/MoreVert';
 import {
     AlertDialog,
     AlertDialogCancel,
@@ -29,7 +12,22 @@ import {
     AlertDialogHeader,
     AlertDialogTitle
 } from "@/components/ui/alert-dialog";
-import CoursModal from './creation/CoursModal';
+import { Button } from "@/components/ui/button";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
+import Vignette from '@/components/ui/Vignette';
+import { deleteCourse } from '@/lib/actions/cours';
+import { Select as Course } from '@/lib/db/schema/course';
+import { Select as Group } from '@/lib/db/schema/group';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import { formatInTimeZone } from 'date-fns-tz';
+import { fr } from 'date-fns/locale/fr';
+import { useRouter } from 'next/navigation';
+import { useActionState, useEffect, useState } from 'react';
 
 const PARIS_TIME_ZONE = 'Europe/Paris';
 

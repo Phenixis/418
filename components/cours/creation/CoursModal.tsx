@@ -19,7 +19,6 @@ import { useTeacher } from "@/lib/hooks/useTeacher";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 import SelectGroupComponent from "./select-group";
-import { DatePicker } from "@/components/ui/date-picker";
 import type { Select as Course } from "@/lib/db/schema/course";
 import type { Select as Group } from "@/lib/db/schema/group";
 import { DateTimePicker } from "@/components/ui/date-time-picker";
@@ -31,15 +30,39 @@ export default function CoursModal({
 }>) {
     const { teacher } = useTeacher();
     const router = useRouter();
-    
+
     const [isCreateCourseDialogOpen, setIsCreateCourseDialogOpen] = useState(false);
 
     // Valeurs du formulaire
     const [label, setLabel] = useState(initCourse?.subject || "");
-    const [date, setDate] = useState(initCourse?.startAt || new Date());
+    const getPreviousQuarterHour = () => {
+        const now = new Date();
+        const minutes = now.getMinutes();
+        const roundedMinutes = Math.floor(minutes / 15) * 15;
+        now.setMinutes(roundedMinutes);
+        now.setSeconds(0);
+        return now;
+    };
+
+    const getInitialDuration = () => {
+        if (!initCourse?.startAt || !initCourse?.endAt) {
+            return "";
+        }
+
+        const startDate = new Date(initCourse.startAt);
+        const endDate = new Date(initCourse.endAt);
+
+        if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+            return "";
+        }
+
+        const durationInMinutes = Math.round((endDate.getTime() - startDate.getTime()) / 60000);
+        return durationInMinutes > 0 ? `${durationInMinutes}` : "";
+    };
+
+    const [date, setDate] = useState(initCourse?.startAt || getPreviousQuarterHour());
     const [groupsSelected, setGroupsSelected] = useState<string[]>(initCourse?.groups.map((g) => "" + g.groupId) || []);
-    const [heureDebut, setHeureDebut] = useState("");
-    const [duration, setDuration] = useState("");
+    const [duration, setDuration] = useState(getInitialDuration());
     const [isFormValid, setIsFormValid] = useState(false);
 
     const [state, formAction, pending] = useActionState<ActionResult, FormData>(async (prevState, formData) => {
@@ -54,9 +77,8 @@ export default function CoursModal({
             router.push("/professeur/cours/" + state.course.id);
             setIsCreateCourseDialogOpen(false);
             setLabel(initCourse?.subject || "");
-            setDate(initCourse?.startAt || new Date());
-            setHeureDebut("");
-            setDuration("");
+            setDate(initCourse?.startAt || getPreviousQuarterHour());
+            setDuration(getInitialDuration());
             setGroupsSelected(initCourse?.groups.map((g) => "" + g.groupId) || []);
         }
     }, [state]);
@@ -64,11 +86,11 @@ export default function CoursModal({
     useEffect(() => {
         setIsFormValid(
             label !== "" &&
-            !!heureDebut &&
+            !!date &&
             !!duration &&
             groupsSelected.length > 0
         );
-    }, [label, heureDebut, duration, groupsSelected]);
+    }, [label, date, duration, groupsSelected]);
 
     return (
         <>
@@ -123,18 +145,15 @@ export default function CoursModal({
                             />
                         </div>
                         <div className="flex items-center justify-between gap-4 mb-2">
-                            <div className="flex-1 flex flex-col gap-2">
-                                <Label id="start-date-label">Date de début</Label>
-                                <DateTimePicker
-                                    id="start-date"
-                                    aria-labelledby="start-date-label"
-                                    value={date}
-                                    onChange={setDate}
-                                    dateLabel=""
-                                    timeLabel=""
-                                    step={60*15}
-                                />
-                            </div>
+                            <DateTimePicker
+                                id="start-date"
+                                aria-labelledby="start-date-label"
+                                value={date}
+                                onChange={setDate}
+                                dateLabel="Date de début"
+                                timeLabel="Heure de début"
+                                step={60 * 15}
+                            />
                             {/* <div className="flex flex-col gap-2">
                                 <input type="text" id="start-time-hidden" name="start-time" className="hidden" value={heureDebut} readOnly />
                                 <Label htmlFor="start-time">Heure de début</Label>
@@ -165,6 +184,9 @@ export default function CoursModal({
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectGroup>
+                                            {duration !== "" && duration !== "60" && duration !== "120" && (
+                                                <SelectItem value={duration}>{duration} minutes</SelectItem>
+                                            )}
                                             <SelectItem value="60">1 heure</SelectItem>
                                             <SelectItem value="120">2 heures</SelectItem>
                                         </SelectGroup>
