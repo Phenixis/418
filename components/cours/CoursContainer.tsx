@@ -3,7 +3,7 @@
 import { PortalToBreadcrumb } from "@/app/professeur/(app)/dashboard/breadcrumb-context";
 import { useMemo, useState } from "react";
 import FiltresCours, { CourseFilter } from "./FiltresCours";
-import TableauCours from "./TableauCours";
+import TableauCoursGroupe from "./TableauCoursGroupe";
 import type { Select as Course } from '@/lib/db/schema/course';
 import type { Select as CourseGroup } from '@/lib/db/schema/course-group';
 import type { Select as Group } from '@/lib/db/schema/group';
@@ -44,8 +44,8 @@ export default function CoursContainer({ courses, groupCourses, groups }: CoursC
                     onFilterChange={setSelectedFilters}
                 />
             </PortalToBreadcrumb>
-            
-            <TableauCours
+
+            <TableauCoursGroupe
                 courses={filteredCourses}
                 groupCourses={groupCourses}
                 groups={groups}

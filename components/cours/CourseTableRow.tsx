@@ -15,6 +15,7 @@ const PARIS_TIME_ZONE = 'Europe/Paris';
 interface CoursProps {
     cours: Course;
     groups: Group[];
+    showStatus?: boolean;
 }
 
 /**
@@ -43,7 +44,7 @@ function formatDate(date: Date): string {
     return formatInTimeZone(date, PARIS_TIME_ZONE, 'dd/MM/yyyy', { locale: fr });
 }
 
-export default function CourseTableRow({ cours, groups }: Readonly<CoursProps>) {
+export default function CourseTableRow({ cours, groups, showStatus = true }: Readonly<CoursProps>) {
     const now = new Date();
     const router = useRouter();
 
@@ -73,9 +74,11 @@ export default function CourseTableRow({ cours, groups }: Readonly<CoursProps>) 
                     </span>
                 ))}
             </TableCell>
-            <TableCell>
-                <Vignette status={status} />
-            </TableCell>
+            {showStatus && (
+                <TableCell>
+                    <Vignette status={status} />
+                </TableCell>
+            )}
         </TableRow>
     );
 }
