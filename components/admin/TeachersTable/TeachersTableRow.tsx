@@ -88,7 +88,7 @@ export default function TeachersTableRow({
                                 </DropdownMenuItem>
                             ) : (
                                 <>
-                                            <form action={validateTeacherAction}>
+                                    <form action={validateTeacherAction}>
                                         <input type="hidden" name="teacherEmail" value={teacher.userMail} />
                                         <DropdownMenuItem asChild variant="default">
                                             <button type="submit" className="w-full text-left cursor-pointer">
