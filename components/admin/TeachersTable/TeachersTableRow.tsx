@@ -22,7 +22,7 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import { deleteTeacherAccount, refuseTeacherAccount, validateTeacherAccount } from "@/lib/actions/admin";
 import { Select as Teacher } from "@/lib/db/schema/teacher";
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 export default function TeachersTableRow({
     teacher
@@ -31,6 +31,7 @@ export default function TeachersTableRow({
 }>) {
     const [isRefuseDialogOpen, setIsRefuseDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const validateTeacherFormRef = useRef<HTMLFormElement>(null);
 
     return (
         <TableRow key={teacher.userMail} className="bg-white/80">
@@ -68,14 +69,18 @@ export default function TeachersTableRow({
                                 </DropdownMenuItem>
                             ) : (
                                 <>
-                                    <form action={validateTeacherAccount}>
+                                    <form action={validateTeacherAccount} ref={validateTeacherFormRef}>
                                         <input type="hidden" name="teacherEmail" value={teacher.userMail} />
-                                        <DropdownMenuItem asChild variant="default">
-                                            <button type="submit" className="w-full text-left cursor-pointer">
-                                                Valider le compte
-                                            </button>
-                                        </DropdownMenuItem>
                                     </form>
+                                    <DropdownMenuItem
+                                        variant="default"
+                                        onSelect={(event) => {
+                                            event.preventDefault();
+                                            validateTeacherFormRef.current?.requestSubmit();
+                                        }}
+                                    >
+                                        Valider le compte
+                                    </DropdownMenuItem>
                                     <DropdownMenuItem
                                         variant="destructive"
                                         onSelect={(event) => {

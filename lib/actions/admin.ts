@@ -34,7 +34,7 @@ export async function validateTeacherAccount(formData: FormData): Promise<void> 
 		return;
 	}
 
-	revalidatePath("/administrateur/gestion-comptes");
+	revalidatePath("/administrateur/gestion-professeurs");
 }
 
 export async function refuseTeacherAccount(formData: FormData): Promise<void> {
@@ -52,7 +52,7 @@ export async function refuseTeacherAccount(formData: FormData): Promise<void> {
 		return;
 	}
 
-	revalidatePath("/administrateur/gestion-comptes");
+	revalidatePath("/administrateur/gestion-professeurs");
 }
 
 export async function deleteTeacherAccount(formData: FormData): Promise<void> {
@@ -70,5 +70,5 @@ export async function deleteTeacherAccount(formData: FormData): Promise<void> {
 		return;
 	}
 
-	revalidatePath("/administrateur/gestion-comptes");
+	revalidatePath("/administrateur/gestion-professeurs");
 }

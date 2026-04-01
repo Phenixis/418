@@ -224,14 +224,16 @@ export default function StudentsManagementClient({ initialStudents, groups }: Re
         }
 
         for (const [groupKey, groupStudents] of groupedById.entries()) {
-            groupedById.set(groupKey, groupStudents.sort((firstStudent, secondStudent) => {
+            const sortedGroupStudents = [...groupStudents].sort((firstStudent, secondStudent) => {
                 const lastNameOrder = firstStudent.lastName.localeCompare(secondStudent.lastName, 'fr');
                 if (lastNameOrder !== 0) {
                     return lastNameOrder;
                 }
 
                 return firstStudent.firstName.localeCompare(secondStudent.firstName, 'fr');
-            }));
+            });
+
+            groupedById.set(groupKey, sortedGroupStudents);
         }
 
         return groupedById;
@@ -278,7 +280,7 @@ export default function StudentsManagementClient({ initialStudents, groups }: Re
     }, [selectedStudentEmail, students]);
 
     const moveCandidateGroups = useMemo(() => {
-        if (!selectedStudent || selectedStudent.groupId === null) {
+        if (selectedStudent?.groupId == null) {
             return [] as Group[];
         }
 
@@ -1015,7 +1017,7 @@ export default function StudentsManagementClient({ initialStudents, groups }: Re
                     <DialogHeader>
                         <DialogTitle>Modifier un étudiant</DialogTitle>
                         <DialogDescription>
-                            Modifie les informations et la classe de l'étudiant.
+                            Modifie les informations et la classe de l&apos;étudiant.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-3">
