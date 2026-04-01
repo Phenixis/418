@@ -7,7 +7,6 @@ import { fromZonedTime } from "date-fns-tz";
 import { courseTeacherQueries } from "../db/queries/course-teacher";
 import { revalidatePath } from "next/cache";
 import { teacherQueries } from "@/lib/db/queries/teacher";
-import { teacherQueries } from "../db/queries/teacher";
 
 const PARIS_TIME_ZONE = "Europe/Paris";
 
