@@ -52,7 +52,7 @@ export default function ResetPasswordFormClient({
         if ("success" in state && state.success && "redirectTo" in state) {
             router.push(state.redirectTo);
         }
-    }, [state])
+    }, [state, router])
 
     if (!isEmailVerified) {
         return (
@@ -131,7 +131,12 @@ export default function ResetPasswordFormClient({
                             </p>
                         )
                     }
-                    <Button variant="big" className="w-full" disabled={pending || !isPasswordValid} type="submit">
+                    <Button
+                        variant="big"
+                        className="w-full"
+                        disabled={pending || !isPasswordValid || password !== confirmPassword}
+                        type="submit"
+                    >
                         Modifier le mot de passe
                     </Button>
                 </CardFooter>

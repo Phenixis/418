@@ -98,14 +98,31 @@ export async function createResetPasswordSession(_prevState: ActionResult, formD
     <p>L'équipe de Soko.</p>
     `;
 
-    try {
-        await sendEmail(user.userMail, "Réinitialisation de votre mot de passe", emailContent);
-    } catch (error) {
-        console.error("Erreur lors de l'envoi de l'email de réinitialisation :", error);
-        return {
-            error: true,
-            message: "Une erreur est survenue lors de l'envoi de l'email de réinitialisation. Veuillez réessayer plus tard.",
-        };
+    const isEmailServiceConfigured =
+        !!process.env.RESEND_API_KEY && !!process.env.RESEND_API_ENDPOINT;
+    const shouldUseEmailStub =
+        !isEmailServiceConfigured &&
+        (process.env.NODE_ENV === "test" || process.env.NODE_ENV === "development");
+
+    if (shouldUseEmailStub) {
+        console.warn(
+            "Service d'email non configuré (RESEND_API_KEY/RESEND_API_ENDPOINT manquants). Envoi d'email ignoré en environnement de test/développement."
+        );
+    } else {
+        try {
+            await sendEmail(
+                user.userMail,
+                "Réinitialisation de votre mot de passe",
+                emailContent
+            );
+        } catch (error) {
+            console.error("Erreur lors de l'envoi de l'email de réinitialisation :", error);
+            return {
+                error: true,
+                message:
+                    "Une erreur est survenue lors de l'envoi de l'email de réinitialisation. Veuillez réessayer plus tard.",
+            };
+        }
     }
 
     return {
