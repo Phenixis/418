@@ -17,6 +17,8 @@ jobs:
       TEST_ACCOUNT_PASSWORD: ${{ secrets.TEST_ACCOUNT_PASSWORD || vars.TEST_ACCOUNT_PASSWORD }}
       NEXT_PUBLIC_BASE_URL: ${{ secrets.BASE_URL || vars.BASE_URL }}
       AUTH_SECRET: ${{ secrets.AUTH_SECRET || vars.AUTH_SECRET }}
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY || vars.RESEND_API_KEY }}
+      RESEND_API_ENDPOINT: ${{ secrets.RESEND_API_ENDPOINT || vars.RESEND_API_ENDPOINT }}
 
     steps:
       - uses: actions/checkout@v4
@@ -32,6 +34,8 @@ jobs:
           test -n "$TEST_ACCOUNT_PASSWORD" || (echo "::error::TEST_ACCOUNT_PASSWORD is empty. Check Actions secrets/variables name, environment binding, and PR context (fork PRs do not receive secrets)." && exit 1)
           test -n "$NEXT_PUBLIC_BASE_URL" || (echo "::error::NEXT_PUBLIC_BASE_URL is empty. Check Actions secrets/variables name, environment binding, and PR context (fork PRs do not receive secrets)." && exit 1)
           test -n "$AUTH_SECRET" || (echo "::error::AUTH_SECRET is empty. Check Actions secrets/variables name, environment binding, and PR context (fork PRs do not receive secrets)." && exit 1)
+          test -n "$RESEND_API_KEY" || (echo "::error::RESEND_API_KEY is empty. Check Actions secrets/variables name, environment binding, and PR context (fork PRs do not receive secrets)." && exit 1)
+          test -n "$RESEND_API_ENDPOINT" || (echo "::error::RESEND_API_ENDPOINT is empty. Check Actions secrets/variables name, environment binding, and PR context (fork PRs do not receive secrets)." && exit 1)
 
       - name: Install dependencies
         run: npm install -g pnpm && pnpm install
