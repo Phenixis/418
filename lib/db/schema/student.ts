@@ -4,6 +4,7 @@ import * as AttendanceTable from './attendance';
 
 export const table = lib.pgTable('student', {
     ...lib.userAttributes,
+    password: lib.varchar("password", { length: 100 }),
     picture: lib.text("picture"),
     groupId: lib.integer("group_id").references(() => GroupTable.table.groupId, { onDelete: 'cascade', onUpdate: 'cascade' })
 })

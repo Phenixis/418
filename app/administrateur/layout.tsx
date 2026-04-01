@@ -8,9 +8,11 @@ export default function AdminLayout({ children }: Readonly<{ children: React.Rea
     const adminPromise = teacherQueries.getAdmin();
 
     return (
-        <AdminProvider adminPromise={adminPromise}>
-            <AdminHeader />
-            <main className="container mx-auto">{children}</main>
-        </AdminProvider>
+        <div suppressHydrationWarning>
+            <AdminProvider adminPromise={adminPromise}>
+                <AdminHeader />
+                <main className="container mx-auto">{children}</main>
+            </AdminProvider>
+        </div>
     );
 }

@@ -57,6 +57,13 @@
       "when": 1774691334107,
       "tag": "0007_next_master_mold",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1775036719857,
+      "tag": "0008_organic_nightcrawler",
+      "breakpoints": true
     }
   ]
 }

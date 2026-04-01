@@ -3,6 +3,7 @@
 import CheckIcon from "@mui/icons-material/Check"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
+import { getStudentPictureSrc } from "@/lib/utils/student-picture"
 import { StatutEtudiant } from "@/components/cours/course.types"
 import { StudentWithStatus } from "@/lib/actions/cours-actuel"
 
@@ -14,7 +15,9 @@ interface EtudiantCardProps {
 
 // Affiche la photo carrée de l'étudiant, ou une silhouette générique si indisponible
 function PhotoEtudiant({ photoUrl, prenom, nom }: Readonly<{ photoUrl: string | null; prenom: string; nom: string }>) {
-    if (!photoUrl) {
+    const resolvedPhotoUrl = getStudentPictureSrc(photoUrl)
+
+    if (!resolvedPhotoUrl) {
         return (
             <div className="w-full aspect-square rounded-[6px] bg-faded/20 flex items-center justify-center">
                 <Image
@@ -31,9 +34,10 @@ function PhotoEtudiant({ photoUrl, prenom, nom }: Readonly<{ photoUrl: string | 
     return (
         <div className="w-full aspect-square relative rounded-[6px] overflow-hidden">
             <Image
-                src={photoUrl}
+                src={resolvedPhotoUrl}
                 alt={`Photo de ${prenom} ${nom}`}
                 fill
+                unoptimized
                 className="object-cover object-top"
             />
         </div>

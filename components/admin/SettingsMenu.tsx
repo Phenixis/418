@@ -15,7 +15,10 @@ export default function SettingsMenu() {
             </DropdownMenuTrigger>
             <DropdownMenuContent>
                 <DropdownMenuItem asChild>
-                    <Link href="/administrateur/gestion-comptes">Gestion des comptes</Link>
+                    <Link href="/administrateur/gestion-professeurs">Gestion des professeurs</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                    <Link href="/administrateur/gestion-etudiants">Gestion des étudiants</Link>
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
