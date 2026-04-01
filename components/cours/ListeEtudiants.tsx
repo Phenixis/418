@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import EtudiantCard from '@/components/cours/EtudiantCard';
+import EtudiantRow from '@/components/cours/EtudiantRow';
+import BarreActions, { type FiltrePresence, type ModeAffichage } from '@/components/cours/BarreActions';
 import { StatutEtudiant } from '@/components/cours/course.types';
 import { StudentWithStatus } from '@/lib/actions/cours-actuel';
 import { useAttendanceRealtime } from '@/hooks/use-attendance-realtime';
@@ -35,9 +37,35 @@ function applyPresenceSnapshot(
     });
 }
 
+/** Vérifie si un étudiant correspond à la recherche (prénom ou nom) */
+function correspondALaRecherche(etudiant: StudentWithStatus, recherche: string): boolean {
+    if (recherche.trim() === '') return true;
+
+    const termeNormalise = recherche.toLowerCase().trim();
+    const prenomNom = `${etudiant.firstName} ${etudiant.lastName}`.toLowerCase();
+    const nomPrenom = `${etudiant.lastName} ${etudiant.firstName}`.toLowerCase();
+
+    return prenomNom.includes(termeNormalise) || nomPrenom.includes(termeNormalise);
+}
+
+/** Vérifie si un étudiant correspond au filtre de présence sélectionné */
+function correspondAuFiltre(etudiant: StudentWithStatus, filtre: FiltrePresence): boolean {
+    switch (filtre) {
+        case "tous":
+            return true;
+        case "presents":
+            return etudiant.statut === StatutEtudiant.PRESENT;
+        case "absents":
+            return etudiant.statut !== StatutEtudiant.PRESENT;
+    }
+}
+
 export default function ListeEtudiants({ courseId, etudiants, onStudentsChange }: Readonly<ListeEtudiantsProps>) {
     const [students, setStudents] = useState<StudentWithStatus[]>(etudiants);
     const [pendingStudentMails, setPendingStudentMails] = useState<Set<string>>(new Set());
+    const [recherche, setRecherche] = useState('');
+    const [filtreActif, setFiltreActif] = useState<FiltrePresence>('tous');
+    const [modeAffichage, setModeAffichage] = useState<ModeAffichage>('grille');
 
     useEffect(() => {
         setStudents(etudiants);
@@ -46,6 +74,23 @@ export default function ListeEtudiants({ courseId, etudiants, onStudentsChange }
     useEffect(() => {
         onStudentsChange?.(students);
     }, [students, onStudentsChange]);
+
+    // Étudiants triés puis filtrés par recherche et par statut
+    const etudiantsFiltres = useMemo(() => {
+        return students
+            .slice()
+            .sort((a, b) => {
+                const groupComparison = a.groupName.localeCompare(b.groupName, 'fr', { sensitivity: 'base' });
+                if (groupComparison !== 0) return groupComparison;
+                const lastNameComparison = a.lastName.localeCompare(b.lastName, 'fr', { sensitivity: 'base' });
+                if (lastNameComparison !== 0) return lastNameComparison;
+                return a.firstName.localeCompare(b.firstName, 'fr', { sensitivity: 'base' });
+            })
+            .filter((etudiant) =>
+                correspondALaRecherche(etudiant, recherche) &&
+                correspondAuFiltre(etudiant, filtreActif)
+            );
+    }, [students, recherche, filtreActif]);
 
     const { connectionState } = useAttendanceRealtime({
         courseId,
@@ -185,23 +230,39 @@ export default function ListeEtudiants({ courseId, etudiants, onStudentsChange }
     }
 
     return (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-            {students.slice()
-            .sort((a, b) => {
-                const groupComparison = a.groupName.localeCompare(b.groupName, 'fr', { sensitivity: 'base' });
-                if (groupComparison !== 0) return groupComparison;
-                const lastNameComparison = a.lastName.localeCompare(b.lastName, 'fr', { sensitivity: 'base' });
-                if (lastNameComparison !== 0) return lastNameComparison;
-                return a.firstName.localeCompare(b.firstName, 'fr', { sensitivity: 'base' });
-            })
-            .map(etudiant => (
-                <EtudiantCard
-                    key={etudiant.userMail}
-                    etudiant={etudiant}
-                    isDisabled={pendingStudentMails.has(etudiant.userMail)}
-                    onClick={handleStudentClick}
-                />
-            ))}
+        <div className="flex flex-col gap-4">
+            <BarreActions
+                recherche={recherche}
+                onRechercheChange={setRecherche}
+                filtreActif={filtreActif}
+                onFiltreChange={setFiltreActif}
+                modeAffichage={modeAffichage}
+                onModeAffichageChange={setModeAffichage}
+            />
+
+            {modeAffichage === "grille" ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                    {etudiantsFiltres.map((etudiant) => (
+                        <EtudiantCard
+                            key={etudiant.userMail}
+                            etudiant={etudiant}
+                            isDisabled={pendingStudentMails.has(etudiant.userMail)}
+                            onClick={handleStudentClick}
+                        />
+                    ))}
+                </div>
+            ) : (
+                <div className="flex flex-col gap-2">
+                    {etudiantsFiltres.map((etudiant) => (
+                        <EtudiantRow
+                            key={etudiant.userMail}
+                            etudiant={etudiant}
+                            isDisabled={pendingStudentMails.has(etudiant.userMail)}
+                            onClick={handleStudentClick}
+                        />
+                    ))}
+                </div>
+            )}
         </div>
     );
 }
