@@ -1,5 +1,8 @@
 "use client"
 
+import { cn } from "@/lib/utils";
+
+
 import {
     Combobox,
     ComboboxChip,
@@ -28,15 +31,24 @@ type GroupOption = {
 export default function SelectGroup({
     groupsSelected,
     setGroupsSelected,
+    initialGroups,
+    className,
 }: Readonly<{
     groupsSelected: string[];
     setGroupsSelected: (groups: string[]) => void;
+    initialGroups?: Group[];
+    className?: string;
 }>) {
-    const [groups, setGroups] = useState<Group[]>([]);
+    const [groups, setGroups] = useState<Group[]>(initialGroups ?? []);
     const [isLoadingGroups, setIsLoadingGroups] = useState<boolean>(false);
     const [groupsError, setGroupsError] = useState<string | null>(null);
 
     useEffect(() => {
+        if (initialGroups) {
+            setGroups(initialGroups);
+            return;
+        }
+
         const loadGroups = async () => {
             setIsLoadingGroups(true);
             setGroupsError(null);
@@ -121,7 +133,7 @@ export default function SelectGroup({
     const chipsAnchor = useComboboxAnchor();
 
     return (
-        <div className="w-full flex flex-col gap-2 mb-2">
+        <div className={cn("w-full flex flex-col gap-2 mb-2", className)}>
             {groupsSelected.map((groupValue) => (
                 <input
                     key={groupValue}

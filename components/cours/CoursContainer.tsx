@@ -7,7 +7,6 @@ import { useMemo, useState } from "react";
 import FiltresCours, { CourseFilter } from "./FiltresCours";
 import TableauCours, { CourseWithStatus } from "./TableauCours";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { getISOWeek, getISOWeekYear, startOfISOWeek, endOfISOWeek, format } from "date-fns";
 import { fr } from "date-fns/locale/fr";
 import {
@@ -18,7 +17,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
-
+import SelectGroup from "@/components/cours/creation/select-group";
 
 interface CoursContainerProps {
     courses: CourseWithStatus[];
@@ -28,37 +27,8 @@ interface CoursContainerProps {
 
 export default function CoursContainer({ courses, groupCourses, groups }: Readonly<CoursContainerProps>) {
     const [selectedFilters, setSelectedFilters] = useState<CourseFilter[]>([]);
-    const [selectedGroupIds, setSelectedGroupIds] = useState<number[]>([]);
+    const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>([]);
     const [selectedWeek, setSelectedWeek] = useState<string | null>(null);
-    const [selectedPromo, setSelectedPromo] = useState<string | null>(null);
-
-    const togglePromo = (promo: string) => {
-        if (selectedPromo === promo) {
-            setSelectedPromo(null);
-            setSelectedGroupIds([]);
-        } else {
-            setSelectedPromo(promo);
-            setSelectedGroupIds([]);
-        }
-    };
-
-    const toggleGroup = (groupId: number) => {
-        setSelectedGroupIds(prev =>
-            prev.includes(groupId)
-                ? prev.filter(id => id !== groupId)
-                : [...prev, groupId]
-        );
-    };
-
-    // Calcul des promotions et groupes visibles
-    const availablePromos = useMemo(() => {
-        return [...new Set(groups.map((g) => g.promo))].sort();
-    }, [groups]);
-
-    const visibleGroups = useMemo(() => {
-        if (!selectedPromo) return [];
-        return groups.filter((g) => g.promo === selectedPromo);
-    }, [groups, selectedPromo]);
 
     // Calcul des semaines disponibles
     const availableWeeks = useMemo(() => {
@@ -104,7 +74,7 @@ export default function CoursContainer({ courses, groupCourses, groups }: Readon
         return filteredByStatus.filter(course =>
             groupCourses.some(gc =>
                 gc.courseId === course.courseId &&
-                selectedGroupIds.includes(gc.groupId)
+                selectedGroupIds.includes(String(gc.groupId))
             )
         );
     }, [filteredByStatus, selectedGroupIds, groupCourses]);
@@ -126,7 +96,6 @@ export default function CoursContainer({ courses, groupCourses, groups }: Readon
         <>
             <PortalToBreadcrumb>
                 <div className="flex flex-col items-center gap-2">
-                    {/* Filtres par statut */}
                     <FiltresCours
                         selectedFilters={selectedFilters}
                         onFilterChange={setSelectedFilters}
@@ -134,37 +103,20 @@ export default function CoursContainer({ courses, groupCourses, groups }: Readon
                 </div>
             </PortalToBreadcrumb>
 
-            <div className="flex flex-col gap-6 mt-10 mb-5 bg-white/40 p-5 rounded-xl border border-white/60 backdrop-blur-sm">
-                <div className="flex flex-wrap items-center justify-between gap-8">
-                    {/* Section Promotion */}
-                    <div className="flex flex-wrap items-center gap-3">
-                        <span className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Promotion :</span>
-                        <div className="flex flex-wrap items-center gap-2">
-                            {availablePromos.map((promo) => {
-                                const isSelected = selectedPromo === promo;
-                                return (
-                                    <Button
-                                        key={promo}
-                                        variant={isSelected ? "default" : "outline"}
-                                        size="sm"
-                                        onClick={() => togglePromo(promo)}
-                                        className={cn(
-                                            "h-9 px-5 text-sm font-bold transition-all duration-150 ease-out border uppercase",
-                                            isSelected
-                                                ? "translate-y-[3px] shadow-none"
-                                                : "shadow-[0_4px_0_0_rgba(0,0,0,0.1)] active:translate-y-[3px] active:shadow-none"
-                                        )}
-                                    >
-                                        Promo {promo}
-                                    </Button>
-                                );
-                            })}
-                        </div>
+            <div className="flex flex-col gap-4 mt-10 mb-8 bg-white/40 p-6 rounded-2xl border border-white/60 backdrop-blur-md shadow-sm transition-all">
+                <div className="flex flex-wrap items-end justify-between gap-6">
+                    {/* Section Groupes via SelectGroup */}
+                    <div className="flex-1 min-w-[300px]">
+                        <SelectGroup className="w-[250px]" 
+                            groupsSelected={selectedGroupIds}
+                            setGroupsSelected={setSelectedGroupIds}
+                            initialGroups={groups}
+                        />
                     </div>
 
                     {/* Filtre par semaine */}
-                    <div className="flex items-center gap-3">
-                        <span className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Période :</span>
+                    <div className="flex flex-col gap-2 mb-2">
+                        <span className="text-sm font-bold text-muted-foreground uppercase tracking-wider ml-1">Période</span>
                         {availableWeeks.length > 0 && (
                             <div className="flex items-center gap-2">
                                 <CalendarTodayIcon className="!size-4 text-muted-foreground" />
@@ -172,7 +124,7 @@ export default function CoursContainer({ courses, groupCourses, groups }: Readon
                                     value={selectedWeek ?? "all"}
                                     onValueChange={(value) => setSelectedWeek(value === "all" ? null : value)}
                                 >
-                                    <SelectTrigger size="default" className="w-[280px] bg-white/80 h-10 font-medium">
+                                    <SelectTrigger size="default" className="w-[300px] bg-white/80 h-10 font-medium border-white/80">
                                         <SelectValue placeholder="Toutes les semaines" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -189,7 +141,7 @@ export default function CoursContainer({ courses, groupCourses, groups }: Readon
                                         variant="ghost"
                                         size="sm"
                                         onClick={() => setSelectedWeek(null)}
-                                        className="h-10 px-3 text-sm text-muted-foreground hover:text-foreground"
+                                        className="h-10 px-3 text-sm text-muted-foreground hover:text-foreground hover:bg-white/40"
                                     >
                                         Fermer
                                     </Button>
@@ -198,45 +150,6 @@ export default function CoursContainer({ courses, groupCourses, groups }: Readon
                         )}
                     </div>
                 </div>
-
-                {/* Section Groupes - Affichée dynamiquement */}
-                {selectedPromo && (
-                    <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-white/40 animate-in fade-in duration-300">
-                        <span className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Groupes :</span>
-                        <div className="flex flex-wrap items-center gap-2">
-                            {visibleGroups.map((group) => {
-                                const label = `${group.td}${group.tp}`;
-                                const isSelected = selectedGroupIds.includes(group.groupId);
-                                return (
-                                    <Button
-                                        key={group.groupId}
-                                        variant={isSelected ? "default" : "outline"}
-                                        size="sm"
-                                        onClick={() => toggleGroup(group.groupId)}
-                                        className={cn(
-                                            "h-9 px-4 text-sm font-medium transition-all duration-150 ease-out border uppercase",
-                                            isSelected
-                                                ? "translate-y-[3px] shadow-none"
-                                                : "shadow-[0_4px_0_0_rgba(0,0,0,0.1)] active:translate-y-[3px] active:shadow-none"
-                                        )}
-                                    >
-                                        {label}
-                                    </Button>
-                                );
-                            })}
-                            {selectedGroupIds.length > 0 && (
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => setSelectedGroupIds([])}
-                                    className="h-9 px-3 text-sm text-muted-foreground hover:text-foreground"
-                                >
-                                    Effacer
-                                </Button>
-                            )}
-                        </div>
-                    </div>
-                )}
             </div>
 
             <TableauCours
