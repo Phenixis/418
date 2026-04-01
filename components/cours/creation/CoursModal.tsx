@@ -21,11 +21,11 @@ import SelectGroupComponent from "./select-group";
 import { useTeacher } from "@/lib/hooks/useTeacher";
 import { useRouter } from "next/navigation";
 
-export default function CoursModal(initLabel: string, initDate: Date, initGroupsSelected: string[], initHeureDebut: string, initDuration: string) {
-    
+export default function CoursModal({ initLabel, initDate, initGroupsSelected, initHeureDebut, initDuration }: { initLabel?: string; initDate?: Date; initGroupsSelected?: string[]; initHeureDebut?: string; initDuration?: string }) {
+
     const { teacher } = useTeacher();
     const router = useRouter();
-    
+
     const [isCreateCourseDialogOpen, setIsCreateCourseDialogOpen] = useState(false);
 
     // Valeurs du formulaire
@@ -93,12 +93,12 @@ export default function CoursModal(initLabel: string, initDate: Date, initGroups
                         <input type="hidden" name="teacherEmail" value={teacher.userMail} className="hidden" readOnly />
                         <div className="w-full flex flex-col gap-2 mb-2">
                             <Label htmlFor="label">Nom du cours</Label>
-                            <Input 
-                                id="label" 
-                                name="label" 
-                                type="text" 
-                                placeholder="Nom du cours" 
-                                value={label} 
+                            <Input
+                                id="label"
+                                name="label"
+                                type="text"
+                                placeholder="Nom du cours"
+                                value={label}
                                 onChange={(e) => setLabel(e.target.value.slice(0, 50))}
                                 maxLength={50}
                             />
