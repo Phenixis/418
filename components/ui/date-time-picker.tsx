@@ -30,6 +30,14 @@ export function DateTimePicker({
     id,
     step = 1
 }: Readonly<DateTimePickerProps>) {
+    const roundMinutesToQuarterHour = (minutes: number): number => {
+        const validMinutes = [0, 15, 30, 45];
+        const closest = validMinutes.reduce((prev, curr) =>
+            Math.abs(curr - minutes) < Math.abs(prev - minutes) ? curr : prev
+        );
+        return closest;
+    };
+
     const formatLocalDateTime = (dateValue: Date) => {
         const year = dateValue.getFullYear();
         const month = `${dateValue.getMonth() + 1}`.padStart(2, "0");
@@ -117,7 +125,8 @@ export function DateTimePicker({
                     onChange={(e) => {
                         const newDate = new Date(value);
                         const [hours, minutes] = e.target.value.split(':').map(Number);
-                        newDate.setHours(hours, minutes, 0);
+                        const adjustedMinutes = roundMinutesToQuarterHour(minutes);
+                        newDate.setHours(hours, adjustedMinutes, 0);
                         onChange(newDate);
                     }}
                     min={minTime}
