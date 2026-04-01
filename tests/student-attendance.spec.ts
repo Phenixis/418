@@ -38,7 +38,7 @@ type TestCleanupState = {
 };
 
 const test = baseTest.extend<{ cleanupState: TestCleanupState }>({
-    cleanupState: async ({}, use) => {
+    cleanupState: async ({}, registerCleanupState) => {
         const cleanupState: TestCleanupState = {
             createdStudentEmails: [],
             createdCourseIds: [],
@@ -46,7 +46,7 @@ const test = baseTest.extend<{ cleanupState: TestCleanupState }>({
         };
 
         try {
-            await use(cleanupState);
+            await registerCleanupState(cleanupState);
         } finally {
             for (const studentEmail of cleanupState.createdStudentEmails) {
                 await deleteStudentByEmail(studentEmail);
@@ -340,7 +340,7 @@ test.describe('Student attendance UI and session persistence', () => {
             throw new Error('Playwright baseURL is required to create a second isolated context');
         }
 
-        let secondContext = await page.context().browser()?.newContext({ baseURL: baseUrl });
+        const secondContext = await page.context().browser()?.newContext({ baseURL: baseUrl });
         if (!secondContext) {
             throw new Error('Failed to create second browser context for non-persistent cookie check');
         }
