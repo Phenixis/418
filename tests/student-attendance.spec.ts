@@ -1,10 +1,14 @@
 import { test, expect } from '@playwright/test';
-import { randomUUID } from 'crypto';
+import type { Page } from '@playwright/test';
+import { randomUUID } from 'node:crypto';
 import { db } from '@/lib/db/drizzle';
 import { table as studentTable } from '@/lib/db/schema/student';
 import { table as courseTable } from '@/lib/db/schema/course';
+import { table as groupTable } from '@/lib/db/schema/group';
+import { table as courseGroupTable } from '@/lib/db/schema/course-group';
+import { table as attendanceTable } from '@/lib/db/schema/attendance';
 import { ensureStudentAccountByEmail, deleteStudentAccountByEmail } from './helpers/test-account';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 
 const STUDENT_EMAIL_DOMAIN = 'etudiant.univ-rennes.fr';
 
@@ -17,6 +21,14 @@ type StudentCredentials = {
 type CourseFixture = {
     courseId: string;
     courseName: string;
+};
+
+type StudentCourseAccessFixture = {
+    email: string;
+    localPart: string;
+    password: string;
+    groupId: number;
+    courseId: string;
 };
 
 async function createStudentCredentials(): Promise<StudentCredentials> {
@@ -57,13 +69,114 @@ async function deleteCourseById(courseId: string): Promise<void> {
     await db.delete(courseTable).where(eq(courseTable.courseId, courseId));
 }
 
+async function createGroupFixture(): Promise<number> {
+    const randomSuffix = Math.floor(Math.random() * 9_999_999).toString().padStart(7, '0');
+    const [createdGroup] = await db.insert(groupTable).values({
+        promo: '4',
+        td: 'A',
+        tp: '1',
+        department: `D${randomSuffix.slice(0, 2)}`,
+        codePath: `C${randomSuffix.slice(2, 4)}`,
+        descriptionPath: `Test path ${randomSuffix}`,
+    }).returning({ groupId: groupTable.groupId });
+
+    return createdGroup.groupId;
+}
+
+async function deleteGroupById(groupId: number): Promise<void> {
+    await db.delete(groupTable).where(eq(groupTable.groupId, groupId));
+}
+
+async function linkCourseToGroup(courseId: string, groupId: number): Promise<void> {
+    await db.insert(courseGroupTable).values({
+        courseId,
+        groupId,
+    });
+}
+
+async function createStudentWithCourseAccessFixture(): Promise<StudentCourseAccessFixture> {
+    const studentCredentials = await createStudentCredentials();
+    const groupId = await createGroupFixture();
+    const activeCourse = await createActiveCourseFixture();
+
+    await ensureStudentAccountByEmail(studentCredentials.email, studentCredentials.password, {
+        firstName: 'Test',
+        lastName: 'Student',
+        groupId,
+    });
+
+    await linkCourseToGroup(activeCourse.courseId, groupId);
+
+    return {
+        email: studentCredentials.email,
+        localPart: studentCredentials.localPart,
+        password: studentCredentials.password,
+        groupId,
+        courseId: activeCourse.courseId,
+    };
+}
+
+async function signInStudentFromAttendancePage(
+    page: Page,
+    studentEmailLocalPart: string,
+    studentPassword: string,
+    shouldRememberSession: boolean,
+): Promise<void> {
+    const emailInput = page.getByLabel('Adresse email IUT');
+    await expect(emailInput).toBeVisible();
+    await emailInput.fill(studentEmailLocalPart);
+
+    await page.getByRole('button', { name: 'Suivant' }).click();
+
+    const passwordInput = page.getByLabel('Mot de passe', { exact: true });
+    await expect(passwordInput).toBeVisible();
+    await passwordInput.fill(studentPassword);
+
+    const rememberCheckbox = page.getByLabel('Rester connecté');
+    await expect(rememberCheckbox).toBeVisible();
+    if (shouldRememberSession) {
+        await rememberCheckbox.click();
+        await expect(rememberCheckbox).toBeChecked();
+    } else {
+        await expect(rememberCheckbox).not.toBeChecked();
+    }
+
+    await page.getByRole('button', { name: 'Se connecter' }).click();
+    await expect(page.getByText('Présence validée')).toBeVisible();
+}
+
+async function countAttendanceRecords(courseId: string, studentEmail: string): Promise<number> {
+    const attendanceRecords = await db
+        .select({ attendanceId: attendanceTable.attendanceId })
+        .from(attendanceTable)
+        .where(
+            and(
+                eq(attendanceTable.courseId, courseId),
+                eq(attendanceTable.studentMail, studentEmail),
+            ),
+        );
+
+    return attendanceRecords.length;
+}
+
+async function deleteAttendanceRecords(courseId: string, studentEmail: string): Promise<void> {
+    await db.delete(attendanceTable).where(
+        and(
+            eq(attendanceTable.courseId, courseId),
+            eq(attendanceTable.studentMail, studentEmail),
+        ),
+    );
+}
+
 test.describe('Student attendance UI and session persistence', () => {
     let createdStudentEmails: string[] = [];
     let createdCourseIds: string[] = [];
+    let createdGroupIds: number[] = [];
 
     test.beforeEach(async () => {
         createdStudentEmails = [];
         createdCourseIds = [];
+        createdGroupIds = [];
     });
 
     test.afterEach(async () => {
@@ -73,6 +186,10 @@ test.describe('Student attendance UI and session persistence', () => {
 
         for (const courseId of createdCourseIds) {
             await deleteCourseById(courseId);
+        }
+
+        for (const groupId of createdGroupIds) {
+            await deleteGroupById(groupId);
         }
     });
 
@@ -153,6 +270,9 @@ test.describe('Student attendance UI and session persistence', () => {
         const randomEmail = `unit-test-${Date.now()}@${STUDENT_EMAIL_DOMAIN}`;
         const testPassword = 'TestPass123!';
 
+        // Register test account for global cleanup in case this test fails before manual cleanup.
+        createdStudentEmails.push(randomEmail);
+
         await ensureStudentAccountByEmail(randomEmail, testPassword, {
             firstName: 'UnitTest',
             lastName: 'Student',
@@ -167,23 +287,139 @@ test.describe('Student attendance UI and session persistence', () => {
 
         // Cleanup
         await deleteStudentByEmail(randomEmail);
+        createdStudentEmails = createdStudentEmails.filter(
+            (studentEmail) => studentEmail !== randomEmail,
+        );
 
         // Vérifier que le compte est supprimé
         const deletedStudent = await db.select().from(studentTable).where(eq(studentTable.userMail, randomEmail));
         expect(deletedStudent.length).toBe(0);
     });
 
-    /**
-     * NOTE: Tests d'authentification complète et de persistance de session
-     * 
-     * Les tests suivants requièrent un authentification-fixture avec setup de cours de test,
-     * similaire au fixture `authenticated-teacher` utilisé dans les tests professeurs.
-     * 
-     * Ils devraient être implémentés une fois qu'une fixture complète est disponible:
-     * - Test: "should toggle remember checkbox on password step"
-     * - Test: "should toggle remember checkbox on password creation step"  
-     * - Test: "should create session cookie when 'Rester connecté' is checked"
-     * - Test: "should NOT create persistent cookie when 'Rester connecté' is unchecked"
-     * - Test: "should auto-attend when returning with valid session cookie"
-     */
+    test('should create student_session cookie with persistent flag depending on remember option', async ({ page }) => {
+        const rememberedStudentFixture = await createStudentWithCourseAccessFixture();
+        createdStudentEmails.push(rememberedStudentFixture.email);
+        createdCourseIds.push(rememberedStudentFixture.courseId);
+        createdGroupIds.push(rememberedStudentFixture.groupId);
+
+        await page.goto(`/etudiant?cours_id=${rememberedStudentFixture.courseId}`);
+        await signInStudentFromAttendancePage(
+            page,
+            rememberedStudentFixture.localPart,
+            rememberedStudentFixture.password,
+            true,
+        );
+
+        const rememberedCookie = (await page.context().cookies()).find(
+            (cookie) => cookie.name === 'student_session',
+        );
+
+        expect(rememberedCookie).toBeDefined();
+        if (!rememberedCookie) {
+            throw new Error('student_session cookie should exist when remember option is enabled');
+        }
+
+        const currentEpochInSeconds = Math.floor(Date.now() / 1000);
+        expect(rememberedCookie.expires).toBeGreaterThan(currentEpochInSeconds + 24 * 60 * 60);
+
+        const notRememberedStudentFixture = await createStudentWithCourseAccessFixture();
+        createdStudentEmails.push(notRememberedStudentFixture.email);
+        createdCourseIds.push(notRememberedStudentFixture.courseId);
+        createdGroupIds.push(notRememberedStudentFixture.groupId);
+
+        const secondContext = await page.context().browser()?.newContext();
+        if (!secondContext) {
+            throw new Error('Failed to create second browser context for non-persistent cookie check');
+        }
+
+        const secondPage = await secondContext.newPage();
+        await secondPage.goto(`/etudiant?cours_id=${notRememberedStudentFixture.courseId}`);
+        await signInStudentFromAttendancePage(
+            secondPage,
+            notRememberedStudentFixture.localPart,
+            notRememberedStudentFixture.password,
+            false,
+        );
+
+        const sessionCookie = (await secondContext.cookies()).find(
+            (cookie) => cookie.name === 'student_session',
+        );
+
+        expect(sessionCookie).toBeDefined();
+        if (!sessionCookie) {
+            throw new Error('student_session cookie should exist when remember option is disabled');
+        }
+
+        expect(sessionCookie.expires).toBe(-1);
+        await secondContext.close();
+    });
+
+    test('should auto-attend student after reload when session is valid', async ({ page }) => {
+        const studentAccessFixture = await createStudentWithCourseAccessFixture();
+        createdStudentEmails.push(studentAccessFixture.email);
+        createdCourseIds.push(studentAccessFixture.courseId);
+        createdGroupIds.push(studentAccessFixture.groupId);
+
+        await page.goto(`/etudiant?cours_id=${studentAccessFixture.courseId}`);
+        await signInStudentFromAttendancePage(
+            page,
+            studentAccessFixture.localPart,
+            studentAccessFixture.password,
+            true,
+        );
+
+        expect(
+            await countAttendanceRecords(studentAccessFixture.courseId, studentAccessFixture.email),
+        ).toBe(1);
+
+        await deleteAttendanceRecords(studentAccessFixture.courseId, studentAccessFixture.email);
+        expect(
+            await countAttendanceRecords(studentAccessFixture.courseId, studentAccessFixture.email),
+        ).toBe(0);
+
+        await page.reload();
+        await expect(page.getByText('Présence validée')).toBeVisible();
+
+        expect(
+            await countAttendanceRecords(studentAccessFixture.courseId, studentAccessFixture.email),
+        ).toBe(1);
+    });
+
+    test('should show non-attended dialog and reset student session when user changes account', async ({ page }) => {
+        const studentAccessFixture = await createStudentWithCourseAccessFixture();
+        createdStudentEmails.push(studentAccessFixture.email);
+        createdCourseIds.push(studentAccessFixture.courseId);
+        createdGroupIds.push(studentAccessFixture.groupId);
+
+        const unauthorizedCourse = await createActiveCourseFixture();
+        createdCourseIds.push(unauthorizedCourse.courseId);
+
+        await page.goto(`/etudiant?cours_id=${studentAccessFixture.courseId}`);
+        await signInStudentFromAttendancePage(
+            page,
+            studentAccessFixture.localPart,
+            studentAccessFixture.password,
+            true,
+        );
+
+        await page.goto(`/etudiant?cours_id=${unauthorizedCourse.courseId}`);
+
+        await expect(page.getByRole('heading', { name: 'Vérification du compte' })).toBeVisible();
+        await expect(page.getByText(/n'est pas inscrit à ce cours/i)).toBeVisible();
+
+        await page.getByRole('button', { name: 'Non, changer de compte' }).click();
+
+        await expect(page.getByLabel('Adresse email IUT')).toBeVisible();
+        await expect(page.getByRole('heading', { name: 'Vérification du compte' })).not.toBeVisible();
+
+        await expect.poll(async () => {
+            const sessionCookie = (await page.context().cookies()).find(
+                (cookie) => cookie.name === 'student_session',
+            );
+            return Boolean(sessionCookie);
+        }).toBe(false);
+
+        await page.reload();
+        await expect(page.getByLabel('Adresse email IUT')).toBeVisible();
+    });
 });
