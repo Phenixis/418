@@ -151,7 +151,7 @@ test.describe('Reset password flow', () => {
         await page.getByLabel('Email').fill('wrong.local.part');
         await page.getByRole('button', { name: 'Verifier mon email' }).click();
 
-        await expect(page.getByText("L'email ne correspond pas a la session de reinitialisation.")).toBeVisible();
+        await expect(page.getByText("L'email ne correspond pas à la session de réinitialisation.")).toBeVisible();
     });
 
     test('should complete teacher password reset and reject reused session', async ({ page }) => {
