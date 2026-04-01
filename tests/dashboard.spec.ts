@@ -52,7 +52,7 @@ test.describe('Dashboard page', () => {
                 continue;
             }
 
-            const rawStatusText = (await courseCells.nth(courseCellCount - 1).innerText()).trim();
+            const rawStatusText = (await courseCells.nth(5).innerText()).trim();
             const normalizedStatusText = normalizeStatusLabel(rawStatusText);
 
             expect(normalizedStatusText).not.toBeNull();

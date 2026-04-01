@@ -11,6 +11,7 @@ export const table = lib.pgTable('attendance', {
     studentMail: lib.varchar("student_mail", { length: 60 }).notNull()
         .references(() => StudentTable.table.userMail, { onDelete: 'cascade', onUpdate: 'cascade' }),
             ...lib.baseAttributes,
+    lateStatus: lib.integer("late_status").notNull().default(0)
 });
 
 export const relations = lib.relations(table, ({many}) => ({

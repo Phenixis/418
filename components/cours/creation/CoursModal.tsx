@@ -1,7 +1,6 @@
 "use client"
 
 import { Button } from "@/components/ui/button";
-import { DatePicker } from "@/components/ui/date-picker";
 import {
     Dialog,
     DialogContent,
@@ -16,10 +15,11 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { creerCours, modifierCours } from "@/lib/actions/cours";
 import { ActionResult } from "@/lib/actions/types";
-import { useActionState, useEffect, useState } from "react";
-import SelectGroupComponent from "./select-group";
 import { useTeacher } from "@/lib/hooks/useTeacher";
 import { useRouter } from "next/navigation";
+import { useActionState, useEffect, useState } from "react";
+import SelectGroupComponent from "./select-group";
+import { DatePicker } from "@/components/ui/date-picker";
 import type { Select as Course } from "@/lib/db/schema/course";
 import type { Select as Group } from "@/lib/db/schema/group";
 
@@ -30,7 +30,7 @@ export default function CoursModal({
 }>) {
     const { teacher } = useTeacher();
     const router = useRouter();
-
+    
     const [isCreateCourseDialogOpen, setIsCreateCourseDialogOpen] = useState(false);
 
     // Valeurs du formulaire
@@ -122,13 +122,16 @@ export default function CoursModal({
                             />
                         </div>
                         <div className="flex items-center justify-between gap-4 mb-2">
-                            <div className="flex-1 flex flex-col gap-1">
+                            <div className="flex-1 flex flex-col gap-2">
                                 <Label id="start-date-label">Date de début</Label>
                                 <DatePicker
                                     id="start-date"
                                     aria-labelledby="start-date-label"
                                     value={date}
                                     onChange={setDate}
+                                    // dateLabel=""
+                                    // timeLabel=""
+                                    // step={60*15}
                                 />
                             </div>
                             <div className="flex flex-col gap-2">
