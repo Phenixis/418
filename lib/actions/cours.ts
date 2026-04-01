@@ -108,7 +108,9 @@ export async function deleteCourse(formData: FormData): Promise<void> {
     }
 
     /*
-    Lorsque le course est supprimé en base, les relations course_group, course_teacher et attendance sont en cascade.
+    La suppression d'un cours utilise un soft delete (mise à jour du champ deletedAt).
+    Les relations course_group, course_teacher et attendance ne sont donc pas supprimées automatiquement en cascade
+    au niveau de la base de données et doivent être gérées séparément si nécessaire.
     */
 
     revalidatePath("/professeur/dashboard");
