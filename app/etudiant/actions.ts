@@ -225,7 +225,7 @@ export async function checkStudentEmailAction(
 
     const validCourse = await getValidCourse(courseId);
     if (!validCourse.success) {
-      return validCourse;
+      return { success: false, error: validCourse.error };
     }
 
     const foundStudent = await studentQueries.getByEmail(normalizedEmail);
@@ -265,12 +265,19 @@ export async function authenticateStudentAction(
 
     const validCourse = await getValidCourse(courseId);
     if (!validCourse.success) {
-      return validCourse;
+      return { success: false, error: validCourse.error };
     }
 
     const foundStudent = await studentQueries.getByEmail(normalizedEmail);
     if ("error" in foundStudent) {
       return { success: false, error: "Email ou mot de passe incorrect." };
+    }
+
+    if (foundStudent.entity.password === null) {
+      return {
+        success: false,
+        error: "Vous devez d'abord créer votre mot de passe.",
+      };
     }
 
     const isPasswordValid = await checkPasswordMatch(password, foundStudent.entity.password);
@@ -364,7 +371,7 @@ export async function createStudentPasswordAction(
 
     const validCourse = await getValidCourse(courseId);
     if (!validCourse.success) {
-      return validCourse;
+      return { success: false, error: validCourse.error };
     }
 
     const hasAccess = await hasStudentAccessToCourse(normalizedEmail, validCourse.data.courseId);

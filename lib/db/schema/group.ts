@@ -9,8 +9,8 @@ export const table = lib.pgTable('group', {
     td: lib.char("td", { length: 1 }).notNull(),
     tp: lib.char("tp", { length: 1 }).notNull(),
     department: lib.varchar("department", { length: 10 }).notNull(),
-    codePath: lib.varchar("code_path", { length: 10 }).notNull(),
-    descriptionPath: lib.varchar("description_path", { length: 50 }).notNull()
+    codePath: lib.varchar("code_path", { length: 10 }),
+    descriptionPath: lib.varchar("description_path", { length: 50 })
 });
 
 export const relations = lib.relations(table, ({many}) => ({

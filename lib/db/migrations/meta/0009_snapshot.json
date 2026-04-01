@@ -1,6 +1,6 @@
 {
-  "id": "9f9f3f8f-21a9-44d8-a91d-87c033eb4ba1",
-  "prevId": "0eaf2e44-4fb3-468a-a348-cd445194dffc",
+  "id": "2cd8168b-7619-41ac-9379-ab76524cc56b",
+  "prevId": "9f9f3f8f-21a9-44d8-a91d-87c033eb4ba1",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -390,13 +390,13 @@
           "name": "user_mail_student",
           "type": "varchar(60)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "user_mail_teacher": {
           "name": "user_mail_teacher",
           "type": "varchar(60)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "expires_at": {
           "name": "expires_at",

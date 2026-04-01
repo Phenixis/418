@@ -22,15 +22,35 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import { deleteTeacherAccount, refuseTeacherAccount, validateTeacherAccount } from "@/lib/actions/admin";
 import { Select as Teacher } from "@/lib/db/schema/teacher";
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { useRef, useState } from "react";
+import { useActionState, useEffect, useState, useRef} from "react";
+import { useRouter } from "next/navigation";
 
 export default function TeachersTableRow({
     teacher
 }: Readonly<{
     teacher: Teacher
 }>) {
+    const router = useRouter();
     const [isRefuseDialogOpen, setIsRefuseDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+    const [validateState, validateTeacherAction] = useActionState<any, FormData>(async (_previousState, formData) => {
+        return await validateTeacherAccount(formData);
+    }, { pending: false });
+
+    const [refuseState, refuseTeacherAction] = useActionState<any, FormData>(async (_previousState, formData) => {
+        return await refuseTeacherAccount(formData);
+    }, { pending: false });
+
+    const [deleteState, deleteTeacherAction] = useActionState<any, FormData>(async (_previousState, formData) => {
+        return await deleteTeacherAccount(formData);
+    }, { pending: false });
+
+    useEffect(() => {
+        if ("success" in validateState || "success" in refuseState || "success" in deleteState) {
+            router.refresh();
+        }
+    }, [validateState, refuseState, deleteState, router]);
     const validateTeacherFormRef = useRef<HTMLFormElement>(null);
 
     return (
@@ -69,6 +89,7 @@ export default function TeachersTableRow({
                                 </DropdownMenuItem>
                             ) : (
                                 <>
+                                    <form action={validateTeacherAction}>
                                     <form action={validateTeacherAccount} ref={validateTeacherFormRef}>
                                         <input type="hidden" name="teacherEmail" value={teacher.userMail} />
                                     </form>
@@ -97,7 +118,7 @@ export default function TeachersTableRow({
                 </DropdownMenu>
                 <AlertDialog open={isRefuseDialogOpen} onOpenChange={setIsRefuseDialogOpen}>
                     <AlertDialogContent size="sm">
-                        <form action={refuseTeacherAccount}>
+                        <form action={refuseTeacherAction}>
                             <AlertDialogHeader>
                                 <AlertDialogTitle>Refuser ce compte ?</AlertDialogTitle>
                             </AlertDialogHeader>
@@ -116,7 +137,7 @@ export default function TeachersTableRow({
                 </AlertDialog>
                 <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
                     <AlertDialogContent size="sm">
-                        <form action={deleteTeacherAccount}>
+                        <form action={deleteTeacherAction}>
                             <AlertDialogHeader>
                                 <AlertDialogTitle>Supprimer ce compte ?</AlertDialogTitle>
                             </AlertDialogHeader>

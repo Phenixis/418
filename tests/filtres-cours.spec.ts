@@ -44,7 +44,7 @@ test.describe('Filtres de cours sur le dashboard', () => {
                 const courseCellCount = await courseCells.count();
                 
                 if (courseCellCount > 0) {
-                    const rawStatusText = (await courseCells.nth(courseCellCount - 1).innerText()).trim();
+                    const rawStatusText = (await courseCells.nth(5).innerText()).trim();
                     if (courseCellCount === 1 && rawStatusText.includes('Aucun cours')) {
                         continue;
                     }
@@ -86,7 +86,7 @@ test.describe('Filtres de cours sur le dashboard', () => {
             const courseCellCount = await courseCells.count();
             
             if (courseCellCount > 0) {
-                const rawStatusText = (await courseCells.nth(courseCellCount - 1).innerText()).trim();
+                const rawStatusText = (await courseCells.nth(5).innerText()).trim();
                 if (courseCellCount === 1 && rawStatusText.includes('Aucun cours')) continue;
                 
                 const normalizedStatusText = normalizeStatusLabel(rawStatusText);

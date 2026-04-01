@@ -5,6 +5,8 @@ import { courseQueries } from "../db/queries/course";
 import { ActionResult } from "./types";
 import { fromZonedTime } from "date-fns-tz";
 import { courseTeacherQueries } from "../db/queries/course-teacher";
+import { revalidatePath } from "next/cache";
+import { teacherQueries } from "@/lib/db/queries/teacher";
 
 const PARIS_TIME_ZONE = "Europe/Paris";
 
@@ -90,4 +92,26 @@ export async function creerCours(prevState: ActionResult, formData: FormData): P
             id: uuid
         },
     };
+}
+
+export async function deleteCourse(formData: FormData): Promise<void> {
+    await teacherQueries.getTeacher();
+
+    const courseId = formData.get("courseId");
+    if (typeof courseId !== "string" || courseId.trim().length === 0) {
+        return;
+    }
+
+    const deletionResult = await courseQueries.deleteByCourseId(courseId);
+    if ("error" in deletionResult) {
+        return;
+    }
+
+    /*
+    La suppression d'un cours utilise un soft delete (mise à jour du champ deletedAt).
+    Les relations course_group, course_teacher et attendance ne sont donc pas supprimées automatiquement en cascade
+    au niveau de la base de données et doivent être gérées séparément si nécessaire.
+    */
+
+    revalidatePath("/professeur/dashboard");
 }
