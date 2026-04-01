@@ -30,6 +30,13 @@ export async function login(_prevState: ActionResult, formData: FormData): Promi
 		};
 	}
 
+	if (teacherResult.entity.password === null || teacherResult.entity.password.trim() === "") {
+		return {
+			error: true,
+			message: "Email ou mot de passe incorrect.",
+		};
+	}
+
 	const isPasswordValid = await bcrypt.compare(password, teacherResult.entity.password);
 
 	if (!isPasswordValid) {
