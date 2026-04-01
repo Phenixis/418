@@ -53,9 +53,8 @@ export async function refuseTeacherAccount(formData: FormData): Promise<{ succes
 		return { error: true, message: "Impossible de refuser le compte." };
 	}
 
-	revalidatePath("/administrateur/gestion-comptes");
-	return { success: true };
 	revalidatePath("/administrateur/gestion-professeurs");
+	return { success: true };
 }
 
 export async function deleteTeacherAccount(formData: FormData): Promise<{ success: true } | { error: true; message: string }> {
@@ -73,7 +72,6 @@ export async function deleteTeacherAccount(formData: FormData): Promise<{ succes
 		return { error: true, message: "Impossible de supprimer le compte." };
 	}
 
-	revalidatePath("/administrateur/gestion-comptes");
-	return { success: true };
 	revalidatePath("/administrateur/gestion-professeurs");
+	return { success: true };
 }

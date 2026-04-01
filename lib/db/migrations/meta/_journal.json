@@ -85,13 +85,6 @@
       "when": 1775046337171,
       "tag": "0011_panoramic_ben_urich",
       "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "7",
-      "when": 1775036719857,
-      "tag": "0008_organic_nightcrawler",
-      "breakpoints": true
     }
   ]
 }

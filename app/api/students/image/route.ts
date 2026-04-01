@@ -4,11 +4,10 @@ import { getServerSession } from '@/lib/actions/authentication';
 import { getStudentServerSession } from '@/lib/actions/student-auth';
 import { studentQueries } from '@/lib/db/queries/student';
 
-async function ensureAuthenticatedSession(): Promise<NextResponse | null> {
-    const [teacherSession, studentSession] = await Promise.all([
-        getServerSession(),
-        getStudentServerSession(),
-    ]);
+type TeacherSession = Awaited<ReturnType<typeof getServerSession>>;
+type StudentSession = Awaited<ReturnType<typeof getStudentServerSession>>;
+
+function ensureAuthenticatedSession(teacherSession: TeacherSession, studentSession: StudentSession): NextResponse | null {
 
     if (!teacherSession?.teacherEmail && !studentSession?.studentEmail) {
         return NextResponse.json({ error: 'Non authentifié.' }, { status: 401 });
@@ -77,7 +76,7 @@ export async function GET(request: Request) {
     const isTeacherAuthenticated = Boolean(teacherSession?.teacherEmail);
     const isStudentAuthenticated = Boolean(studentSession?.studentEmail);
 
-    const unauthorizedResponse = await ensureAuthenticatedSession();
+    const unauthorizedResponse = ensureAuthenticatedSession(teacherSession, studentSession);
 
     if (unauthorizedResponse) {
         return unauthorizedResponse;

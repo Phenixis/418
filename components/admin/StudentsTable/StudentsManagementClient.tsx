@@ -712,7 +712,7 @@ export default function StudentsManagementClient({ initialStudents, groups }: Re
             )}
 
             {errorMessage && (
-                <p className="text-sm text-red">{errorMessage}</p>
+                <p className="text-sm text-red-600">{errorMessage}</p>
             )}
 
             <div className="space-y-4">
@@ -730,9 +730,11 @@ export default function StudentsManagementClient({ initialStudents, groups }: Re
                             onOpenChange={(isOpen) => updateYearOpenState(year, isOpen)}
                         >
                             <div className="flex items-center justify-between gap-2">
-                                <CollapsibleTrigger className="h2">
-                                    Année {year}
-                                </CollapsibleTrigger>
+                                <h2>
+                                    <CollapsibleTrigger className="h2">
+                                        Année {year}
+                                    </CollapsibleTrigger>
+                                </h2>
                                 <div className="flex items-center gap-2">
                                     <Badge variant="outline">{yearGroups.length} classes</Badge>
                                     <Badge variant="outline">{yearStudentsCount} étudiants</Badge>
@@ -751,9 +753,11 @@ export default function StudentsManagementClient({ initialStudents, groups }: Re
                                             onOpenChange={(isOpen) => updateGroupOpenState(groupKey, isOpen)}
                                         >
                                             <div className="flex items-center justify-between gap-2">
-                                                <CollapsibleTrigger className="h2">
-                                                    Classe {buildGroupLabel(group)}
-                                                </CollapsibleTrigger>
+                                                <h3>
+                                                    <CollapsibleTrigger className="h2">
+                                                        Classe {buildGroupLabel(group)}
+                                                    </CollapsibleTrigger>
+                                                </h3>
                                                 <Badge variant="outline">{groupStudents.length}</Badge>
                                             </div>
                                             <CollapsibleContent className="space-y-3">
@@ -815,7 +819,9 @@ export default function StudentsManagementClient({ initialStudents, groups }: Re
                         onOpenChange={(isOpen) => updateGroupOpenState(UNASSIGNED_GROUP_ID, isOpen)}
                     >
                         <div className="flex items-center justify-between gap-2">
-                            <CollapsibleTrigger className="h2">Non assigné</CollapsibleTrigger>
+                            <h2>
+                                <CollapsibleTrigger className="h2">Non assigné</CollapsibleTrigger>
+                            </h2>
                             <Badge variant="outline">{(groupedStudents.get(UNASSIGNED_GROUP_ID) ?? []).length}</Badge>
                         </div>
                         <CollapsibleContent className="space-y-3">
