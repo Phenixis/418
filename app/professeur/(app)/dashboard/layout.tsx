@@ -1,4 +1,4 @@
-import CreerCours from '@/components/cours/creation/creer-cours';
+import CreerCours from '@/components/cours/creation/CoursModal';
 
 export default function DashboardLayout({
     children

@@ -5,6 +5,7 @@ import { courseQueries } from "../db/queries/course";
 import { ActionResult } from "./types";
 import { fromZonedTime } from "date-fns-tz";
 import { courseTeacherQueries } from "../db/queries/course-teacher";
+import { teacherQueries } from "../db/queries/teacher";
 
 const PARIS_TIME_ZONE = "Europe/Paris";
 
@@ -90,4 +91,11 @@ export async function creerCours(prevState: ActionResult, formData: FormData): P
             id: uuid
         },
     };
+}
+
+export async function modifierCours(prevState: ActionResult, formData: FormData): Promise<ActionResult> {
+    await teacherQueries.getTeacher();
+
+    const updateResult = await courseQueries.update({
+    });
 }

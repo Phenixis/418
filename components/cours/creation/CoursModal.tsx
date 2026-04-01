@@ -14,29 +14,34 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { creerCours } from "@/lib/actions/cours";
+import { creerCours, modifierCours } from "@/lib/actions/cours";
 import { ActionResult } from "@/lib/actions/types";
 import { useActionState, useEffect, useState } from "react";
 import SelectGroupComponent from "./select-group";
 import { useTeacher } from "@/lib/hooks/useTeacher";
 import { useRouter } from "next/navigation";
 
-export default function CreerCours() {
+export default function CoursModal(initLabel: string, initDate: Date, initGroupsSelected: string[], initHeureDebut: string, initDuration: string) {
+    
     const { teacher } = useTeacher();
     const router = useRouter();
     
     const [isCreateCourseDialogOpen, setIsCreateCourseDialogOpen] = useState(false);
 
-    const [date, setDate] = useState(new Date());
-    const [groupsSelected, setGroupsSelected] = useState<string[]>([]);
-    const [heureDebut, setHeureDebut] = useState("");
-    const [duration, setDuration] = useState("");
-    const [label, setLabel] = useState("");
+    // Valeurs du formulaire
+    const [label, setLabel] = useState(initLabel || "");
+    const [date, setDate] = useState(initDate || new Date());
+    const [groupsSelected, setGroupsSelected] = useState<string[]>(initGroupsSelected || []);
+    const [heureDebut, setHeureDebut] = useState(initHeureDebut || "");
+    const [duration, setDuration] = useState(initDuration || "");
 
     const [isFormValid, setIsFormValid] = useState(false);
 
     const [state, formAction, pending] = useActionState<ActionResult, FormData>(async (prevState, formData) => {
-        return await creerCours(prevState, formData)
+        if (initLabel === "") {
+            return await creerCours(prevState, formData)
+        }
+        return await modifierCours(prevState, formData)
     }, { pending: true })
 
     useEffect(() => {
