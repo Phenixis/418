@@ -22,6 +22,7 @@ import SelectGroupComponent from "./select-group";
 import { DatePicker } from "@/components/ui/date-picker";
 import type { Select as Course } from "@/lib/db/schema/course";
 import type { Select as Group } from "@/lib/db/schema/group";
+import { DateTimePicker } from "@/components/ui/date-time-picker";
 
 export default function CoursModal({
     initCourse,
@@ -124,17 +125,17 @@ export default function CoursModal({
                         <div className="flex items-center justify-between gap-4 mb-2">
                             <div className="flex-1 flex flex-col gap-2">
                                 <Label id="start-date-label">Date de début</Label>
-                                <DatePicker
+                                <DateTimePicker
                                     id="start-date"
                                     aria-labelledby="start-date-label"
                                     value={date}
                                     onChange={setDate}
-                                    // dateLabel=""
-                                    // timeLabel=""
-                                    // step={60*15}
+                                    dateLabel=""
+                                    timeLabel=""
+                                    step={60*15}
                                 />
                             </div>
-                            <div className="flex flex-col gap-2">
+                            {/* <div className="flex flex-col gap-2">
                                 <input type="text" id="start-time-hidden" name="start-time" className="hidden" value={heureDebut} readOnly />
                                 <Label htmlFor="start-time">Heure de début</Label>
                                 <Select value={heureDebut} onValueChange={setHeureDebut}>
@@ -154,7 +155,7 @@ export default function CoursModal({
                                         </SelectGroup>
                                     </SelectContent>
                                 </Select>
-                            </div>
+                            </div> */}
                             <div className="flex flex-col gap-2">
                                 <input type="text" id="duration-hidden" name="duration" className="hidden" value={duration} readOnly />
                                 <Label htmlFor="duration">Durée</Label>
