@@ -16,6 +16,7 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
+    DropdownMenuSeparator,
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import MoreVertIcon from '@mui/icons-material/MoreVert';
@@ -28,6 +29,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle
 } from "@/components/ui/alert-dialog";
+import CoursModal from './creation/CoursModal';
 
 const PARIS_TIME_ZONE = 'Europe/Paris';
 
@@ -130,7 +132,18 @@ export default function CourseTableRow({ cours, groups }: Readonly<CoursProps>) 
                             <MoreVertIcon />
                         </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent>
+                    <DropdownMenuContent >
+                        {/* <DropdownMenuItem
+                            onSelect={(event) => {
+                                event.stopPropagation();
+                            }}
+                        >
+                            <CoursModal initCourse={{
+                                ...cours,
+                                groups
+                            }} />
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator /> */}
                         <DropdownMenuItem
                             data-ignore-row-click
                             variant="destructive"
