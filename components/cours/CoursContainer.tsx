@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { PortalToBreadcrumb } from "@/app/professeur/(app)/dashboard/breadcrumb-context";
+import { useMemo, useState } from "react";
 import FiltresCours, { CourseFilter } from "./FiltresCours";
 import TableauCours from "./TableauCours";
 import type { Select as Course } from '@/lib/db/schema/course';
@@ -13,27 +14,27 @@ interface CoursContainerProps {
     groups: Group[];
 }
 
-import { PortalToBreadcrumb } from "@/app/professeur/(app)/dashboard/breadcrumb-context";
-
 export default function CoursContainer({ courses, groupCourses, groups }: CoursContainerProps) {
     const [selectedFilters, setSelectedFilters] = useState<CourseFilter[]>([]);
 
-    const now = new Date();
+    const filteredCourses = useMemo(() => {
+        const now = new Date();
 
-    const filteredCourses = courses.filter(course => {
-        if (selectedFilters.length === 0) return true;
+        return courses.filter(course => {
+            if (selectedFilters.length === 0) return true;
 
-        const isCurrent = now >= course.startAt && now <= course.endAt;
-        if (selectedFilters.includes('En cours') && isCurrent) return true;
+            const isCurrent = now >= course.startAt && now <= course.endAt;
+            if (selectedFilters.includes('En cours') && isCurrent) return true;
 
-        const isUpcoming = now < course.startAt;
-        if (selectedFilters.includes('À venir') && isUpcoming) return true;
+            const isUpcoming = now < course.startAt;
+            if (selectedFilters.includes('À venir') && isUpcoming) return true;
 
-        const isPast = now > course.endAt;
-        if (selectedFilters.includes('Terminé') && isPast) return true;
+            const isPast = now > course.endAt;
+            if (selectedFilters.includes('Terminé') && isPast) return true;
 
-        return false;
-    });
+            return false;
+        });
+    }, [courses, selectedFilters]);
 
     return (
         <>
