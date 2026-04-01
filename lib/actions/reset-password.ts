@@ -164,7 +164,7 @@ export async function verifyResetPasswordSessionEmail(_prevState: ActionResult, 
     if (sessionEmail?.toLowerCase() !== email.toLowerCase()) {
         return {
             error: true,
-            message: "L'email ne correspond pas a la session de reinitialisation.",
+            message: "L'email ne correspond pas à la session de réinitialisation.",
         };
     }
 

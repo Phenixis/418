@@ -14,7 +14,7 @@ class StudentQueries extends QueryModel<NewStudent, Student> {
     async updatePassword(userMail: string, newPassword: string): Promise<QueryResult<string>> {
         const result = await lib.db
             .update(this.table)
-            .set({ password: newPassword })
+            .set({ password: newPassword, updatedAt: new Date() })
             .where(lib.eq(this.table.userMail, userMail))
             .returning()
 
