@@ -5,8 +5,8 @@ import CreateResetPasswordSession from "@/components/general/ResetPassword/Creat
 
 export default async function ResetPasswordPage({
     searchParams
-}: Readonly<{ searchParams: { session_id?: string; new?: string; target?: string } }>) {
-    const { session_id, new: newParam, target } = searchParams;
+}: Readonly<{ searchParams: Promise<{ session_id?: string; new?: string; target?: string }> }>) {
+    const { session_id, new: newParam, target } = await searchParams;
     const isNew = newParam === "true";
 
     if (isNew && (target === "teacher" || target === "student")) {
