@@ -1,4 +1,4 @@
-import path from 'path';
+import path from 'node:path';
 import { migrate } from 'drizzle-orm/neon-http/migrator';
 import { drizzle } from 'drizzle-orm/neon-http';
 import { neon } from '@neondatabase/serverless';

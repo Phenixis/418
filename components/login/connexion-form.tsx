@@ -13,10 +13,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { login } from "@/lib/actions/authentication";
 import { ActionResult } from "@/lib/actions/types";
+import { Eye, EyeOff } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 import { Checkbox } from "../ui/checkbox";
-import { useRouter } from "next/navigation";
-import { Eye, EyeOff } from "lucide-react";
+import Link from "next/link";
 
 export default function ConnexionForm() {
   const router = useRouter();
@@ -103,14 +104,21 @@ export default function ConnexionForm() {
               </p>
             )
           }
-          <div className="flex items-center">
-            <Checkbox
-              id="remember"
-              name="remember"
-              checked={isRememberChecked}
-              onCheckedChange={(checked) => setIsRememberChecked(checked === true)}
-            />
-            <Label htmlFor="remember" className="ml-2">Rester connecté</Label>
+          <div className="w-full flex items-center justify-between">
+            <div className="flex items-center">
+              <Checkbox
+                id="remember"
+                name="remember"
+                checked={isRememberChecked}
+                onCheckedChange={(checked) => setIsRememberChecked(checked === true)}
+              />
+              <Label htmlFor="remember" className="ml-2">Rester connecté</Label>
+            </div>
+            <Button variant="link" size="sm" type="button" asChild>
+              <Link href="/reset-password?new=true&target=teacher">
+                Mot de passe oublié ?
+              </Link>
+            </Button>
           </div>
           <Button variant="big" className="w-full" disabled={pending || !formValid} type="submit">
             Se connecter

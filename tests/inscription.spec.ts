@@ -10,20 +10,13 @@ test.describe('Inscription page', () => {
 
     test.beforeEach(async ({ page }) => {
         createdTeacherEmails = [];
-        await page.goto('/professeur/inscription?invite_id=123');
+        await page.goto('/professeur/inscription');
     });
 
     test.afterEach(async () => {
         for (const teacherEmail of createdTeacherEmails) {
             await deleteTeacherAccountByEmail(teacherEmail);
         }
-    });
-
-    test("should show Not found if the invite_id is empty", async ({ page }) => {
-        await page.goto('/professeur/inscription');
-
-        const notFoundText = page.getByText('This page could not be found.');
-        await expect(notFoundText).toBeVisible();
     });
 
     test('should display the inscription form', async ({ page }) => {

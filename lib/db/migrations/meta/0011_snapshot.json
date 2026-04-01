@@ -1,6 +1,6 @@
 {
-  "id": "15021d3e-c47d-4d62-9297-c7a84d942439",
-  "prevId": "2cd8168b-7619-41ac-9379-ab76524cc56b",
+  "id": "b6339e85-cfb3-4b57-8578-7c508a8673e4",
+  "prevId": "d4b46c11-9145-44b9-bc82-89f3807d1ad1",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -366,13 +366,13 @@
           "name": "code_path",
           "type": "varchar(10)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "description_path": {
           "name": "description_path",
           "type": "varchar(50)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         }
       },
       "indexes": {},

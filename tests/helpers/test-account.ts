@@ -1,8 +1,9 @@
 import bcrypt from 'bcrypt';
-import { eq } from 'drizzle-orm';
+import { eq, or } from 'drizzle-orm';
 import { db } from '@/lib/db/drizzle';
 import { table as teacherTable } from '@/lib/db/schema/teacher';
 import { table as studentTable } from '@/lib/db/schema/student';
+import { table as resetPasswordSessionTable } from '@/lib/db/schema/reset-password-session';
 
 export function getTestAccountEmail(): string {
     return process.env.TEST_ACCOUNT_EMAIL ?? 'test@univ-rennes.fr';
@@ -79,7 +80,6 @@ export async function ensureStudentAccountByEmail(
 ): Promise<void> {
     const studentFirstName = options.firstName ?? 'Test';
     const studentLastName = options.lastName ?? 'Student';
-    const studentGroupId = options.groupId ?? null;
     const studentPasswordHash = await bcrypt.hash(plainPassword, 12);
 
     await db.insert(studentTable).values({
@@ -87,14 +87,16 @@ export async function ensureStudentAccountByEmail(
         firstName: studentFirstName,
         lastName: studentLastName,
         password: studentPasswordHash,
-        groupId: studentGroupId,
+        isTeacher: false,
+        groupId: options.groupId ?? null,
     }).onConflictDoUpdate({
         target: studentTable.userMail,
         set: {
             firstName: studentFirstName,
             lastName: studentLastName,
             password: studentPasswordHash,
-            groupId: studentGroupId,
+            isTeacher: false,
+            groupId: options.groupId ?? null,
         },
     });
 }
@@ -103,3 +105,40 @@ export async function deleteStudentAccountByEmail(studentEmail: string): Promise
     await db.delete(studentTable).where(eq(studentTable.userMail, studentEmail));
 }
 
+type ResetSessionTarget = 'teacher' | 'student';
+
+export async function createResetPasswordSessionInDb(
+    userEmail: string,
+    target: ResetSessionTarget,
+    expiresInMinutes = 60,
+): Promise<string> {
+    const sessionId = crypto.randomUUID();
+    const expiresAt = new Date(Date.now() + expiresInMinutes * 60 * 1000);
+
+    await db.insert(resetPasswordSessionTable).values({
+        id: sessionId,
+        userMailTeacher: target === 'teacher' ? userEmail : null,
+        userMailStudent: target === 'student' ? userEmail : null,
+        expiresAt,
+    });
+
+    return sessionId;
+}
+
+export async function createExpiredResetPasswordSessionInDb(
+    userEmail: string,
+    target: ResetSessionTarget,
+): Promise<string> {
+    return createResetPasswordSessionInDb(userEmail, target, -1);
+}
+
+export async function deleteResetPasswordSessionsByEmail(userEmail: string): Promise<void> {
+    await db
+        .delete(resetPasswordSessionTable)
+        .where(
+            or(
+                eq(resetPasswordSessionTable.userMailTeacher, userEmail),
+                eq(resetPasswordSessionTable.userMailStudent, userEmail),
+            ),
+        );
+}

@@ -51,13 +51,6 @@
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false
-        },
-        "late_status": {
-          "name": "late_status",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 0
         }
       },
       "indexes": {},
@@ -377,6 +370,90 @@
       },
       "indexes": {},
       "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.reset_password_session": {
+      "name": "reset_password_session",
+      "schema": "",
+      "columns": {
+        "session_id": {
+          "name": "session_id",
+          "type": "varchar(36)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_mail_student": {
+          "name": "user_mail_student",
+          "type": "varchar(60)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "user_mail_teacher": {
+          "name": "user_mail_teacher",
+          "type": "varchar(60)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "reset_password_session_user_mail_student_student_user_mail_fk": {
+          "name": "reset_password_session_user_mail_student_student_user_mail_fk",
+          "tableFrom": "reset_password_session",
+          "tableTo": "student",
+          "columnsFrom": [
+            "user_mail_student"
+          ],
+          "columnsTo": [
+            "user_mail"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        },
+        "reset_password_session_user_mail_teacher_teacher_user_mail_fk": {
+          "name": "reset_password_session_user_mail_teacher_teacher_user_mail_fk",
+          "tableFrom": "reset_password_session",
+          "tableTo": "teacher",
+          "columnsFrom": [
+            "user_mail_teacher"
+          ],
+          "columnsTo": [
+            "user_mail"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
