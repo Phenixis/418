@@ -1,4 +1,4 @@
-import CreerCours from '@/components/cours/creation/creer-cours';
+import CreerCours from '@/components/cours/creation/CoursModal';
 import { BreadcrumbProvider, BreadcrumbSlot } from './breadcrumb-context';
 
 export default function DashboardLayout({
