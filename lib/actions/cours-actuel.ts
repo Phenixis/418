@@ -8,6 +8,7 @@ import { groupQueries } from '@/lib/db/queries/group';
 import { studentQueries } from '@/lib/db/queries/student';
 import * as Schema from '@/lib/db/schema';
 
+type Course = Schema.CourseTable.Select;
 type Student = Schema.StudentTable.Select;
 export type StudentWithStatus = Student & { groupName: string, statut: StatutEtudiant };
 type Attendance = Schema.AttendanceTable.Select;
@@ -15,19 +16,9 @@ type CourseGroup = Schema.CourseGroupTable.Select;
 type Group = Schema.GroupTable.Select;
 
 export interface CoursActuelData {
-    // Infos du cours
-    code: string;
-    matiere: string;
-    dateDebut: Date;
-    dateFin: Date;
-    // Infos du groupe
-    classe: string;
-    // Statistiques de présence
-    total: number;
-    presents: number;
-    nonScannes: number;
-    // Liste des étudiants avec leur statut
-    etudiants: StudentWithStatus[];
+    cours: Course;
+    groups: Group[];
+    students: StudentWithStatus[];
 }
 
 export async function fetchCoursActuel(
@@ -74,20 +65,12 @@ export async function fetchCoursActuel(
         }
     });
 
-    const nombrePresents = etudiants.filter(e => e.statut === StatutEtudiant.PRESENT).length;
-
     return {
         success: true,
         data: {
-            code: cours.courseId,
-            matiere: cours.subject,
-            dateDebut: new Date(cours.startAt),
-            dateFin: new Date(cours.endAt),
-            classe: groupes.map(g => g.promo + g.td + g.tp).join(', '),
-            total: etudiants.length,
-            presents: nombrePresents,
-            nonScannes: etudiants.length - nombrePresents,
-            etudiants
+            cours,
+            groups: groupes,
+            students: etudiants
         }
     };
 }

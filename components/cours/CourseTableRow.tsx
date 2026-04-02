@@ -129,7 +129,18 @@ export default function CourseTableRow({ cours, groups, showStatus = true }: Rea
                             <MoreVertIcon />
                         </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent>
+                    <DropdownMenuContent >
+                        {/* <DropdownMenuItem
+                            onSelect={(event) => {
+                                event.stopPropagation();
+                            }}
+                        >
+                            <CoursModal initCourse={{
+                                ...cours,
+                                groups
+                            }} />
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator /> */}
                         <DropdownMenuItem
                             data-ignore-row-click
                             variant="destructive"
