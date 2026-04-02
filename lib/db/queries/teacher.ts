@@ -1,7 +1,7 @@
-import { QueryModel } from './model'
-import * as lib from './lib'
 import { getClientSession } from '@/lib/actions/authentication'
 import { redirect } from 'next/navigation'
+import * as lib from './lib'
+import { QueryModel, QueryResult } from './model'
 
 const teacherTable = lib.Schema.TeacherTable.table
 
@@ -13,7 +13,21 @@ class TeacherQueries extends QueryModel<NewTeacher, Teacher> {
         super(teacherTable)
     }
 
-    async getByEmail(email: string) {
+    async updatePassword(userMail: string, newPassword: string): Promise<QueryResult<string>> {
+        const result = await lib.db
+            .update(this.table)
+            .set({ password: newPassword })
+            .where(lib.eq(this.table.userMail, userMail))
+            .returning()
+
+        if (lib.resultEmpty(result)) {
+            return { error: "Enseignant introuvable avec cet email." }
+        }
+
+        return { success: "Mot de passe mis à jour.", entity: result[0].userMail }
+    }
+
+    async getByEmail(email: string): Promise<QueryResult<Teacher>> {
         const result = await lib.db
             .select()
             .from(this.table)
@@ -26,7 +40,7 @@ class TeacherQueries extends QueryModel<NewTeacher, Teacher> {
         return { success: "Enseignant trouvé.", entity: result[0] as Teacher }
     }
 
-    async validateTeacherByEmail(teacherEmail: string) {
+    async validateTeacherByEmail(teacherEmail: string): Promise<QueryResult<Teacher>> {
         const result = await lib.db
             .update(this.table)
             .set({ isValidated: true })
@@ -42,7 +56,7 @@ class TeacherQueries extends QueryModel<NewTeacher, Teacher> {
         return { success: "Enseignant validé.", entity: result[0] as Teacher }
     }
 
-    async refuseTeacherByEmail(teacherEmail: string) {
+    async refuseTeacherByEmail(teacherEmail: string): Promise<QueryResult<Teacher>> {
         const result = await lib.db
             .delete(this.table)
             .where(lib.eq(this.table.userMail, teacherEmail))

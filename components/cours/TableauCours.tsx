@@ -34,6 +34,13 @@ export default function TableauCours({
         [CourseStatus.A_VENIR]: sortGroup(courses.filter(course => course.status === CourseStatus.A_VENIR)),
         [CourseStatus.TERMINE]: sortGroup(courses.filter(course => course.status === CourseStatus.TERMINE)),
     };
+    if (courses.length === 0) {
+        return (
+            <p>
+                Aucun cours trouvé.
+            </p>
+        )
+    }
 
     return (
         <Table className="text-center">
@@ -79,6 +86,29 @@ export default function TableauCours({
                         />
                     ))
                 )}
+                    <TableHead className="w-px">Jour</TableHead>
+                    <TableHead className="w-px">Début</TableHead>
+                    <TableHead className="w-px">Fin</TableHead>
+                    <TableHead className="w-full text-xl">Cours</TableHead>
+                    <TableHead>Groupes</TableHead>
+                    <TableHead>Statut</TableHead>
+                    <TableHead></TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody className="rounded-lg overflow-hidden">
+                {courses.map(course => (
+                    <CourseTableRow
+                        key={course.courseId}
+                        cours={course}
+                        groups={groups.filter(group =>
+                            groupCourses.some(
+                                groupCourse =>
+                                    groupCourse.courseId === course.courseId &&
+                                    groupCourse.groupId === group.groupId
+                            )
+                        )}
+                    />
+                ))}
             </TableBody>
         </Table>
     )

@@ -7,9 +7,28 @@ import { Select as Group } from '@/lib/db/schema/group';
 import Vignette from '@/components/ui/Vignette';
 import { CourseStatus } from '@/components/cours/course.types';
 import { fr } from 'date-fns/locale/fr';
+import { deleteCourse } from '@/lib/actions/cours';
 import { formatInTimeZone } from 'date-fns-tz';
 import { useRouter } from 'next/navigation';
 import { CourseWithStatus } from './TableauCours';
+import { useActionState, useEffect, useState } from 'react';
+import { Button } from "@/components/ui/button";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import {
+    AlertDialog,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle
+} from "@/components/ui/alert-dialog";
 
 const PARIS_TIME_ZONE = 'Europe/Paris';
 
@@ -48,11 +67,32 @@ function formatDate(date: Date): string {
 export default function CourseTableRow({ cours, groups, showStatus = true }: Readonly<CoursProps>) {
     const now = new Date();
     const router = useRouter();
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+    const [deleteState, deleteCourseAction, deleting] = useActionState<any, FormData>(
+        async (prevState, formData) => {
+            return await deleteCourse(formData);
+        },
+        { pending: false }
+    );
+
+    useEffect(() => {
+        if ("success" in deleteState) {
+            setIsDeleteDialogOpen(false);
+            router.refresh();
+        }
+    }, [deleteState, router]);
 
     return (
         <TableRow
             className="even:bg-background odd:bg-white outline-2 outline-transparent hover:bg-white/50 hover:outline-primary cursor-pointer"
-            onClick={() => {
+            onClick={(event) => {
+                const target = event.target as HTMLElement;
+
+                if (target.closest('[data-ignore-row-click]')) {
+                    return;
+                }
+
                 router.push(`/professeur/cours/${cours.courseId}`);
             }}
         >
@@ -72,6 +112,58 @@ export default function CourseTableRow({ cours, groups, showStatus = true }: Rea
             <TableCell className="w-px text-lg">{formatInTimeZone(cours.startAt, PARIS_TIME_ZONE, 'HH:mm', { locale: fr })}</TableCell>
             <TableCell className="w-px text-lg">{formatInTimeZone(cours.endAt, PARIS_TIME_ZONE, 'HH:mm', { locale: fr })}</TableCell>
             <TableCell className="w-px">{formatDate(cours.startAt)}</TableCell>
+            <TableCell>
+                <Vignette status={status} />
+            </TableCell>
+            <TableCell data-ignore-row-click onClick={(event) => event.stopPropagation()}>
+                <DropdownMenu>
+                    <DropdownMenuTrigger className="cursor-pointer p-2" title="Actions" asChild>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={(event) => {
+                                event.stopPropagation();
+                            }}
+                        >
+                            <span className="sr-only">Open actions menu</span>
+                            <MoreVertIcon />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                        <DropdownMenuItem
+                            data-ignore-row-click
+                            variant="destructive"
+                            onSelect={(event) => {
+                                event.preventDefault();
+                                event.stopPropagation();
+                                setIsDeleteDialogOpen(true);
+                            }}
+                        >
+                            Supprimer le cours
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+                <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                    <AlertDialogContent size="sm">
+                        <form action={deleteCourseAction}>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Supprimer ce cours ?</AlertDialogTitle>
+                            </AlertDialogHeader>
+                            <AlertDialogDescription>
+                                Cette action supprimera le cours <strong>{cours.subject}</strong> programmé pour {formatDate(cours.startAt)}.
+                            </AlertDialogDescription>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                <input type="hidden" name="courseId" value={cours.courseId} />
+                                <Button variant="destructive" type="submit">
+                                    Supprimer
+                                </Button>
+                            </AlertDialogFooter>
+                        </form>
+                    </AlertDialogContent>
+                </AlertDialog>
+
+            </TableCell>
         </TableRow>
     );
 }

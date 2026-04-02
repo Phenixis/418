@@ -16,7 +16,10 @@ class CourseQueries extends QueryModel<NewCourse, Course> {
         const result = await lib.db
             .select()
             .from(this.table)
-            .where(lib.eq(this.table.courseId, stringId))
+            .where(lib.and(
+                lib.eq(this.table.courseId, stringId),
+                lib.isNull(this.table.deletedAt)
+            ))
 
         if (lib.resultEmpty(result)) {
             return { error: "Cours introuvable avec cet ID." }
@@ -36,9 +39,29 @@ class CourseQueries extends QueryModel<NewCourse, Course> {
         const result = await lib.db
             .select()
             .from(this.table)
-            .where(lib.inArray(this.table.courseId, courseIds))
+            .where(lib.and(
+                lib.inArray(this.table.courseId, courseIds),
+                lib.isNull(this.table.deletedAt)
+            ))
 
         return { success: "Cours trouvés pour le professeur.", entity: result as Course[] }
+    }
+
+    async deleteByCourseId(courseId: string): Promise<QueryResult<Course>> {
+        const result = await lib.db
+            .update(this.table)
+            .set({ deletedAt: new Date() })
+            .where(lib.and(
+                lib.eq(this.table.courseId, courseId),
+                lib.isNull(this.table.deletedAt)
+            ))
+            .returning()
+
+        if (lib.resultEmpty(result)) {
+            return { error: "Cours introuvable ou déjà supprimé." }
+        }
+
+        return { success: "Cours supprimé.", entity: result[0] as Course }
     }
 }
 
