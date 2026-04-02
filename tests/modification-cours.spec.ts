@@ -103,9 +103,10 @@ test.describe('Modification de cours', () => {
         const newSubject = `${originalSubject} - MODIFIÉ`;
         await authenticatedPage.getByLabel('Nom du cours').fill(newSubject);
 
-        const startTimeCombobox = authenticatedPage.locator('text=Heure de début').locator('..').locator('[role="combobox"]').first();
-        await startTimeCombobox.click();
-        await authenticatedPage.getByRole('option', { name: '9h15' }).click();
+        const editDialog = authenticatedPage.getByRole('dialog', { name: 'Modifier le cours' });
+        const startTimeInput = editDialog.locator('input[type="time"]').first();
+        await expect(startTimeInput).toBeVisible();
+        await startTimeInput.fill('09:15');
 
         const durationCombobox = authenticatedPage.locator('text=Durée').locator('..').locator('[role="combobox"]').first();
         await durationCombobox.click();
