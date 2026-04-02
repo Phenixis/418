@@ -1,5 +1,5 @@
 import CourseTableRow from '@/components/cours/CourseTableRow';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import type { Select as Course } from '@/lib/db/schema/course';
 import type { Select as Group } from '@/lib/db/schema/group';
 import type { Select as CourseGroup } from '@/lib/db/schema/course-group';
