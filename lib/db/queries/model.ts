@@ -34,23 +34,6 @@ export class QueryModel<NewEntityModel extends { [x: string]: any; }, ExistingEn
         return { success: "Data trouvées.", entity: result as ExistingEntityModel[] }
     }
 
-    // async update(id: number, data: Partial<NewEntityModel>): Promise<QueryResult<ExistingEntityModel>> {
-    //     const result = await lib.db
-    //         .update(this.table)
-    //         .set({
-    //             ...data,
-    //             updatedAt: new Date(),
-    //         })
-    //         .where(lib.eq(this.table.id, id))
-    //         .returning();
-
-    //     if (lib.resultEmpty(result)) {
-    //         return { error: "Failed to update." };
-    //     }
-
-    //     return { success: "Updated successfully.", entity: result[0] as ExistingEntityModel };
-    // }
-
     async delete(id: number): Promise<QueryResult<ExistingEntityModel>> {
         const result = await lib.db
             .update(this.table)

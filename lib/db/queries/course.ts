@@ -58,10 +58,10 @@ class CourseQueries extends QueryModel<NewCourse, Course> {
             .returning();
 
         if (lib.resultEmpty(result)) {
-            return { error: "Failed to update." };
+            return { error: "Échec de la mise à jour du cours." };
         }
 
-        return { success: "Updated successfully.", entity: result[0] as Course };
+        return { success: "Cours mis à jour.", entity: result[0] as Course };
     }
 
     async deleteByCourseId(courseId: string): Promise<QueryResult<Course>> {
