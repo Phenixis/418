@@ -54,14 +54,14 @@ export default function TeachersTableRow({
 
     return (
         <TableRow key={teacher.userMail} className="bg-white/80">
-            <TableCell className="">
+            <TableCell className="px-6">
                 <Badge variant={teacher.isValidated ? "default" : "destructive"} >
                     {teacher.isValidated ? "Validé" : "Non validé"}
                 </Badge>
             </TableCell>
-            <TableCell className="text-left pl-40">{teacher.firstName} {teacher.lastName}</TableCell>
-            <TableCell className="text-left pr-20">{teacher.userMail}</TableCell>
-            <TableCell className="text-left">{teacher.isAdmin ? "Administrateur" : "Enseignant"}</TableCell>
+            <TableCell className="text-left px-6">{teacher.firstName} {teacher.lastName}</TableCell>
+            <TableCell className="text-left px-6">{teacher.userMail}</TableCell>
+            <TableCell className="text-left px-6">{teacher.isAdmin ? "Administrateur" : "Enseignant"}</TableCell>
             <TableCell>
                 <DropdownMenu>
                     <DropdownMenuTrigger className="cursor-pointer p-2" title="Actions" asChild>
