@@ -43,7 +43,7 @@ export default function TableauCours({
     }
 
     return (
-        <Table className="text-center">
+        <Table className="text-center mb-60">
             <TableHeader>
                 <TableRow>
                     <TableHead className="w-1/14">Statut</TableHead>
@@ -86,29 +86,6 @@ export default function TableauCours({
                         />
                     ))
                 )}
-                    <TableHead className="w-px">Jour</TableHead>
-                    <TableHead className="w-px">Début</TableHead>
-                    <TableHead className="w-px">Fin</TableHead>
-                    <TableHead className="w-full text-xl">Cours</TableHead>
-                    <TableHead>Groupes</TableHead>
-                    <TableHead>Statut</TableHead>
-                    <TableHead></TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody className="rounded-lg overflow-hidden">
-                {courses.map(course => (
-                    <CourseTableRow
-                        key={course.courseId}
-                        cours={course}
-                        groups={groups.filter(group =>
-                            groupCourses.some(
-                                groupCourse =>
-                                    groupCourse.courseId === course.courseId &&
-                                    groupCourse.groupId === group.groupId
-                            )
-                        )}
-                    />
-                ))}
             </TableBody>
         </Table>
     )

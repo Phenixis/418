@@ -113,7 +113,7 @@ export default function CourseTableRow({ cours, groups, showStatus = true }: Rea
             <TableCell className="w-px text-lg">{formatInTimeZone(cours.endAt, PARIS_TIME_ZONE, 'HH:mm', { locale: fr })}</TableCell>
             <TableCell className="w-px">{formatDate(cours.startAt)}</TableCell>
             <TableCell>
-                <Vignette status={status} />
+                <Vignette status={cours.status} />
             </TableCell>
             <TableCell data-ignore-row-click onClick={(event) => event.stopPropagation()}>
                 <DropdownMenu>
