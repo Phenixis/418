@@ -41,7 +41,7 @@ export function TeacherProvider({
             router.push('/professeur/en-attente')
         }
         setTeacher(initialTeacher)
-    }, [initialTeacher])
+    }, [initialTeacher, router])
 
     return (
         <TeacherContext.Provider value={{ teacher }}>
