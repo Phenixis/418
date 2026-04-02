@@ -59,9 +59,9 @@ export default function TeachersTableRow({
                     {teacher.isValidated ? "Validé" : "Non validé"}
                 </Badge>
             </TableCell>
-            <TableCell>{teacher.firstName} {teacher.lastName}</TableCell>
-            <TableCell>{teacher.userMail}</TableCell>
-            <TableCell>{teacher.isAdmin ? "Administrateur" : "Enseignant"}</TableCell>
+            <TableCell className="text-left pl-45">{teacher.firstName} {teacher.lastName}</TableCell>
+            <TableCell className="text-right pr-10">{teacher.userMail}</TableCell>
+            <TableCell className="text-left">{teacher.isAdmin ? "Administrateur" : "Enseignant"}</TableCell>
             <TableCell>
                 <DropdownMenu>
                     <DropdownMenuTrigger className="cursor-pointer p-2" title="Actions" asChild>
