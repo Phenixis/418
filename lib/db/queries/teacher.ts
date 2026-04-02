@@ -98,6 +98,9 @@ class TeacherQueries extends QueryModel<NewTeacher, Teacher> {
             redirect('/professeur/connexion?clearSession=1')
         }
 
+        if (!user.entity.isValidated) {
+            redirect('/professeur/en-attente')
+        }
         return user.entity
     }
 
