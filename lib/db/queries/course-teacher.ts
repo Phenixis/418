@@ -49,6 +49,20 @@ class CourseTeacherQueries extends QueryModel<NewCourseTeacher, CourseTeacher> {
 
         return { success: "Liens Cours-Professeur trouvés.", entity: result as CourseTeacher[] }
     }
+
+    async deleteByCourseId(courseId: string): Promise<QueryResult<CourseTeacher[]>> {
+        const result = await lib.db
+            .update(this.table)
+            .set({ deletedAt: new Date() })
+            .where(lib.eq(this.table.courseId, courseId))
+            .returning();
+
+        if (lib.resultEmpty(result)) {
+            return { error: "Aucun lien Cours-Professeur trouvé pour ce cours." }
+        }
+
+        return { success: "Liens Cours-Professeur supprimés avec succès.", entity: result as CourseTeacher[] }
+    }
 }
 
 export const courseTeacherQueries = new CourseTeacherQueries()

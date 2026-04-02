@@ -27,7 +27,7 @@ export default function QRCode({
         <button
             type="button"
             className={cn(
-                'group/qr-code relative bg-white shadow-md transition-all duration-200 hover:shadow-xl cursor-pointer hover:p-3 hover:rounded-lg',
+                'group/qr-code relative bg-white shadow-md transition-all p-3 duration-200 hover:shadow-xl cursor-pointer rounded-lg',
                 className
             )}
             onClick={() => openImagePopup()}
