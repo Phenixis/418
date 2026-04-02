@@ -95,7 +95,7 @@ export default function InscriptionForm() {
 
                                 required
                                 value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                onChange={(e) => setEmail(e.target.value.toLowerCase().trim())}
                                 onBlur={() => {
                                     const emailWithoutDomain = email.split("@")[0];
                                     setEmail(emailWithoutDomain);
