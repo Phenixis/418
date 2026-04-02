@@ -1,26 +1,9 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from '@/lib/actions/authentication';
-import { teacherQueries } from '@/lib/db/queries/teacher';
+import { ensureAdminApiSession } from '@/lib/actions/admin-auth';
 import { del, put } from '@vercel/blob';
 
-async function ensureAdminSession(): Promise<NextResponse | null> {
-    const session = await getServerSession();
-
-    if (!session?.teacherEmail) {
-        return NextResponse.json({ error: 'Non authentifié.' }, { status: 401 });
-    }
-
-    const teacherResult = await teacherQueries.getByEmail(session.teacherEmail);
-
-    if ('error' in teacherResult || !teacherResult.entity.isValidated || !teacherResult.entity.isAdmin) {
-        return NextResponse.json({ error: 'Action réservée aux administrateurs.' }, { status: 403 });
-    }
-
-    return null;
-}
-
 export async function POST(request: Request) {
-    const unauthorizedResponse = await ensureAdminSession();
+    const unauthorizedResponse = await ensureAdminApiSession();
 
     if (unauthorizedResponse) {
         return unauthorizedResponse;
@@ -50,9 +33,8 @@ export async function POST(request: Request) {
 
         // Générer un nom unique
         const timestamp = Date.now();
-        const randomId = Math.random().toString(36).substring(2, 9);
         const fileExtension = file.name.split('.').pop() || 'jpg';
-        const uniqueFileName = `student-${timestamp}-${randomId}.${fileExtension}`;
+        const uniqueFileName = `student-${timestamp}.${fileExtension}`;
 
         // Upload vers Vercel Blob
         const blob = await put(`students/${uniqueFileName}`, file, {
@@ -94,7 +76,7 @@ function parseBlobPathname(rawPathname: unknown): string | null {
 }
 
 export async function DELETE(request: Request) {
-    const unauthorizedResponse = await ensureAdminSession();
+    const unauthorizedResponse = await ensureAdminApiSession();
 
     if (unauthorizedResponse) {
         return unauthorizedResponse;

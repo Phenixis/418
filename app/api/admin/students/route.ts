@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server';
 import { del } from '@vercel/blob';
-import { getServerSession } from '@/lib/actions/authentication';
+import { ensureAdminApiSession } from '@/lib/actions/admin-auth';
 import { groupQueries } from '@/lib/db/queries/group';
 import { studentQueries } from '@/lib/db/queries/student';
-import { teacherQueries } from '@/lib/db/queries/teacher';
 
 type StudentWriteBody = {
     currentEmail?: string;
@@ -17,22 +16,6 @@ type StudentWriteBody = {
 const STUDENT_EMAIL_DOMAIN = 'etudiant.univ-rennes.fr';
 const DEFAULT_EMPTY_PASSWORD_VALUE: null = null;
 const INVALID_PICTURE = Symbol('invalidPicture');
-
-async function ensureAdminSession(): Promise<NextResponse | null> {
-    const session = await getServerSession();
-
-    if (!session?.teacherEmail) {
-        return NextResponse.json({ error: 'Non authentifié.' }, { status: 401 });
-    }
-
-    const teacherResult = await teacherQueries.getByEmail(session.teacherEmail);
-
-    if ('error' in teacherResult || !teacherResult.entity.isValidated || !teacherResult.entity.isAdmin) {
-        return NextResponse.json({ error: 'Action réservée aux administrateurs.' }, { status: 403 });
-    }
-
-    return null;
-}
 
 function parseTrimmedValue(value: unknown): string | null {
     if (typeof value !== 'string') {
@@ -150,7 +133,7 @@ async function ensureGroupExists(groupId: number | null): Promise<boolean> {
 }
 
 export async function POST(request: Request) {
-    const unauthorizedResponse = await ensureAdminSession();
+    const unauthorizedResponse = await ensureAdminApiSession();
 
     if (unauthorizedResponse) {
         return unauthorizedResponse;
@@ -204,7 +187,7 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-    const unauthorizedResponse = await ensureAdminSession();
+    const unauthorizedResponse = await ensureAdminApiSession();
 
     if (unauthorizedResponse) {
         return unauthorizedResponse;
@@ -271,7 +254,7 @@ export async function PATCH(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-    const unauthorizedResponse = await ensureAdminSession();
+    const unauthorizedResponse = await ensureAdminApiSession();
 
     if (unauthorizedResponse) {
         return unauthorizedResponse;
