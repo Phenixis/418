@@ -2,10 +2,8 @@
 
 import { TableCell, TableRow } from '@/components/ui/table';
 
-import { Select as Course } from '@/lib/db/schema/course';
 import { Select as Group } from '@/lib/db/schema/group';
 import Vignette from '@/components/ui/Vignette';
-import { CourseStatus } from '@/components/cours/course.types';
 import { fr } from 'date-fns/locale/fr';
 import { deleteCourse } from '@/lib/actions/cours';
 import { formatInTimeZone } from 'date-fns-tz';
@@ -65,7 +63,6 @@ function formatDate(date: Date): string {
 }
 
 export default function CourseTableRow({ cours, groups, showStatus = true }: Readonly<CoursProps>) {
-    const now = new Date();
     const router = useRouter();
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
