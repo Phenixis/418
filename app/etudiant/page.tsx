@@ -315,7 +315,7 @@ function PresenceForm() {
                                         name="email"
                                         type="text"
                                         value={email}
-                                        onChange={(e) => setEmail(e.target.value.toLowerCase())}
+                                        onChange={(e) => setEmail(e.target.value.toLowerCase().trim())}
                                         onBlur={() => {
                                             const emailWithoutDomain = email.split("@")[0]?.trim().toLowerCase() ?? "";
                                             setEmail(emailWithoutDomain);

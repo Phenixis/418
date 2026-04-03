@@ -19,8 +19,8 @@
 }
 
 @theme inline {
-    --font-sans: var(--font-inter);
-    --font-display: var(--font-gilda-display);
+    --font-sans: var(--font-inter, "Inter");
+    --font-display: var(--font-montserrat-alternates, "Montserrat Alternates");
 
     --color-background: var(--background);
     --color-background-alternative: var(--background-alternative);

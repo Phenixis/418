@@ -12,9 +12,32 @@ interface EtudiantCardProps {
     isDisabled?: boolean
 }
 
+function isValidPhotoSource(photoUrl: string | null): photoUrl is string {
+    if (!photoUrl) {
+        return false
+    }
+
+    const normalizedPhotoUrl = photoUrl.trim()
+    if (normalizedPhotoUrl.length === 0) {
+        return false
+    }
+
+    if (normalizedPhotoUrl.startsWith("/") || normalizedPhotoUrl.startsWith("data:image/")) {
+        return true
+    }
+
+    try {
+        const parsedUrl = new URL(normalizedPhotoUrl)
+        return parsedUrl.protocol === "http:" || parsedUrl.protocol === "https:"
+    }
+    catch {
+        return false
+    }
+}
+
 // Affiche la photo carrée de l'étudiant, ou une silhouette générique si indisponible
 function PhotoEtudiant({ photoUrl, prenom, nom }: Readonly<{ photoUrl: string | null; prenom: string; nom: string }>) {
-    if (!photoUrl) {
+    if (!isValidPhotoSource(photoUrl)) {
         return (
             <div className="w-full aspect-square rounded-[6px] bg-faded/20 flex items-center justify-center">
                 <Image
