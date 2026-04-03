@@ -55,9 +55,14 @@ export default function TeachersTableRow({
     return (
         <TableRow key={teacher.userMail} className="bg-white/80">
             <TableCell className="px-6">
-                <Badge variant={teacher.isValidated ? "default" : "destructive"} >
-                    {teacher.isValidated ? "Validé" : "Non validé"}
-                </Badge>
+                <form action={validateTeacherAction}>
+                    <input type="hidden" name="teacherEmail" value={teacher.userMail} />
+                    <button type="submit">
+                        <Badge variant={teacher.isValidated ? "default" : "destructive"} >
+                            {teacher.isValidated ? "Validé" : "Non validé"}
+                        </Badge>
+                    </button>
+                </form>
             </TableCell>
             <TableCell className="text-left px-6">{teacher.firstName} {teacher.lastName}</TableCell>
             <TableCell className="text-left px-6">{teacher.userMail}</TableCell>
