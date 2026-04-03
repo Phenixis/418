@@ -99,6 +99,11 @@ export default function CourseTableRow({ cours, groups, showStatus = true, rowIn
             }}
         >
             <TableCell className="flex flex-row text-center justify-center gap-1">
+            <TableCell className="w-px text-left pl-5">{formatDate(cours.startAt)}</TableCell>
+            <TableCell className="w-px text-lg">{formatInTimeZone(cours.startAt, PARIS_TIME_ZONE, 'HH:mm', { locale: fr })}</TableCell>
+            <TableCell className="w-px text-lg">{formatInTimeZone(cours.endAt, PARIS_TIME_ZONE, 'HH:mm', { locale: fr })}</TableCell>
+            <TableCell className="font-bold text-left">{cours.subject}</TableCell>
+            <TableCell className="text-center justify-center gap-1">
                 {groups.map((group, index) => (
                     <span key={group.groupId}>
                         {group.td}{group.tp}{index < groups.length - 1 ? (<>,&nbsp;</>) : ''}

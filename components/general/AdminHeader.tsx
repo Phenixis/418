@@ -20,7 +20,7 @@ export default function AdminHeader() {
     return (
         <div className="flex p-4 gap-4 items-center justify-between">
             <Link href="/administrateur/">
-                <Logo variant={LogoVariants.ICON_ONLY} size={LogoSizes.MEDIUM} />
+                <Logo variant={LogoVariants.NAME_RIGHT} size={LogoSizes.LARGE} />
             </Link>
             <div className="flex items-center gap-4">
                 {Object.entries(ROUTES).map(([name, route]) => (
