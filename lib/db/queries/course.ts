@@ -47,6 +47,23 @@ class CourseQueries extends QueryModel<NewCourse, Course> {
         return { success: "Cours trouvés pour le professeur.", entity: result as Course[] }
     }
 
+    async update(stringId: string, data: Partial<NewCourse>): Promise<QueryResult<Course>> {
+        const result = await lib.db
+            .update(this.table)
+            .set({
+                ...data,
+                updatedAt: new Date(),
+            })
+            .where(lib.eq(this.table.courseId, stringId))
+            .returning();
+
+        if (lib.resultEmpty(result)) {
+            return { error: "Échec de la mise à jour du cours." };
+        }
+
+        return { success: "Cours mis à jour.", entity: result[0] as Course };
+    }
+
     async deleteByCourseId(courseId: string): Promise<QueryResult<Course>> {
         const result = await lib.db
             .update(this.table)

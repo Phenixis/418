@@ -32,22 +32,25 @@ export default async function AppelPage({ params }: Readonly<{ params: Promise<{
         );
     }
 
-    const { data } = result;
-    const status = resolveCourseStatus(data.dateDebut, data.dateFin);
+    const { cours, groups, students } = result.data;
+    const dateDebut = new Date(cours.startAt);
+    const dateFin = new Date(cours.endAt);
+    const classe = groups.map((group) => (group.promo || '') + (group.td || '') + (group.tp || '')).join(', ');
+    const status = resolveCourseStatus(dateDebut, dateFin);
 
     return (
         <section className="flex flex-col py-10 gap-6">
             {/* En-tête : matière, statut et actions */}
-            <CourseHeader code={data.code} matiere={data.matiere} status={status} />
+            <CourseHeader cours={cours} groups={groups} status={status} />
 
             <CourseLiveSection
                 courseId={cours_id}
-                date={data.dateDebut}
-                heureDebut={formatHeure(data.dateDebut)}
-                heureFin={formatHeure(data.dateFin)}
-                classe={data.classe}
+                date={dateDebut}
+                heureDebut={formatHeure(dateDebut)}
+                heureFin={formatHeure(dateFin)}
+                classe={classe}
                 status={status}
-                etudiants={data.etudiants}
+                etudiants={students}
             />
         </section>
     );
