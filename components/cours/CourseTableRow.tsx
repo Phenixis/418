@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useEffect, useState } from 'react';
+import { useActionState, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { TableCell, TableRow } from '@/components/ui/table';
@@ -37,6 +37,7 @@ interface CoursProps {
     cours: CourseWithStatus;
     groups: Group[];
     showStatus?: boolean;
+    rowIndex?: number;
 }
 
 /**
@@ -65,27 +66,28 @@ function formatDate(date: Date): string {
     return formatInTimeZone(date, PARIS_TIME_ZONE, 'dd/MM/yyyy', { locale: fr });
 }
 
-export default function CourseTableRow({ cours, groups, showStatus = true }: Readonly<CoursProps>) {
+export default function CourseTableRow({ cours, groups, showStatus = true, rowIndex = 0 }: Readonly<CoursProps>) {
     const router = useRouter();
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const isEvenRow = rowIndex % 2 === 0;
 
     const [deleteState, deleteCourseAction, deleting] = useActionState<any, FormData>(
-        async (prevState, formData) => {
-            return await deleteCourse(formData);
+        async (_previousState, formData) => {
+            const deleteResult: unknown = await deleteCourse(formData);
+
+            if (typeof deleteResult === 'object' && deleteResult !== null && 'success' in deleteResult) {
+                setIsDeleteDialogOpen(false);
+                router.refresh();
+            }
+
+            return deleteResult as any;
         },
         { pending: false }
     );
 
-    useEffect(() => {
-        if ("success" in deleteState) {
-            setIsDeleteDialogOpen(false);
-            router.refresh();
-        }
-    }, [deleteState, router]);
-
     return (
         <TableRow
-            className="even:bg-background odd:bg-white outline-2 outline-transparent hover:bg-white/50 hover:outline-primary cursor-pointer"
+            className={`outline-2 outline-transparent hover:bg-white/50 hover:outline-primary cursor-pointer ${isEvenRow ? 'bg-white' : 'bg-background'}`}
             onClick={(event) => {
                 const target = event.target as HTMLElement;
 
@@ -96,11 +98,6 @@ export default function CourseTableRow({ cours, groups, showStatus = true }: Rea
                 router.push(`/professeur/cours/${cours.courseId}`);
             }}
         >
-                {showStatus && (
-                    <TableCell>
-                        <Vignette status={cours.status} />
-                    </TableCell>
-                )}
             <TableCell className="flex flex-row text-center justify-center gap-1">
                 {groups.map((group, index) => (
                     <span key={group.groupId}>
@@ -112,21 +109,24 @@ export default function CourseTableRow({ cours, groups, showStatus = true }: Rea
             <TableCell className="w-px text-lg">{formatInTimeZone(cours.startAt, PARIS_TIME_ZONE, 'HH:mm', { locale: fr })}</TableCell>
             <TableCell className="w-px text-lg">{formatInTimeZone(cours.endAt, PARIS_TIME_ZONE, 'HH:mm', { locale: fr })}</TableCell>
             <TableCell className="w-px">{formatDate(cours.startAt)}</TableCell>
-            <TableCell>
-                <Vignette status={cours.status} />
-            </TableCell>
-            <TableCell data-ignore-row-click onClick={(event) => event.stopPropagation()}>
+            {showStatus && (
+                <TableCell>
+                    <Vignette status={cours.status} />
+                </TableCell>
+            )}
+            <TableCell className="w-px px-1 text-right" data-ignore-row-click onClick={(event) => event.stopPropagation()}>
                 <DropdownMenu>
-                    <DropdownMenuTrigger className="cursor-pointer p-2" title="Actions" asChild>
+                    <DropdownMenuTrigger className="cursor-pointer p-0" title="Actions" asChild>
                         <Button
                             variant="ghost"
                             size="icon"
+                            className="h-7 w-7"
                             onClick={(event) => {
                                 event.stopPropagation();
                             }}
                         >
                             <span className="sr-only">Open actions menu</span>
-                            <MoreVertIcon />
+                            <MoreVertIcon fontSize="small" />
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent >
@@ -166,13 +166,17 @@ export default function CourseTableRow({ cours, groups, showStatus = true }: Rea
                             <AlertDialogFooter>
                                 <AlertDialogCancel>Annuler</AlertDialogCancel>
                                 <input type="hidden" name="courseId" value={cours.courseId} />
-                                <Button variant="destructive" type="submit">
-                                    Supprimer
+                                <Button variant="destructive" type="submit" disabled={deleting}>
+                                    {deleting ? 'Suppression...' : 'Supprimer'}
                                 </Button>
                             </AlertDialogFooter>
                         </form>
                     </AlertDialogContent>
                 </AlertDialog>
+
+                {'error' in deleteState && typeof deleteState.error === 'string' ? (
+                    <p className="text-sm text-destructive mt-2">{deleteState.error}</p>
+                ) : null}
 
             </TableCell>
         </TableRow>
