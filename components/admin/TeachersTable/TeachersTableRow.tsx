@@ -57,8 +57,8 @@ export default function TeachersTableRow({
             <TableCell className="px-6">
                 <form action={validateTeacherAction}>
                     <input type="hidden" name="teacherEmail" value={teacher.userMail} />
-                    <button type="submit">
-                        <Badge variant={teacher.isValidated ? "default" : "destructive"} >
+                    <button type="submit" disabled={teacher.isValidated} className={teacher.isValidated ? "" : "cursor-pointer"}>
+                        <Badge className={teacher.isValidated ? "" : "hover:bg-primary/90"} variant={teacher.isValidated ? "default" : "destructive"} >
                             {teacher.isValidated ? "Validé" : "Non validé"}
                         </Badge>
                     </button>
