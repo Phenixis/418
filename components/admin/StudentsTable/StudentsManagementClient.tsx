@@ -638,16 +638,16 @@ export default function StudentsManagementClient({ initialStudents, groups }: Re
                     return (
                         <Collapsible
                             key={`year-${year}`}
-                            className="rounded-xl border border-faded/80 bg-transparent p-4 space-y-3"
+                            className="bg-transparent"
                             open={openYearKeys[year] ?? true}
                             onOpenChange={(isOpen) => updateYearOpenState(year, isOpen)}
                         >
                             <div className="flex items-center justify-between gap-2">
-                                <h2>
-                                    <CollapsibleTrigger className="cursor-pointer flex w-full items-center gap-2 h2">
+                                <CollapsibleTrigger className="cursor-pointer flex w-full items-center gap-2 h2">
+                                    <h2>
                                         Année {year}
-                                    </CollapsibleTrigger>
-                                </h2>
+                                    </h2>
+                                </CollapsibleTrigger>
                                 <div className="flex items-center gap-2">
                                     <Badge variant="outline">{yearGroups.length} classes</Badge>
                                     <Badge variant="outline">{yearStudentsCount} étudiants</Badge>
@@ -661,16 +661,16 @@ export default function StudentsManagementClient({ initialStudents, groups }: Re
                                     return (
                                         <Collapsible
                                             key={group.groupId}
-                                            className="rounded-lg border border-faded/70 bg-transparent p-3 space-y-2"
+                                            className="bg-transparent pl-4 space-y-2"
                                             open={openGroupKeys[groupKey] ?? true}
                                             onOpenChange={(isOpen) => updateGroupOpenState(groupKey, isOpen)}
                                         >
                                             <div className="flex items-center justify-between gap-2">
-                                                <h3>
-                                                    <CollapsibleTrigger className="cursor-pointer flex w-full items-center gap-2 h2">
+                                                <CollapsibleTrigger className="cursor-pointer flex w-full items-center gap-2 h2">
+                                                    <h3>
                                                         Classe {buildGroupLabel(group)}
-                                                    </CollapsibleTrigger>
-                                                </h3>
+                                                    </h3>
+                                                </CollapsibleTrigger>
                                                 <Badge variant="outline">{groupStudents.length}</Badge>
                                             </div>
                                             <CollapsibleContent className="space-y-3">
@@ -724,19 +724,19 @@ export default function StudentsManagementClient({ initialStudents, groups }: Re
 
                 {shouldShowUnassignedGroup && (
                     <Collapsible
-                        className="rounded-lg border border-dashed border-faded/70 bg-transparent p-3 space-y-2"
+                        className="bg-transparent"
                         open={openGroupKeys[UNASSIGNED_GROUP_ID] ?? true}
                         onOpenChange={(isOpen) => updateGroupOpenState(UNASSIGNED_GROUP_ID, isOpen)}
                     >
                         <div className="flex items-center justify-between gap-2">
-                            <h2>
-                                <CollapsibleTrigger className="cursor-pointer flex w-full items-center gap-2 h2">
+                            <CollapsibleTrigger className="cursor-pointer flex w-full items-center gap-2 h2">
+                                <h2>
                                     Non assigné
-                                </CollapsibleTrigger>
-                            </h2>
+                                </h2>
+                            </CollapsibleTrigger>
                             <Badge variant="outline">{(groupedStudents.get(UNASSIGNED_GROUP_ID) ?? []).length}</Badge>
                         </div>
-                        <CollapsibleContent className="space-y-3">
+                        <CollapsibleContent className="pl-3 space-y-3">
                             <div className="space-y-2 min-h-14">
                                 {(groupedStudents.get(UNASSIGNED_GROUP_ID) ?? []).map((student) => (
                                     <article
