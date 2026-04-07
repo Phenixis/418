@@ -193,8 +193,8 @@ test.describe('Segment dynamique de cours', () => {
 		await expect(qrButton).toBeEnabled();
 	});
 
-	test('doit ouvrir une nouvelle fenêtre QR avec uniquement le QR quand on clique dessus', async ({ authenticatedPage }) => {
-		expect(await openCourseByStatus(authenticatedPage, 'En cours')).toBeTruthy();
+	test('doit ouvrir une nouvelle fenêtre QR avec le QR et les boutons de téléchargement quand on clique dessus', async ({ authenticatedPage }) => {
+		await openCourseByStatus(authenticatedPage, 'En cours');
 
 		const qrButton = getQrButton(authenticatedPage);
 		const [popup] = await Promise.all([
@@ -205,8 +205,9 @@ test.describe('Segment dynamique de cours', () => {
 		await popup.waitForLoadState('domcontentloaded');
 
 		expect(popup.url()).toContain('/api/teacher/qr-code?codePin=');
-		await expect(popup.locator('main svg')).toHaveCount(1);
-		await expect(popup.locator('main > *')).toHaveCount(1);
+		await expect(popup.locator('main canvas')).toHaveCount(1);
+		await expect(popup.getByRole('button', { name: 'Télécharger le QR code en PNG' })).toBeVisible();
+		await expect(popup.getByRole('button', { name: 'Télécharger le QR code en JPG' })).toBeVisible();
 	});
 
 	test('doit parcourir le cycle complet de présence au clic sur un étudiant', async ({ authenticatedPage }) => {
