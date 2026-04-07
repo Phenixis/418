@@ -204,15 +204,24 @@ export default function StudentsManagementClient({ initialStudents, groups }: Re
         return groupedById;
     }, [searchTerm, sortedGroups, students]);
 
+    const hasActiveSearch = useMemo(() => {
+        return searchTerm.trim().length > 0;
+    }, [searchTerm]);
+
     const visibleGroups = useMemo(() => {
         return sortedGroups.filter((group) => {
             const groupKey = String(group.groupId);
             const matchesGroup = groupFilters.length === 0 || groupFilters.includes(groupKey);
             const matchesYear = yearFilter === ALL_FILTER_VALUE || group.promo === yearFilter;
+            const hasMatchingStudents = (groupedStudents.get(groupKey) ?? []).length > 0;
+
+            if (hasActiveSearch) {
+                return matchesGroup && matchesYear && hasMatchingStudents;
+            }
 
             return matchesGroup && matchesYear;
         });
-    }, [groupFilters, sortedGroups, yearFilter]);
+    }, [groupFilters, groupedStudents, hasActiveSearch, sortedGroups, yearFilter]);
 
     const visibleGroupsByYear = useMemo(() => {
         const groupsByYear: Record<string, Group[]> = {};
@@ -233,8 +242,16 @@ export default function StudentsManagementClient({ initialStudents, groups }: Re
     }, [visibleGroupsByYear]);
 
     const shouldShowUnassignedGroup = useMemo(() => {
-        return groupFilters.length === 0;
-    }, [groupFilters]);
+        if (groupFilters.length !== 0) {
+            return false;
+        }
+
+        if (!hasActiveSearch) {
+            return true;
+        }
+
+        return (groupedStudents.get(UNASSIGNED_GROUP_ID) ?? []).length > 0;
+    }, [groupFilters, groupedStudents, hasActiveSearch]);
 
     const selectedStudent = useMemo(() => {
         if (!selectedStudentEmail) {
