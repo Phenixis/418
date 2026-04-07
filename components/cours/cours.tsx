@@ -1,10 +1,10 @@
-import { Select as Course } from '@/lib/db/schema/course';
+import { Select as Session } from '@/lib/db/schema/session';
 import { formatInTimeZone } from 'date-fns-tz';
 
 const PARIS_TIME_ZONE = 'Europe/Paris';
 
 interface CoursProps {
-    cours: Course;
+    cours: Session;
 }
 
 export default function Cours({ cours }: Readonly<CoursProps>) {

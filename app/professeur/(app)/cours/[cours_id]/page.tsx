@@ -44,7 +44,7 @@ export default async function AppelPage({ params }: Readonly<{ params: Promise<{
             <CourseHeader cours={cours} groups={groups} status={status} />
 
             <CourseLiveSection
-                courseId={cours_id}
+                sessionId={cours_id}
                 date={dateDebut}
                 heureDebut={formatHeure(dateDebut)}
                 heureFin={formatHeure(dateFin)}

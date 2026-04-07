@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Vignette from '@/components/ui/Vignette';
 import { deleteCourse } from '@/lib/actions/cours';
-import { Select as Course } from '@/lib/db/schema/course';
+import { Select as Session } from '@/lib/db/schema/session';
 import { Select as Group } from '@/lib/db/schema/group';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { formatInTimeZone } from 'date-fns-tz';
@@ -32,7 +32,7 @@ import { useActionState, useEffect, useState } from 'react';
 const PARIS_TIME_ZONE = 'Europe/Paris';
 
 interface CoursProps {
-    cours: Course;
+    cours: Session;
     groups: Group[];
 }
 
@@ -67,7 +67,7 @@ export default function CourseTableRow({ cours, groups }: Readonly<CoursProps>) 
     const router = useRouter();
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-    const [deleteState, deleteCourseAction, deleting] = useActionState<any, FormData>(
+    const [deleteState, deleteCourseAction] = useActionState<any, FormData>(
         async (prevState, formData) => {
             return await deleteCourse(formData);
         },
@@ -99,7 +99,7 @@ export default function CourseTableRow({ cours, groups }: Readonly<CoursProps>) 
                     return;
                 }
 
-                router.push(`/professeur/cours/${cours.courseId}`);
+                router.push(`/professeur/cours/${cours.sessionId}`);
             }}
         >
             <TableCell className="w-px text-left pl-5">{formatDate(cours.startAt)}</TableCell>
@@ -166,7 +166,7 @@ export default function CourseTableRow({ cours, groups }: Readonly<CoursProps>) 
                             </AlertDialogDescription>
                             <AlertDialogFooter>
                                 <AlertDialogCancel>Annuler</AlertDialogCancel>
-                                <input type="hidden" name="courseId" value={cours.courseId} />
+                                <input type="hidden" name="courseId" value={cours.sessionId} />
                                 <Button variant="destructive" type="submit">
                                     Supprimer
                                 </Button>

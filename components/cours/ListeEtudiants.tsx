@@ -10,7 +10,7 @@ import { StudentWithStatus } from '@/lib/actions/cours-actuel';
 import { useAttendanceRealtime } from '@/hooks/use-attendance-realtime';
 
 interface ListeEtudiantsProps {
-    courseId: string;
+    sessionId: string;
     etudiants: StudentWithStatus[];
     onStudentsChange?: (students: StudentWithStatus[]) => void;
 }
@@ -76,7 +76,7 @@ function correspondAuFiltre(etudiant: StudentWithStatus, filtre: FiltrePresence)
     }
 }
 
-export default function ListeEtudiants({ courseId, etudiants, onStudentsChange }: Readonly<ListeEtudiantsProps>) {
+export default function ListeEtudiants({ sessionId, etudiants, onStudentsChange }: Readonly<ListeEtudiantsProps>) {
     const [students, setStudents] = useState<StudentWithStatus[]>(etudiants);
     const [pendingStudentMails, setPendingStudentMails] = useState<Set<string>>(new Set());
     const [recherche, setRecherche] = useState('');
@@ -109,7 +109,7 @@ export default function ListeEtudiants({ courseId, etudiants, onStudentsChange }
     }, [students, recherche, filtreActif]);
 
     const { connectionState } = useAttendanceRealtime({
-        courseId,
+        sessionId,
         pendingStudentMails,
         onAttendanceEvent: (attendanceEvent) => {
             setStudents((previousStudents) => previousStudents.map((previousStudent) => {
@@ -140,7 +140,7 @@ export default function ListeEtudiants({ courseId, etudiants, onStudentsChange }
 
         const syncAttendanceStatus = async () => {
             try {
-                const response = await fetch(`/api/teacher/attendance/status?courseId=${encodeURIComponent(courseId)}`, {
+                const response = await fetch(`/api/teacher/attendance/status?sessionId=${encodeURIComponent(sessionId)}`, {
                     method: "GET",
                     cache: "no-store"
                 });
@@ -172,7 +172,7 @@ export default function ListeEtudiants({ courseId, etudiants, onStudentsChange }
         return () => {
             clearInterval(intervalId);
         };
-    }, [connectionState, courseId, pendingStudentMails]);
+    }, [connectionState, sessionId, pendingStudentMails]);
 
     async function handleStudentClick(student: StudentWithStatus) {
         if (pendingStudentMails.has(student.userMail)) {
@@ -208,7 +208,7 @@ export default function ListeEtudiants({ courseId, etudiants, onStudentsChange }
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    courseId,
+                    sessionId,
                     studentMail: student.userMail,
                     nextStatut: optimisticStudentStatus
                 })

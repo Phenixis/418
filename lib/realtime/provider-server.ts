@@ -43,7 +43,7 @@ export async function publishAttendanceRealtimeEvent(event: AttendanceRealtimeEv
     }
 
     await pusherServer.trigger(
-        buildAttendanceChannelName(event.courseId),
+        buildAttendanceChannelName(event.sessionId),
         ATTENDANCE_REALTIME_EVENT_NAME,
         event
     );

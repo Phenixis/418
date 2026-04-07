@@ -1,13 +1,13 @@
-import { courseQueries } from '@/lib/db/queries/course';
-import { courseGroupQueries } from '@/lib/db/queries/course-group';
+import { sessionQueries } from '@/lib/db/queries/session';
+import { sessionGroupQueries } from '@/lib/db/queries/session-group';
 import { groupQueries } from '@/lib/db/queries/group';
 import { teacherQueries } from '@/lib/db/queries/teacher';
-import type { Select as Course } from '@/lib/db/schema/course';
-import type { Select as CourseGroup } from '@/lib/db/schema/course-group';
+import type { Select as Session } from '@/lib/db/schema/session';
+import type { Select as SessionGroup } from '@/lib/db/schema/session-group';
 import type { Select as Group } from '@/lib/db/schema/group';
 import CoursContainer from '@/components/cours/CoursContainer';
 
-function getCourseStatusPriority(course: Course, now: Date): number {
+function getCourseStatusPriority(course: Session, now: Date): number {
     if (now >= course.startAt && now <= course.endAt) {
         return 0;
     }
@@ -22,7 +22,7 @@ function getCourseStatusPriority(course: Course, now: Date): number {
 export default async function DashboardPage() {
     const teacher = await teacherQueries.getTeacher();
 
-    const coursesQueryResults = await courseQueries.getByTeacherMail(teacher.userMail);
+    const coursesQueryResults = await sessionQueries.getByTeacherMail(teacher.userMail);
 
     if ('error' in coursesQueryResults) {
         return (
@@ -30,11 +30,11 @@ export default async function DashboardPage() {
         );
     }
 
-    const courses = coursesQueryResults.entity as Course[];
+    const courses = coursesQueryResults.entity as Session[];
 
-    const groupCourseQueryResult = await courseGroupQueries.getByCourseIds(courses.map(course => course.courseId));
+    const groupCourseQueryResult = await sessionGroupQueries.getBySessionIds(courses.map((course) => course.sessionId));
 
-    const groupCourses = groupCourseQueryResult.entity as CourseGroup[];
+    const groupCourses = groupCourseQueryResult.entity as SessionGroup[];
 
     const groupIds = [...new Set(groupCourses.map(gc => gc.groupId))];
 

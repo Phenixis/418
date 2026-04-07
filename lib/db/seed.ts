@@ -2,13 +2,15 @@
  * 1. Ajouter les groupes
  * 2. Ajouter les étudiants
  */
-import { readdirSync, readFileSync } from "fs";
-import { normalize } from "path";
+import { readdirSync, readFileSync } from "node:fs";
+import { normalize } from "node:path";
 import { Data } from "./save.types";
 import { attendanceQueries } from "./queries/attendance";
-import { courseQueries } from "./queries/course";
-import { courseGroupQueries } from "./queries/course-group";
-import { courseTeacherQueries } from "./queries/course-teacher";
+import { resourceQueries } from "./queries/resource";
+import { sessionQueries } from "./queries/session";
+import { sessionGroupQueries } from "./queries/session-group";
+import { resourceTeacherQueries } from "./queries/resource-teacher";
+import { sessionTeacherQueries } from "./queries/session-teacher";
 import { groupQueries } from "./queries/group";
 import { studentQueries } from "./queries/student";
 import { teacherQueries } from "./queries/teacher";
@@ -18,11 +20,13 @@ export const SAVES_FOLDER_PATH = normalize(__dirname + "/saves/")
 
 const SEED_ORDER = [
     "groups",
-    "courses",
+    "resources",
+    "sessions",
     "teachers",
     "students",
-    "courseGroups",
-    "courseTeachers",
+    "sessionGroups",
+    "resourceTeachers",
+    "sessionTeachers",
     "attendances",
 ]
 
@@ -138,14 +142,20 @@ async function seed() {
         else if (key === "groups") {
             await deleteAndCreateForTable(groupQueries, value);
         }
-        else if (key === "courses") {
-            await deleteAndCreateForTable(courseQueries, value);
+        else if (key === "resources") {
+            await deleteAndCreateForTable(resourceQueries, value);
         }
-        else if (key === "courseGroups") {
-            await deleteAndCreateForTable(courseGroupQueries, value);
+        else if (key === "sessions") {
+            await deleteAndCreateForTable(sessionQueries, value);
         }
-        else if (key === "courseTeachers") {
-            await deleteAndCreateForTable(courseTeacherQueries, value);
+        else if (key === "sessionGroups") {
+            await deleteAndCreateForTable(sessionGroupQueries, value);
+        }
+        else if (key === "resourceTeachers") {
+            await deleteAndCreateForTable(resourceTeacherQueries, value);
+        }
+        else if (key === "sessionTeachers") {
+            await deleteAndCreateForTable(sessionTeacherQueries, value);
         }
         else if (key === "attendances") {
             await deleteAndCreateForTable(attendanceQueries, value);

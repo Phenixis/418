@@ -4,7 +4,7 @@ export type AttendanceRealtimeSource = "teacher-toggle" | "student-scan";
 
 export interface AttendanceRealtimeEvent {
     eventId: string;
-    courseId: string;
+    sessionId: string;
     studentMail: string;
     status: AttendanceRealtimeStatus;
     /** Niveau de retard (0 = présent, 1 = +5, 2 = +10, 3 = +15). Absent ou 0 si présent sans retard. */
@@ -15,8 +15,8 @@ export interface AttendanceRealtimeEvent {
 
 export const ATTENDANCE_REALTIME_EVENT_NAME = "attendance-updated";
 
-export function buildAttendanceChannelName(courseId: string): string {
-    return `private-course-attendance-${courseId}`;
+export function buildAttendanceChannelName(sessionId: string): string {
+    return `private-session-attendance-${sessionId}`;
 }
 
 export function isAttendanceRealtimeEvent(payload: unknown): payload is AttendanceRealtimeEvent {
@@ -28,7 +28,7 @@ export function isAttendanceRealtimeEvent(payload: unknown): payload is Attendan
 
     return (
         typeof candidateEvent.eventId === "string"
-        && typeof candidateEvent.courseId === "string"
+        && typeof candidateEvent.sessionId === "string"
         && typeof candidateEvent.studentMail === "string"
         && (candidateEvent.status === "present" || candidateEvent.status === "non-scanne")
         && (candidateEvent.source === "teacher-toggle" || candidateEvent.source === "student-scan")

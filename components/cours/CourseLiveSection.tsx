@@ -8,7 +8,7 @@ import { isEtudiantPresent } from "@/components/cours/course-utils";
 import { StudentWithStatus } from "@/lib/actions/cours-actuel";
 
 interface CourseLiveSectionProps {
-    courseId: string;
+    sessionId: string;
     date: Date;
     heureDebut: string;
     heureFin: string;
@@ -18,7 +18,7 @@ interface CourseLiveSectionProps {
 }
 
 export default function CourseLiveSection({
-    courseId,
+    sessionId,
     date,
     heureDebut,
     heureFin,
@@ -38,7 +38,7 @@ export default function CourseLiveSection({
     return (
         <>
             <CourseInfo
-                idCours={courseId}
+                idCours={sessionId}
                 date={date}
                 heureDebut={heureDebut}
                 heureFin={heureFin}
@@ -50,7 +50,7 @@ export default function CourseLiveSection({
             />
 
             <ListeEtudiants
-                courseId={courseId}
+                sessionId={sessionId}
                 etudiants={etudiants}
                 onStudentsChange={setStudents}
             />

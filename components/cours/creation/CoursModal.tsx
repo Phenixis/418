@@ -19,14 +19,14 @@ import { useTeacher } from "@/lib/hooks/useTeacher";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 import SelectGroupComponent from "./select-group";
-import type { Select as Course } from "@/lib/db/schema/course";
+import type { Select as Session } from "@/lib/db/schema/session";
 import type { Select as Group } from "@/lib/db/schema/group";
 import { DateTimePicker } from "@/components/ui/date-time-picker";
 
 export default function CoursModal({
     initCourse,
 }: Readonly<{
-    initCourse?: Course & { groups: Group[] };
+    initCourse?: Session & { groups: Group[] };
 }>) {
     const { teacher } = useTeacher();
     const router = useRouter();
@@ -128,7 +128,7 @@ export default function CoursModal({
                     <form action={formAction} className="w-full">
                         {
                             initCourse !== undefined && (
-                                <input type="hidden" name="courseId" value={initCourse.courseId} className="hidden" readOnly />
+                                <input type="hidden" name="courseId" value={initCourse.sessionId} className="hidden" readOnly />
                             )
                         }
                         <input type="hidden" name="teacherEmail" value={teacher.userMail} className="hidden" readOnly />

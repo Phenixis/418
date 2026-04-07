@@ -1,8 +1,8 @@
 import { test, expect } from './fixtures/authenticated-teacher';
 import { db } from '@/lib/db/drizzle';
 import { table as teacherTable } from '@/lib/db/schema/teacher';
-import { table as courseTable } from '@/lib/db/schema/course';
-import { table as courseTeacherTable } from '@/lib/db/schema/course-teacher';
+import { table as sessionTable } from '@/lib/db/schema/session';
+import { table as sessionTeacherTable } from '@/lib/db/schema/session-teacher';
 import { eq } from 'drizzle-orm';
 
 function normalizeStatusLabel(rawStatusText: string): 'En cours' | 'À venir' | 'Terminé' | null {
@@ -88,15 +88,15 @@ test.describe('Dashboard page', () => {
             isTeacher: true,
         });
 
-        await db.insert(courseTable).values({
-            courseId: outsiderCourseId,
+        await db.insert(sessionTable).values({
+            sessionId: outsiderCourseId,
             subject: outsiderCourseSubject,
             startAt: new Date(Date.now() + 60 * 60 * 1000),
             endAt: new Date(Date.now() + 2 * 60 * 60 * 1000),
         });
 
-        await db.insert(courseTeacherTable).values({
-            courseId: outsiderCourseId,
+        await db.insert(sessionTeacherTable).values({
+            sessionId: outsiderCourseId,
             teacherMail: outsiderTeacherEmail,
         });
 
@@ -109,8 +109,8 @@ test.describe('Dashboard page', () => {
             // Sanity check: the temporary course is linked to another teacher than the connected one.
             expect(outsiderTeacherEmail).not.toBe(testTeacherEmail);
         } finally {
-            await db.delete(courseTeacherTable).where(eq(courseTeacherTable.courseId, outsiderCourseId));
-            await db.delete(courseTable).where(eq(courseTable.courseId, outsiderCourseId));
+            await db.delete(sessionTeacherTable).where(eq(sessionTeacherTable.sessionId, outsiderCourseId));
+            await db.delete(sessionTable).where(eq(sessionTable.sessionId, outsiderCourseId));
             await db.delete(teacherTable).where(eq(teacherTable.userMail, outsiderTeacherEmail));
         }
     });

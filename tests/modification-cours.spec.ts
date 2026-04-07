@@ -1,9 +1,9 @@
 import { test, expect } from './fixtures/authenticated-teacher';
 import { db } from '@/lib/db/drizzle';
-import { table as courseTable } from '@/lib/db/schema/course';
-import { table as courseTeacherTable } from '@/lib/db/schema/course-teacher';
+import { table as sessionTable } from '@/lib/db/schema/session';
+import { table as sessionTeacherTable } from '@/lib/db/schema/session-teacher';
 import { table as groupTable } from '@/lib/db/schema/group';
-import { table as courseGroupTable } from '@/lib/db/schema/course-group';
+import { table as sessionGroupTable } from '@/lib/db/schema/session-group';
 import { table as studentTable } from '@/lib/db/schema/student';
 import { eq } from 'drizzle-orm';
 
@@ -30,9 +30,9 @@ test.describe('Modification de cours', () => {
 
     test.afterEach(async () => {
         for (const courseId of createdCourseIds) {
-            await db.delete(courseTeacherTable).where(eq(courseTeacherTable.courseId, courseId));
-            await db.delete(courseGroupTable).where(eq(courseGroupTable.courseId, courseId));
-            await db.delete(courseTable).where(eq(courseTable.courseId, courseId));
+            await db.delete(sessionTeacherTable).where(eq(sessionTeacherTable.sessionId, courseId));
+            await db.delete(sessionGroupTable).where(eq(sessionGroupTable.sessionId, courseId));
+            await db.delete(sessionTable).where(eq(sessionTable.sessionId, courseId));
         }
         for (const groupId of createdGroupIds) {
             await db.delete(groupTable).where(eq(groupTable.groupId, groupId));
@@ -71,19 +71,19 @@ test.describe('Modification de cours', () => {
             groupId: createdGroup.groupId,
         });
 
-        await db.insert(courseTable).values({
+        await db.insert(sessionTable).values({
             courseId,
             subject: originalSubject,
             startAt: futureStartTime,
             endAt: futureEndTime,
         });
 
-        await db.insert(courseTeacherTable).values({
+        await db.insert(sessionTeacherTable).values({
             courseId,
             teacherMail: testTeacherEmail,
         });
 
-        await db.insert(courseGroupTable).values({
+        await db.insert(sessionGroupTable).values({
             courseId,
             groupId: createdGroup.groupId,
         });

@@ -1,8 +1,8 @@
-import { courseQueries } from "@/lib/db/queries/course"
+import { sessionQueries } from "@/lib/db/queries/session"
 
 export default async function CoursePage() {
-    const courses = await courseQueries.getAll()
-    const courseId = await courseQueries.getByStringId("123456789")
+    const courses = await sessionQueries.getAll()
+    const courseId = await sessionQueries.getByStringId("123456789")
     return (
         <div>
             <h1>Courses</h1>
@@ -10,7 +10,7 @@ export default async function CoursePage() {
                 "success" in courses ? (
                     <ul>
                         {(courses.entity as any[]).map((course) => (
-                            <li key={course.courseId}>{JSON.stringify(course, null, 2)}</li>
+                            <li key={course.sessionId}>{JSON.stringify(course, null, 2)}</li>
                         ))}
                     </ul>
                 ) : (

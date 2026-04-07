@@ -3,14 +3,14 @@
 import { CourseStatus } from '@/components/cours/course.types';
 import { Button } from '@/components/ui/button';
 import Vignette from '@/components/ui/Vignette';
-import type { Select as Course } from '@/lib/db/schema/course';
+import type { Select as Session } from '@/lib/db/schema/session';
 import type { Select as Group } from '@/lib/db/schema/group';
 import CoursModal from './creation/CoursModal';
 
-export { CourseStatus };
+export { CourseStatus } from '@/components/cours/course.types';
 
 export interface CourseHeaderProps {
-    cours: Course
+    cours: Session
     groups: Group[]
     /** Statut actuel du cours */
     status: CourseStatus;

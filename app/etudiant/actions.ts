@@ -4,7 +4,7 @@ import bcrypt from "bcrypt";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db/drizzle";
 import * as schema from "@/lib/db/schema";
-import { courseQueries } from "@/lib/db/queries/course";
+import { sessionQueries } from "@/lib/db/queries/session";
 import { studentQueries } from "@/lib/db/queries/student";
 import { passwordRules } from "@/components/login/rules";
 import { publishAttendanceRealtimeEvent } from "@/lib/realtime/provider-server";
@@ -15,7 +15,7 @@ type ServerActionResult<T> =
   | { success: false; error: string };
 
 type CourseData = {
-  courseId: string;
+  sessionId: string;
   courseName: string;
 };
 
@@ -129,9 +129,9 @@ async function checkPasswordMatch(
   return bcrypt.compare(rawPassword, normalizedHash);
 }
 
-async function getValidCourse(courseId: string): Promise<ServerActionResult<CourseData>> {
+async function getValidCourse(sessionId: string): Promise<ServerActionResult<CourseData>> {
   try {
-    const foundCourse = await courseQueries.getByStringId(courseId);
+    const foundCourse = await sessionQueries.getByStringId(sessionId);
     if ("error" in foundCourse) {
       return { success: false, error: "Cours non reconnu (ID invalide)." };
     }
@@ -164,7 +164,7 @@ async function getValidCourse(courseId: string): Promise<ServerActionResult<Cour
     return {
       success: true,
       data: {
-        courseId: course.courseId,
+        sessionId: course.sessionId,
         courseName: course.subject,
       },
     };
@@ -173,7 +173,7 @@ async function getValidCourse(courseId: string): Promise<ServerActionResult<Cour
   }
 }
 
-async function hasStudentAccessToCourse(studentMail: string, courseId: string): Promise<boolean> {
+async function hasStudentAccessToCourse(studentMail: string, sessionId: string): Promise<boolean> {
   const result = await db
     .select({ groupId: schema.StudentTable.table.groupId })
     .from(schema.StudentTable.table)
@@ -185,12 +185,12 @@ async function hasStudentAccessToCourse(studentMail: string, courseId: string): 
   }
 
   const matchingCourseGroup = await db
-    .select({ courseGroupId: schema.CourseGroupTable.table.courseGroupId })
-    .from(schema.CourseGroupTable.table)
+    .select({ sessionGroupId: schema.SessionGroupTable.table.sessionGroupId })
+    .from(schema.SessionGroupTable.table)
     .where(
       and(
-        eq(schema.CourseGroupTable.table.courseId, courseId),
-        eq(schema.CourseGroupTable.table.groupId, result[0].groupId)
+        eq(schema.SessionGroupTable.table.sessionId, sessionId),
+        eq(schema.SessionGroupTable.table.groupId, result[0].groupId)
       )
     )
     .limit(1);
@@ -198,17 +198,17 @@ async function hasStudentAccessToCourse(studentMail: string, courseId: string): 
   return matchingCourseGroup.length > 0;
 }
 
-export async function getCourseStatusAction(courseId: string): Promise<ServerActionResult<CourseData>> {
-  if (!courseId?.trim()) {
+export async function getCourseStatusAction(sessionId: string): Promise<ServerActionResult<CourseData>> {
+  if (!sessionId?.trim()) {
     return { success: false, error: "Aucun cours détecté. Veuillez scanner un QR Code." };
   }
 
-  return getValidCourse(courseId.trim());
+  return getValidCourse(sessionId.trim());
 }
 
 export async function checkStudentEmailAction(
   email: string,
-  courseId: string
+  sessionId: string
 ): Promise<ServerActionResult<StudentStepData>> {
   try {
     const normalizedEmail = getValidatedStudentEmail(email);
@@ -219,11 +219,11 @@ export async function checkStudentEmailAction(
       };
     }
 
-    if (!courseId?.trim()) {
+    if (!sessionId?.trim()) {
       return { success: false, error: "Aucun cours détecté. Veuillez scanner un QR Code." };
     }
 
-    const validCourse = await getValidCourse(courseId);
+    const validCourse = await getValidCourse(sessionId);
     if (!validCourse.success) {
       return { success: false, error: validCourse.error };
     }
@@ -233,7 +233,7 @@ export async function checkStudentEmailAction(
       return { success: false, error: "Email ou mot de passe incorrect." };
     }
 
-    const hasAccess = await hasStudentAccessToCourse(normalizedEmail, validCourse.data.courseId);
+    const hasAccess = await hasStudentAccessToCourse(normalizedEmail, validCourse.data.sessionId);
     if (!hasAccess) {
       return { success: false, error: "Personne non attendue dans ce cours." };
     }
@@ -254,7 +254,7 @@ export async function checkStudentEmailAction(
 export async function authenticateStudentAction(
   email: string,
   password: string,
-  courseId: string,
+  sessionId: string,
   rememberSession: boolean = false
 ): Promise<ServerActionResult<{ courseName: string }>> {
   try {
@@ -263,7 +263,7 @@ export async function authenticateStudentAction(
       return { success: false, error: "Email ou mot de passe incorrect." };
     }
 
-    const validCourse = await getValidCourse(courseId);
+    const validCourse = await getValidCourse(sessionId);
     if (!validCourse.success) {
       return { success: false, error: validCourse.error };
     }
@@ -285,7 +285,7 @@ export async function authenticateStudentAction(
       return { success: false, error: "Email ou mot de passe incorrect." };
     }
 
-    const hasAccess = await hasStudentAccessToCourse(normalizedEmail, validCourse.data.courseId);
+    const hasAccess = await hasStudentAccessToCourse(normalizedEmail, validCourse.data.sessionId);
     if (!hasAccess) {
       return { success: false, error: "Personne non attendue dans ce cours." };
     }
@@ -295,7 +295,7 @@ export async function authenticateStudentAction(
       .from(schema.AttendanceTable.table)
       .where(
         and(
-          eq(schema.AttendanceTable.table.courseId, validCourse.data.courseId),
+          eq(schema.AttendanceTable.table.sessionId, validCourse.data.sessionId),
           eq(schema.AttendanceTable.table.studentMail, normalizedEmail)
         )
       )
@@ -306,14 +306,14 @@ export async function authenticateStudentAction(
     }
 
     await db.insert(schema.AttendanceTable.table).values({
-      courseId: validCourse.data.courseId,
+      sessionId: validCourse.data.sessionId,
       studentMail: normalizedEmail,
       hourDate: new Date(),
     });
 
     await publishAttendanceRealtimeEvent({
       eventId: crypto.randomUUID(),
-      courseId: validCourse.data.courseId,
+      sessionId: validCourse.data.sessionId,
       studentMail: normalizedEmail,
       status: "present",
       source: "student-scan",
@@ -335,7 +335,7 @@ export async function createStudentPasswordAction(
   email: string,
   password: string,
   confirmPassword: string,
-  courseId: string,
+  sessionId: string,
   rememberSession: boolean = false
 ): Promise<ServerActionResult<{ courseName: string }>> {
   try {
@@ -344,7 +344,7 @@ export async function createStudentPasswordAction(
       return { success: false, error: "Compte introuvable." };
     }
 
-    if (!courseId?.trim()) {
+    if (!sessionId?.trim()) {
       return { success: false, error: "Aucun cours détecté. Veuillez scanner un QR Code." };
     }
 
@@ -369,12 +369,12 @@ export async function createStudentPasswordAction(
       return { success: false, error: "Les deux mots de passe ne correspondent pas." };
     }
 
-    const validCourse = await getValidCourse(courseId);
+    const validCourse = await getValidCourse(sessionId);
     if (!validCourse.success) {
       return { success: false, error: validCourse.error };
     }
 
-    const hasAccess = await hasStudentAccessToCourse(normalizedEmail, validCourse.data.courseId);
+    const hasAccess = await hasStudentAccessToCourse(normalizedEmail, validCourse.data.sessionId);
     if (!hasAccess) {
       return { success: false, error: "Personne non attendue dans ce cours." };
     }
@@ -392,14 +392,14 @@ export async function createStudentPasswordAction(
     await db
       .insert(schema.AttendanceTable.table)
       .values({
-        courseId: validCourse.data.courseId,
+        sessionId: validCourse.data.sessionId,
         studentMail: normalizedEmail,
         hourDate: new Date(),
       });
 
     await publishAttendanceRealtimeEvent({
       eventId: crypto.randomUUID(),
-      courseId: validCourse.data.courseId,
+      sessionId: validCourse.data.sessionId,
       studentMail: normalizedEmail,
       status: "present",
       source: "student-scan",
@@ -417,29 +417,28 @@ export async function createStudentPasswordAction(
   }
 }
 
-export async function autoAttendStudentAction(courseId: string): Promise<ServerActionResult<{ courseName: string }>> {
+export async function autoAttendStudentAction(sessionId: string): Promise<ServerActionResult<{ courseName: string }>> {
   try {
-    // Validate and normalize courseId (match getCourseStatusAction behavior)
-    if (!courseId?.trim()) {
+    if (!sessionId?.trim()) {
       return { success: false, error: "Aucun cours détecté. Veuillez scanner un QR Code." };
     }
 
-    const normalizedCourseId = courseId.trim();
+    const normalizedSessionId = sessionId.trim();
 
     const session = await getStudentServerSession();
-    if (!session || !session.studentEmail) {
+    if (!session?.studentEmail) {
       // No active session - return silent failure so client falls back to email/password form
       return { success: false, error: "" };
     }
 
     const normalizedEmail = session.studentEmail;
 
-    const validCourse = await getValidCourse(normalizedCourseId);
+    const validCourse = await getValidCourse(normalizedSessionId);
     if (!validCourse.success) {
       return validCourse;
     }
 
-    const hasAccess = await hasStudentAccessToCourse(normalizedEmail, validCourse.data.courseId);
+    const hasAccess = await hasStudentAccessToCourse(normalizedEmail, validCourse.data.sessionId);
     if (!hasAccess) {
       return { success: false, error: "Personne non attendue dans ce cours." };
     }
@@ -449,7 +448,7 @@ export async function autoAttendStudentAction(courseId: string): Promise<ServerA
       .from(schema.AttendanceTable.table)
       .where(
         and(
-          eq(schema.AttendanceTable.table.courseId, validCourse.data.courseId),
+          eq(schema.AttendanceTable.table.sessionId, validCourse.data.sessionId),
           eq(schema.AttendanceTable.table.studentMail, normalizedEmail)
         )
       )
@@ -457,14 +456,14 @@ export async function autoAttendStudentAction(courseId: string): Promise<ServerA
 
     if (existingAttendance.length === 0) {
       await db.insert(schema.AttendanceTable.table).values({
-        courseId: validCourse.data.courseId,
+        sessionId: validCourse.data.sessionId,
         studentMail: normalizedEmail,
         hourDate: new Date(),
       });
 
       await publishAttendanceRealtimeEvent({
         eventId: crypto.randomUUID(),
-        courseId: validCourse.data.courseId,
+        sessionId: validCourse.data.sessionId,
         studentMail: normalizedEmail,
         status: "present",
         source: "student-scan",
@@ -481,7 +480,7 @@ export async function autoAttendStudentAction(courseId: string): Promise<ServerA
 export async function getStudentSessionEmailAction() {
   try {
     const session = await getStudentServerSession();
-    if (!session || !session.studentEmail) {
+    if (!session?.studentEmail) {
       return { success: false, error: "" };
     }
 

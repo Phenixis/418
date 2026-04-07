@@ -1,8 +1,10 @@
 import { writeFileSync, mkdirSync } from "node:fs";
 import { attendanceQueries } from "./queries/attendance";
-import { courseQueries } from "./queries/course";
-import { courseGroupQueries } from "./queries/course-group";
-import { courseTeacherQueries } from "./queries/course-teacher";
+import { resourceQueries } from "./queries/resource";
+import { sessionQueries } from "./queries/session";
+import { sessionGroupQueries } from "./queries/session-group";
+import { resourceTeacherQueries } from "./queries/resource-teacher";
+import { sessionTeacherQueries } from "./queries/session-teacher";
 import { groupQueries } from "./queries/group";
 import { studentQueries } from "./queries/student";
 import { teacherQueries } from "./queries/teacher";
@@ -19,24 +21,38 @@ async function save() {
         return;
     } 
 
-    const courses = await courseQueries.getAll();
+    const resources = await resourceQueries.getAll();
 
-    if ("error" in courses) {
-        console.error("Error fetching courses:", courses.error);
+    if ("error" in resources) {
+        console.error("Error fetching resources:", resources.error);
         return;
     }
 
-    const courseGroups = await courseGroupQueries.getAll();
+    const sessions = await sessionQueries.getAll();
 
-    if ("error" in courseGroups) {
-        console.error("Error fetching course groups:", courseGroups.error);
+    if ("error" in sessions) {
+        console.error("Error fetching sessions:", sessions.error);
         return;
     }
 
-    const courseTeachers = await courseTeacherQueries.getAll();
+    const sessionGroups = await sessionGroupQueries.getAll();
 
-    if ("error" in courseTeachers) {
-        console.error("Error fetching course teachers:", courseTeachers.error);
+    if ("error" in sessionGroups) {
+        console.error("Error fetching session groups:", sessionGroups.error);
+        return;
+    }
+
+    const resourceTeachers = await resourceTeacherQueries.getAll();
+
+    if ("error" in resourceTeachers) {
+        console.error("Error fetching resource teachers:", resourceTeachers.error);
+        return;
+    }
+
+    const sessionTeachers = await sessionTeacherQueries.getAll();
+
+    if ("error" in sessionTeachers) {
+        console.error("Error fetching session teachers:", sessionTeachers.error);
         return;
     }
 
@@ -63,9 +79,11 @@ async function save() {
 
     const data = {
         attendances: attendances.entity,
-        courses: courses.entity,
-        courseGroups: courseGroups.entity,
-        courseTeachers: courseTeachers.entity,
+        resources: resources.entity,
+        sessions: sessions.entity,
+        sessionGroups: sessionGroups.entity,
+        resourceTeachers: resourceTeachers.entity,
+        sessionTeachers: sessionTeachers.entity,
         groups: groups.entity,
         students: students.entity,
         teachers: teachers.entity
@@ -80,8 +98,6 @@ async function save() {
     }
 
     writeFileSync(SAVES_FOLDER_PATH + Date.now() + ".json", JSON.stringify(data, null, 2));
-
-    return;
 }
 
 save().then(() => console.log("Data saved successfully")).catch((error) => console.error("Error saving data:", error));
