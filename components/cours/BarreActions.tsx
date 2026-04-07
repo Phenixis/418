@@ -1,6 +1,8 @@
 'use client';
 
 import Search from '@mui/icons-material/Search';
+import EditRoundedIcon from '@mui/icons-material/EditRounded';
+import EditOffRoundedIcon from '@mui/icons-material/EditOffRounded';
 import ViewModuleRoundedIcon from '@mui/icons-material/ViewModuleRounded';
 import ViewListRoundedIcon from '@mui/icons-material/ViewListRounded';
 import { Input } from '@/components/ui/input';
@@ -33,6 +35,10 @@ interface BarreActionsProps {
     modeAffichage: ModeAffichage;
     /** Callback déclenché au changement de mode */
     onModeAffichageChange: (mode: ModeAffichage) => void;
+    /** Indique si le mode édition est actif */
+    isModeEdition: boolean;
+    /** Callback déclenché au basculement du mode édition */
+    onModeEditionChange: (actif: boolean) => void;
 }
 
 export default function BarreActions({
@@ -41,7 +47,9 @@ export default function BarreActions({
     filtreActif,
     onFiltreChange,
     modeAffichage,
-    onModeAffichageChange
+    onModeAffichageChange,
+    isModeEdition,
+    onModeEditionChange
 }: Readonly<BarreActionsProps>) {
     return (
         <div className="flex items-center gap-3">
@@ -75,8 +83,25 @@ export default function BarreActions({
                 })}
             </div>
 
-            {/* Toggle grille / liste (poussé à droite) */}
-            <div className="ml-auto flex items-center rounded-md border border-faded">
+            {/* Bouton mode édition (poussé à droite) */}
+            <Button
+                variant={isModeEdition ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => onModeEditionChange(!isModeEdition)}
+                className="ml-auto gap-1.5"
+                aria-label={isModeEdition ? 'Désactiver le mode édition' : 'Activer le mode édition'}
+                aria-pressed={isModeEdition}
+            >
+                {isModeEdition ? (
+                    <EditOffRoundedIcon className="!size-4" />
+                ) : (
+                    <EditRoundedIcon className="!size-4" />
+                )}
+                {isModeEdition ? 'Terminer' : 'Éditer'}
+            </Button>
+
+            {/* Toggle grille / liste */}
+            <div className="flex items-center rounded-md border border-faded">
                 <Button
                     variant={modeAffichage === 'grille' ? 'default' : 'ghost'}
                     size="icon"
