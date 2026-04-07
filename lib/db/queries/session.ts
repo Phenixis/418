@@ -38,6 +38,23 @@ class SessionQueries extends QueryModel<NewSession, Session> {
         return { success: 'Seances trouvees pour la ressource.', entity: result as Session[] };
     }
 
+    async getByResourceIds(resourceIds: string[]): Promise<QueryResult<Session[]>> {
+        const result = await lib.db
+            .select()
+            .from(this.table)
+            .where(lib.and(lib.inArray(this.table.resourceId, resourceIds), lib.isNull(this.table.deletedAt)));
+
+        if (lib.resultEmpty(result)) {
+            return {
+                error: 'Aucune seance trouvees pour ces ressources'
+            }
+        }
+
+        return {
+            success: "Seancse trouvees pour ces ressources", entity: result as Session[]
+        }
+    }
+
     async getByTeacherMail(teacherMail: string): Promise<QueryResult<Session[]>> {
         const sessionTeacherResult = await sessionTeacherQueries.getByTeacherEmail(teacherMail);
 

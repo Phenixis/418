@@ -1,67 +1,99 @@
+import ResourceTable, { ResourceTableItem } from '@/components/cours/ResourceTable';
+import { resourceQueries } from '@/lib/db/queries/resource';
 import { sessionQueries } from '@/lib/db/queries/session';
-import { sessionGroupQueries } from '@/lib/db/queries/session-group';
-import { groupQueries } from '@/lib/db/queries/group';
 import { teacherQueries } from '@/lib/db/queries/teacher';
+import type { Select as Resource } from '@/lib/db/schema/resource';
 import type { Select as Session } from '@/lib/db/schema/session';
-import type { Select as SessionGroup } from '@/lib/db/schema/session-group';
-import type { Select as Group } from '@/lib/db/schema/group';
-import CoursContainer from '@/components/cours/CoursContainer';
 
-function getCourseStatusPriority(course: Session, now: Date): number {
-    if (now >= course.startAt && now <= course.endAt) {
+function getResourceStatusPriority(resourceItem: ResourceTableItem): number {
+    if (resourceItem.ongoingSessionCount > 0) {
         return 0;
     }
 
-    if (now < course.startAt) {
+    if (resourceItem.upcomingSessionCount > 0) {
         return 1;
     }
 
-    return 2;
+    if (resourceItem.pastSessionCount > 0) {
+        return 2;
+    }
+
+    return 3;
 }
 
 export default async function DashboardPage() {
     const teacher = await teacherQueries.getTeacher();
 
-    const coursesQueryResults = await sessionQueries.getByTeacherMail(teacher.userMail);
+    const resourcesQueryResult = await resourceQueries.getByTeacherMail(teacher.userMail);
 
-    if ('error' in coursesQueryResults) {
+    if ('error' in resourcesQueryResult) {
         return (
-            <p>{coursesQueryResults.error}</p>
+            <p>{resourcesQueryResult.error}</p>
         );
     }
 
-    const courses = coursesQueryResults.entity as Session[];
+    const resources = resourcesQueryResult.entity as Resource[];
 
-    const groupCourseQueryResult = await sessionGroupQueries.getBySessionIds(courses.map((course) => course.sessionId));
+    const sessionsQueryResult = resources.length > 0
+        ? await sessionQueries.getByResourceIds(resources.map((resource) => resource.resourceId))
+        : { success: 'Aucune seance', entity: [] as Session[] };
 
-    const groupCourses = groupCourseQueryResult.entity as SessionGroup[];
+    const sessions = 'error' in sessionsQueryResult
+        ? []
+        : (sessionsQueryResult.entity as Session[]);
 
-    const groupIds = [...new Set(groupCourses.map(gc => gc.groupId))];
+    const sessionsByResourceId = new Map<string, Session[]>();
 
-    const groupsQueryResult = await groupQueries.getByIds(groupIds);
-
-    const groups = groupsQueryResult.entity as Group[];
+    for (const session of sessions) {
+        const previousSessions = sessionsByResourceId.get(session.resourceId) ?? [];
+        sessionsByResourceId.set(session.resourceId, [...previousSessions, session]);
+    }
 
     const now = new Date();
-    const sortedCourses = courses.slice().sort((firstCourse, secondCourse) => {
-        const firstCourseStatusPriority = getCourseStatusPriority(firstCourse, now);
-        const secondCourseStatusPriority = getCourseStatusPriority(secondCourse, now);
+    const resourceItems = resources
+        .map((resource) => {
+            const resourceSessions = sessionsByResourceId.get(resource.resourceId) ?? [];
 
-        if (firstCourseStatusPriority !== secondCourseStatusPriority) {
-            return firstCourseStatusPriority - secondCourseStatusPriority;
-        }
+            const ongoingSessionCount = resourceSessions.filter(
+                (session) => now >= session.startAt && now <= session.endAt
+            ).length;
+            const upcomingSessionCount = resourceSessions.filter((session) => now < session.startAt).length;
+            const pastSessionCount = resourceSessions.filter((session) => now > session.endAt).length;
 
-        return firstCourse.startAt.getTime() - secondCourse.startAt.getTime();
-    });
+            const nextSession = resourceSessions
+                .filter((session) => session.startAt > now)
+                .sort((firstSession, secondSession) => firstSession.startAt.getTime() - secondSession.startAt.getTime())[0];
+
+            return {
+                resource,
+                totalSessionCount: resourceSessions.length,
+                ongoingSessionCount,
+                upcomingSessionCount,
+                pastSessionCount,
+                nextSessionStartAt: nextSession?.startAt,
+            };
+        })
+        .sort((firstResourceItem, secondResourceItem) => {
+            const firstStatusPriority = getResourceStatusPriority(firstResourceItem);
+            const secondStatusPriority = getResourceStatusPriority(secondResourceItem);
+
+            if (firstStatusPriority !== secondStatusPriority) {
+                return firstStatusPriority - secondStatusPriority;
+            }
+
+            const firstNextSessionTimestamp = firstResourceItem.nextSessionStartAt?.getTime() ?? Number.MAX_SAFE_INTEGER;
+            const secondNextSessionTimestamp = secondResourceItem.nextSessionStartAt?.getTime() ?? Number.MAX_SAFE_INTEGER;
+
+            if (firstNextSessionTimestamp !== secondNextSessionTimestamp) {
+                return firstNextSessionTimestamp - secondNextSessionTimestamp;
+            }
+
+            return firstResourceItem.resource.subject.localeCompare(secondResourceItem.resource.subject);
+        });
 
     return (
-        <>
-        {/*Ajout des filtres et tris pour les cours*/}
-        <CoursContainer 
-            courses={sortedCourses} 
-            groupCourses={groupCourses} 
-            groups={groups} 
-        />
-        </>
+        <section className="flex flex-col py-10 gap-6">
+            <ResourceTable resourceItems={resourceItems} />
+        </section>
     );
 }

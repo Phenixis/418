@@ -90,7 +90,7 @@ test.describe('Modification de cours', () => {
 
         createdCourseIds.push(courseId);
 
-        await authenticatedPage.goto(`/professeur/cours/${courseId}`);
+        await authenticatedPage.goto(`/professeur/session/${courseId}`);
 
         await expect(authenticatedPage.getByRole('heading', { name: originalSubject, exact: true })).toBeVisible();
 
@@ -116,7 +116,7 @@ test.describe('Modification de cours', () => {
         await expect(submitButton).toBeEnabled();
         await submitButton.click();
 
-        await authenticatedPage.waitForURL(new RegExp(`/professeur/cours/${courseId}$`), { timeout: 10000 });
+        await authenticatedPage.waitForURL(new RegExp(`/professeur/session/${courseId}$`), { timeout: 10000 });
 
         const courseTitle = authenticatedPage.locator('main h1');
         await expect(courseTitle).toBeVisible();

@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import Vignette from '@/components/ui/Vignette';
 import type { Select as Session } from '@/lib/db/schema/session';
 import type { Select as Group } from '@/lib/db/schema/group';
-import CoursModal from './creation/CoursModal';
+import ResourceModal from './creation/ResourceModal';
+import Link from 'next/link';
 
 export { CourseStatus } from '@/components/cours/course.types';
 
@@ -34,15 +35,21 @@ export default function CourseHeader({ cours, groups, status, onTerminer, onDema
                     {cours.subject}
                 </h1>
                 <Vignette status={status} />
+                <Link
+                href={`/professeur/resource/${cours.resourceId}`}
+                className="w-fit text-sm underline underline-offset-4 hover:opacity-70"
+            >
+                Voir le détail de la ressource
+            </Link>
             </div>
 
             {/* Actions sur le cours */}
             {(status === CourseStatus.A_VENIR || onTerminer || onDemarrer) && (
                 <div className="flex items-center gap-3">
                     {status === CourseStatus.A_VENIR && (
-                        <CoursModal initCourse={{
-                            ...cours,
-                            groups
+                        <ResourceModal initResource={{
+                            resourceId: cours.resourceId,
+                            subject: cours.subject,
                         }} />
                     )}
                     {onTerminer && (

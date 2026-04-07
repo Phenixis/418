@@ -20,13 +20,14 @@ import {
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import Vignette from '@/components/ui/Vignette';
+import SessionModal from '@/components/cours/creation/SessionModal';
 import { deleteCourse } from '@/lib/actions/cours';
 import { Select as Session } from '@/lib/db/schema/session';
 import { Select as Group } from '@/lib/db/schema/group';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { formatInTimeZone } from 'date-fns-tz';
 import { fr } from 'date-fns/locale/fr';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useActionState, useEffect, useState } from 'react';
 
 const PARIS_TIME_ZONE = 'Europe/Paris';
@@ -65,7 +66,9 @@ function formatDate(date: Date): string {
 export default function CourseTableRow({ cours, groups }: Readonly<CoursProps>) {
     const now = new Date();
     const router = useRouter();
+    const pathname = usePathname();
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const isResourceSegment = pathname.startsWith('/professeur/resource/');
 
     const [deleteState, deleteCourseAction] = useActionState<any, FormData>(
         async (prevState, formData) => {
@@ -99,7 +102,7 @@ export default function CourseTableRow({ cours, groups }: Readonly<CoursProps>) 
                     return;
                 }
 
-                router.push(`/professeur/cours/${cours.sessionId}`);
+                router.push(`/professeur/session/${cours.sessionId}`);
             }}
         >
             <TableCell className="w-px text-left pl-5">{formatDate(cours.startAt)}</TableCell>
@@ -131,17 +134,26 @@ export default function CourseTableRow({ cours, groups }: Readonly<CoursProps>) 
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent >
-                        {/* <DropdownMenuItem
-                            onSelect={(event) => {
-                                event.stopPropagation();
-                            }}
-                        >
-                            <CoursModal initCourse={{
-                                ...cours,
-                                groups
-                            }} />
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator /> */}
+                        {isResourceSegment && (
+                            <DropdownMenuItem
+                                data-ignore-row-click
+                                onSelect={(event) => {
+                                    event.preventDefault();
+                                    event.stopPropagation();
+                                }}
+                            >
+                                <SessionModal
+                                    resourceId={cours.resourceId}
+                                    initSession={{
+                                        sessionId: cours.sessionId,
+                                        subject: cours.subject,
+                                        startAt: cours.startAt,
+                                        endAt: cours.endAt,
+                                        groups: groups.map((group) => ({ groupId: group.groupId })),
+                                    }}
+                                />
+                            </DropdownMenuItem>
+                        )}
                         <DropdownMenuItem
                             data-ignore-row-click
                             variant="destructive"

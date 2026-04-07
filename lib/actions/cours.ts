@@ -157,7 +157,7 @@ export async function modifierCours(prevState: ActionResult, formData: FormData)
 
     const endTimeDate = new Date(startDate.getTime() + (durationInMinutes * 60 * 1000));
 
-    const sessionId = formData.get("courseId");
+    const sessionId = formData.get("resourceId");
 
     if (typeof sessionId !== "string") {
         return { error: true, message: "ID de cours manquant ou invalide." };

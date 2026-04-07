@@ -3,7 +3,6 @@ import CourseLiveSection from '@/components/cours/CourseLiveSection';
 import { CourseStatus } from '@/components/cours/course.types';
 import { fetchCoursActuel } from '@/lib/actions/cours-actuel';
 
-// Détermine le statut du cours selon les dates de début et de fin
 function resolveCourseStatus(dateDebut: Date, dateFin: Date): CourseStatus {
     const now = new Date();
     if (now < dateDebut) return CourseStatus.A_VENIR;
@@ -11,23 +10,21 @@ function resolveCourseStatus(dateDebut: Date, dateFin: Date): CourseStatus {
     return CourseStatus.EN_COURS;
 }
 
-// Formate un objet Date en "08h00"
 function formatHeure(date: Date): string {
     const heures = date.getHours().toString().padStart(2, '0');
     const minutes = date.getMinutes().toString().padStart(2, '0');
     return `${heures}h${minutes}`;
 }
 
-export default async function AppelPage({ params }: Readonly<{ params: Promise<{ cours_id: string }> }>) {
-    const { cours_id } = await params;
+export default async function SessionPage({ params }: Readonly<{ params: Promise<{ session_id: string }> }>) {
+    const { session_id } = await params;
 
-    const result = await fetchCoursActuel(cours_id);
+    const result = await fetchCoursActuel(session_id);
 
-    // Affichage d'une erreur si les données sont inaccessibles
     if (!result.success) {
         return (
             <section className="container mx-auto flex flex-col py-10 gap-6">
-                <p className="text-red">Impossible de charger le cours : {result.error}</p>
+                <p className="text-red">Impossible de charger la seance : {result.error}</p>
             </section>
         );
     }
@@ -40,11 +37,10 @@ export default async function AppelPage({ params }: Readonly<{ params: Promise<{
 
     return (
         <section className="flex flex-col py-10 gap-6">
-            {/* En-tête : matière, statut et actions */}
             <CourseHeader cours={cours} groups={groups} status={status} />
 
             <CourseLiveSection
-                sessionId={cours_id}
+                sessionId={session_id}
                 date={dateDebut}
                 heureDebut={formatHeure(dateDebut)}
                 heureFin={formatHeure(dateFin)}
