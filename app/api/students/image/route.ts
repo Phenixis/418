@@ -18,7 +18,7 @@ function ensureAuthenticatedSession(teacherSession: TeacherSession, studentSessi
     return null;
 }
 
-async function ensureStudentCanAccessSource(studentEmail: string, source: string): Promise<NextResponse | null> {
+async function ensureStudentCanAccessSource(studentEmail: string, normalizedRequestedSource: string): Promise<NextResponse | null> {
     const studentResult = await studentQueries.getByEmail(studentEmail);
 
     if ('error' in studentResult) {
@@ -31,8 +31,11 @@ async function ensureStudentCanAccessSource(studentEmail: string, source: string
         return NextResponse.json({ error: 'Aucune image associée à cet étudiant.' }, { status: 403 });
     }
 
-    const normalizedRequestedSource = normalizeBlobSourceUtil(source);
     const normalizedStudentPicture = normalizeBlobSourceUtil(studentPicture);
+
+    if (!isStudentBlobPath(normalizedStudentPicture)) {
+        return NextResponse.json({ error: 'Accès non autorisé à cette image.' }, { status: 403 });
+    }
 
     if (normalizedRequestedSource !== normalizedStudentPicture) {
         return NextResponse.json({ error: 'Accès non autorisé à cette image.' }, { status: 403 });
@@ -77,13 +80,13 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: 'Paramètre source manquant.' }, { status: 400 });
     }
 
+    const normalizedRequestedSource = normalizeBlobSourceUtil(source);
+
+    if (!isStudentBlobPath(normalizedRequestedSource)) {
+        return NextResponse.json({ error: 'Accès non autorisé à cette image.' }, { status: 403 });
+    }
+
     if (isTeacherAuthenticated) {
-        const normalizedRequestedSource = normalizeBlobSourceUtil(source);
-
-        if (!isStudentBlobPath(normalizedRequestedSource)) {
-            return NextResponse.json({ error: 'Accès non autorisé à cette image.' }, { status: 403 });
-        }
-
         const teacherResult = await teacherQueries.getByEmail(teacherSession!.teacherEmail);
 
         if ('error' in teacherResult || !teacherResult.entity.isValidated) {
@@ -92,7 +95,7 @@ export async function GET(request: Request) {
     }
 
     if (!isTeacherAuthenticated && isStudentAuthenticated) {
-        const authorizationError = await ensureStudentCanAccessSource(studentSession!.studentEmail, source);
+        const authorizationError = await ensureStudentCanAccessSource(studentSession!.studentEmail, normalizedRequestedSource);
 
         if (authorizationError) {
             return authorizationError;
@@ -100,7 +103,7 @@ export async function GET(request: Request) {
     }
 
     try {
-        const blobResult = await get(source, {
+        const blobResult = await get(normalizedRequestedSource, {
             token: process.env.BLOB_READ_WRITE_TOKEN,
             access: 'private',
             useCache: true,

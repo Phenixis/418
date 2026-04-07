@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/combobox";
 import { Label } from "@/components/ui/label";
 import type { Select as Group } from "@/lib/db/schema/group";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 
 type GroupOption = {
     value: string;
@@ -138,15 +138,31 @@ export default function SelectGroup({
     }, [groupedOptions]);
 
     const chipsAnchor = useComboboxAnchor();
+    const groupsInputId = useId();
     const hasGroupsSelected = groupsSelected.length > 0;
 
     const selectedGroupsSummary = groupsSelected.length === 1
         ? '1 classe sélectionnée'
         : `${groupsSelected.length} classes sélectionnées`;
 
-    const containerClassName = hideLabel
-        ? (className ? `w-full h-10 ${className}` : 'w-full h-10')
-        : (className ? `w-full flex flex-col gap-1 ${className}` : 'w-full flex flex-col gap-1');
+    const baseContainerClassName = hideLabel ? 'w-full h-10' : 'w-full flex flex-col gap-1';
+    const containerClassName = className ? `${baseContainerClassName} ${className}` : baseContainerClassName;
+
+    let comboboxValueNode: React.ReactNode = null;
+
+    if (displayMode === 'summary') {
+        if (hasGroupsSelected) {
+            comboboxValueNode = <span className="truncate text-sm text-black/80">{selectedGroupsSummary}</span>;
+        }
+    } else {
+        comboboxValueNode = (
+            <div className="flex w-full flex-wrap gap-1.5">
+                {groupsSelected.map((item) => (
+                    <ComboboxChip key={item}>{groupLabelByValue.get(item) ?? item}</ComboboxChip>
+                ))}
+            </div>
+        );
+    }
 
     return (
         <div className={containerClassName}>
@@ -159,7 +175,7 @@ export default function SelectGroup({
                     readOnly
                 />
             ))}
-            {!hideLabel && <Label htmlFor="groups">{label}</Label>}
+            {!hideLabel && <Label htmlFor={groupsInputId}>{label}</Label>}
             <Combobox
                 items={groupsFlat}
                 multiple
@@ -167,20 +183,9 @@ export default function SelectGroup({
                 onValueChange={setGroupsSelected}
             >
                 <ComboboxChips ref={chipsAnchor} className="h-full items-center overflow-hidden">
-                    <ComboboxValue>
-                        {displayMode === 'summary' ? (
-                            hasGroupsSelected ? (
-                                <span className="truncate text-sm text-black/80">{selectedGroupsSummary}</span>
-                            ) : null
-                        ) : (
-                            <div className="flex w-full flex-wrap gap-1.5">
-                                {groupsSelected.map((item) => (
-                                    <ComboboxChip key={item}>{groupLabelByValue.get(item) ?? item}</ComboboxChip>
-                                ))}
-                            </div>
-                        )}
-                    </ComboboxValue>
+                    <ComboboxValue>{comboboxValueNode}</ComboboxValue>
                     <ComboboxChipsInput
+                        id={groupsInputId}
                         className="h-full w-full min-w-0 basis-full text-left"
                         placeholder={placeholder}
                     />
