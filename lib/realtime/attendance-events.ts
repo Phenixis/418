@@ -7,6 +7,8 @@ export interface AttendanceRealtimeEvent {
     courseId: string;
     studentMail: string;
     status: AttendanceRealtimeStatus;
+    /** Niveau de retard (0 = présent, 1 = +5, 2 = +10, 3 = +15). Absent ou 0 si présent sans retard. */
+    lateStatus?: number;
     source: AttendanceRealtimeSource;
     occurredAt: string;
 }
@@ -31,5 +33,6 @@ export function isAttendanceRealtimeEvent(payload: unknown): payload is Attendan
         && (candidateEvent.status === "present" || candidateEvent.status === "non-scanne")
         && (candidateEvent.source === "teacher-toggle" || candidateEvent.source === "student-scan")
         && typeof candidateEvent.occurredAt === "string"
+        && (candidateEvent.lateStatus === undefined || typeof candidateEvent.lateStatus === "number")
     );
 }

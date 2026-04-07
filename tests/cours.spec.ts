@@ -52,8 +52,17 @@ function getStudentCards(page: Page): Locator {
 	});
 }
 
+// Un étudiant est considéré présent s'il a un statut « présent » ou un statut de retard
+// (vert = présent, jaune/orange/rouge = retard niveau 1/2/3)
+const PRESENCE_BG_CLASSES = ['div.bg-green', 'div.bg-yellow-400', 'div.bg-orange', 'div.bg-red'];
+
 async function isStudentPresent(studentCard: Locator): Promise<boolean> {
-	return (await studentCard.locator('div.bg-green').count()) > 0;
+	for (const presenceClass of PRESENCE_BG_CLASSES) {
+		if ((await studentCard.locator(presenceClass).count()) > 0) {
+			return true;
+		}
+	}
+	return false;
 }
 
 async function countPresentStudents(studentCards: Locator): Promise<number> {
@@ -97,6 +106,27 @@ async function readStudentsInDisplayedOrder(page: Page): Promise<StudentIdentity
 	return students;
 }
 
+// Déclenche un clic sur la carte étudiant et attend la réponse PATCH du toggle
+async function clickStudentAndWaitForToggle(
+	page: Page,
+	studentCard: Locator
+): Promise<{ status: string }> {
+	const toggleResponsePromise = page.waitForResponse((response) => {
+		return response.url().includes('/api/teacher/attendance/toggle')
+			&& response.request().method() === 'PATCH';
+	});
+
+	await studentCard.click();
+
+	const toggleResponse = await toggleResponsePromise;
+	expect(toggleResponse.ok()).toBeTruthy();
+
+	const toggleResponseBody = await toggleResponse.json() as { status?: string };
+	expect(toggleResponseBody.status).toBeDefined();
+
+	return { status: toggleResponseBody.status as string };
+}
+
 test.describe('Segment dynamique de cours', () => {
 	test.beforeEach(async ({ authenticatedPage }) => {
 		await authenticatedPage.goto('/professeur/dashboard');
@@ -136,42 +166,33 @@ test.describe('Segment dynamique de cours', () => {
 		await expect(popup.locator('main > *')).toHaveCount(1);
 	});
 
-	test('doit permettre de cliquer un étudiant pour basculer present et non-scanné', async ({ authenticatedPage }) => {
+	test('doit parcourir le cycle complet de présence au clic sur un étudiant', async ({ authenticatedPage }) => {
 		await openCourseByStatus(authenticatedPage, 'En cours');
 
 		const firstStudentCard = getStudentCards(authenticatedPage).first();
 		await expect(firstStudentCard).toBeVisible();
 
-		const initialStudentPresence = await isStudentPresent(firstStudentCard);
-		const expectedStatusAfterFirstClick = initialStudentPresence ? 'non-scanne' : 'present';
+		// Le test démarre dans un état connu : on s'assure que l'étudiant est non-scanné.
+		// S'il est dans un autre statut, on cycle jusqu'à revenir à non-scanné.
+		const STATUTS_DU_CYCLE = ['present', 'retard+5', 'retard+10', 'retard+15', 'non-scanne'] as const;
+		let attemptCount = 0;
+		while (await isStudentPresent(firstStudentCard)) {
+			await clickStudentAndWaitForToggle(authenticatedPage, firstStudentCard);
+			attemptCount++;
+			if (attemptCount > STATUTS_DU_CYCLE.length) {
+				throw new Error('Impossible de remettre l\'étudiant en non-scanné.');
+			}
+		}
 
-		const firstToggleResponsePromise = authenticatedPage.waitForResponse((response) => {
-			return response.url().includes('/api/teacher/attendance/toggle')
-				&& response.request().method() === 'PATCH';
-		});
+		// Cycle complet attendu : non-scanné → présent → retard+5 → retard+10 → retard+15 → non-scanné
+		for (const expectedStatus of STATUTS_DU_CYCLE) {
+			const { status } = await clickStudentAndWaitForToggle(authenticatedPage, firstStudentCard);
+			expect(status).toBe(expectedStatus);
 
-		await firstStudentCard.click();
-
-		const firstToggleResponse = await firstToggleResponsePromise;
-		expect(firstToggleResponse.ok()).toBeTruthy();
-		const firstToggleResponseBody = await firstToggleResponse.json() as { status?: string };
-		expect(firstToggleResponseBody.status).toBe(expectedStatusAfterFirstClick);
-
-		await expect.poll(async () => isStudentPresent(firstStudentCard)).toBe(!initialStudentPresence);
-
-		const secondToggleResponsePromise = authenticatedPage.waitForResponse((response) => {
-			return response.url().includes('/api/teacher/attendance/toggle')
-				&& response.request().method() === 'PATCH';
-		});
-
-		await firstStudentCard.click();
-
-		const secondToggleResponse = await secondToggleResponsePromise;
-		expect(secondToggleResponse.ok()).toBeTruthy();
-		const secondToggleResponseBody = await secondToggleResponse.json() as { status?: string };
-		expect(secondToggleResponseBody.status).toBe(initialStudentPresence ? 'present' : 'non-scanne');
-
-		await expect.poll(async () => isStudentPresent(firstStudentCard)).toBe(initialStudentPresence);
+			// Le statut visuel doit refléter ce que l'API a renvoyé
+			const expectedPresence = expectedStatus !== 'non-scanne';
+			await expect.poll(async () => isStudentPresent(firstStudentCard)).toBe(expectedPresence);
+		}
 	});
 
 	test('doit afficher des compteurs cohérents entre total, présents et non-scannés', async ({ authenticatedPage }) => {
