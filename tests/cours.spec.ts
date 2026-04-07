@@ -210,6 +210,44 @@ test.describe('Segment dynamique de cours', () => {
 		await expect(popup.getByRole('button', { name: 'Télécharger le QR code en JPG' })).toBeVisible();
 	});
 
+	test('doit télécharger le QR code en PNG quand on clique sur le bouton PNG', async ({ authenticatedPage }) => {
+		await openCourseByStatus(authenticatedPage, 'En cours');
+
+		const qrButton = getQrButton(authenticatedPage);
+		const [popup] = await Promise.all([
+			authenticatedPage.waitForEvent('popup'),
+			qrButton.click(),
+		]);
+
+		await popup.waitForLoadState('domcontentloaded');
+
+		const [download] = await Promise.all([
+			popup.waitForEvent('download'),
+			popup.getByRole('button', { name: 'Télécharger le QR code en PNG' }).click(),
+		]);
+
+		expect(download.suggestedFilename()).toBe('qr-code.png');
+	});
+
+	test('doit télécharger le QR code en JPG quand on clique sur le bouton JPG', async ({ authenticatedPage }) => {
+		await openCourseByStatus(authenticatedPage, 'En cours');
+
+		const qrButton = getQrButton(authenticatedPage);
+		const [popup] = await Promise.all([
+			authenticatedPage.waitForEvent('popup'),
+			qrButton.click(),
+		]);
+
+		await popup.waitForLoadState('domcontentloaded');
+
+		const [download] = await Promise.all([
+			popup.waitForEvent('download'),
+			popup.getByRole('button', { name: 'Télécharger le QR code en JPG' }).click(),
+		]);
+
+		expect(download.suggestedFilename()).toBe('qr-code.jpg');
+	});
+
 	test('doit parcourir le cycle complet de présence au clic sur un étudiant', async ({ authenticatedPage }) => {
 		expect(await openCourseByStatus(authenticatedPage, 'En cours')).toBeTruthy();
 
