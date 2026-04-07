@@ -2,6 +2,7 @@ import { test as baseTest, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 import { db } from '@/lib/db/drizzle';
+import { table as resourceTable } from '@/lib/db/schema/resource';
 import { table as studentTable } from '@/lib/db/schema/student';
 import { table as sessionTable } from '@/lib/db/schema/session';
 import { table as groupTable } from '@/lib/db/schema/group';
@@ -20,6 +21,7 @@ type StudentCredentials = {
 
 type CourseFixture = {
     sessionId: string;
+    resourceId: string;
     courseName: string;
 };
 
@@ -34,6 +36,7 @@ type StudentCourseAccessFixture = {
 type TestCleanupState = {
     createdStudentEmails: string[];
     createdCourseIds: string[];
+    createdResourceIds: string[];
     createdGroupIds: number[];
 };
 
@@ -42,6 +45,7 @@ const test = baseTest.extend<{ cleanupState: TestCleanupState }>({
         const cleanupState: TestCleanupState = {
             createdStudentEmails: [],
             createdCourseIds: [],
+            createdResourceIds: [],
             createdGroupIds: [],
         };
 
@@ -54,6 +58,10 @@ const test = baseTest.extend<{ cleanupState: TestCleanupState }>({
 
             for (const courseId of cleanupState.createdCourseIds) {
                 await deleteCourseById(courseId);
+            }
+
+            for (const resourceId of cleanupState.createdResourceIds) {
+                await deleteResourceById(resourceId);
             }
 
             for (const groupId of cleanupState.createdGroupIds) {
@@ -84,21 +92,32 @@ async function deleteStudentByEmail(studentEmail: string): Promise<void> {
 
 async function createActiveCourseFixture(): Promise<CourseFixture> {
     const randomSuffix = Math.random().toString(36).slice(2, 10);
-    const courseId = randomUUID();
+    const sessionId = randomUUID();
+    const resourceId = randomUUID();
     const courseName = `Cours UI ${randomSuffix}`;
 
+    await db.insert(resourceTable).values({
+        resourceId,
+        subject: courseName,
+    });
+
     await db.insert(sessionTable).values({
-        courseId,
+        sessionId,
+        resourceId,
         subject: courseName,
         startAt: new Date(Date.now() - 5 * 60 * 1000),
         endAt: new Date(Date.now() + 60 * 60 * 1000),
     });
 
-    return { courseId, courseName };
+    return { sessionId, resourceId, courseName };
 }
 
 async function deleteCourseById(sessionId: string): Promise<void> {
-    await db.delete(sessionTable).where(eq(sessionTable.sessionId, courseId));
+    await db.delete(sessionTable).where(eq(sessionTable.sessionId, sessionId));
+}
+
+async function deleteResourceById(resourceId: string): Promise<void> {
+    await db.delete(resourceTable).where(eq(resourceTable.resourceId, resourceId));
 }
 
 async function createGroupFixture(): Promise<number> {
@@ -121,7 +140,7 @@ async function deleteGroupById(groupId: number): Promise<void> {
 
 async function linkCourseToGroup(sessionId: string, groupId: number): Promise<void> {
     await db.insert(sessionGroupTable).values({
-        courseId,
+        sessionId,
         groupId,
     });
 }
@@ -143,6 +162,7 @@ async function createStudentWithCourseAccessFixture(
 
     cleanupState.createdStudentEmails.push(studentCredentials.email);
     cleanupState.createdCourseIds.push(activeCourse.sessionId);
+    cleanupState.createdResourceIds.push(activeCourse.resourceId);
     cleanupState.createdGroupIds.push(groupId);
 
     return {
@@ -189,7 +209,7 @@ async function countAttendanceRecords(sessionId: string, studentEmail: string): 
         .from(attendanceTable)
         .where(
             and(
-                eq(attendanceTable.sessionId, courseId),
+                eq(attendanceTable.sessionId, sessionId),
                 eq(attendanceTable.studentMail, studentEmail),
             ),
         );
@@ -200,7 +220,7 @@ async function countAttendanceRecords(sessionId: string, studentEmail: string): 
 async function deleteAttendanceRecords(sessionId: string, studentEmail: string): Promise<void> {
     await db.delete(attendanceTable).where(
         and(
-            eq(attendanceTable.sessionId, courseId),
+            eq(attendanceTable.sessionId, sessionId),
             eq(attendanceTable.studentMail, studentEmail),
         ),
     );

@@ -1,8 +1,9 @@
 import { test, expect } from './fixtures/authenticated-teacher';
 import { db } from '@/lib/db/drizzle';
 import { table as teacherTable } from '@/lib/db/schema/teacher';
+import { table as resourceTable } from '@/lib/db/schema/resource';
+import { table as resourceTeacherTable } from '@/lib/db/schema/resource-teacher';
 import { table as sessionTable } from '@/lib/db/schema/session';
-import { table as sessionTeacherTable } from '@/lib/db/schema/session-teacher';
 import { eq } from 'drizzle-orm';
 
 function normalizeStatusLabel(rawStatusText: string): 'En cours' | 'À venir' | 'Terminé' | null {
@@ -33,26 +34,26 @@ test.describe('Dashboard page', () => {
 
     test('should display the dashboard', async ({ authenticatedPage }) => {
         const heading1 = authenticatedPage.getByRole('heading', { name: 'Dashboard' });
-        const createCourseButton = authenticatedPage.getByRole('button', { name: 'Créer un cours' });
+        const createResourceButton = authenticatedPage.getByRole('button', { name: 'Créer une ressource' });
         
         await expect(heading1).toBeVisible();
-        await expect(createCourseButton).toBeVisible();
+        await expect(createResourceButton).toBeVisible();
     });
 
-    test('should display courses ordered by status: present, future, past', async ({ authenticatedPage }) => {
-        const courseRows = authenticatedPage.locator('tbody tr');
-        const courseRowCount = await courseRows.count();
+    test('should display resources ordered by status: present, future, past', async ({ authenticatedPage }) => {
+        const resourceRows = authenticatedPage.locator('tbody tr');
+        const resourceRowCount = await resourceRows.count();
         const statusTexts: Array<'En cours' | 'À venir' | 'Terminé'> = [];
 
-        for (let courseRowIndex = 0; courseRowIndex < courseRowCount; courseRowIndex++) {
-            const courseCells = courseRows.nth(courseRowIndex).locator('td');
-            const courseCellCount = await courseCells.count();
+        for (let resourceRowIndex = 0; resourceRowIndex < resourceRowCount; resourceRowIndex++) {
+            const resourceCells = resourceRows.nth(resourceRowIndex).locator('td');
+            const resourceCellCount = await resourceCells.count();
 
-            if (courseCellCount === 0) {
+            if (resourceCellCount === 0) {
                 continue;
             }
 
-            const rawStatusText = (await courseCells.nth(5).innerText()).trim();
+            const rawStatusText = (await resourceCells.nth(6).innerText()).trim();
             const normalizedStatusText = normalizeStatusLabel(rawStatusText);
 
             expect(normalizedStatusText).not.toBeNull();
@@ -77,8 +78,9 @@ test.describe('Dashboard page', () => {
 
     test('should only display courses for the connected teacher', async ({ authenticatedPage, testTeacherEmail }) => {
         const outsiderTeacherEmail = `outsider.${Date.now()}@univ-rennes.fr`;
-        const outsiderCourseId = `outsider-course-${Date.now()}`;
-        const outsiderCourseSubject = `Cours outsider ${Date.now()}`;
+        const outsiderResourceId = `outsider-resource-${Date.now()}`;
+        const outsiderSessionId = `outsider-session-${Date.now()}`;
+        const outsiderResourceSubject = `Ressource outsider ${Date.now()}`;
 
         await db.insert(teacherTable).values({
             userMail: outsiderTeacherEmail,
@@ -88,29 +90,36 @@ test.describe('Dashboard page', () => {
             isTeacher: true,
         });
 
-        await db.insert(sessionTable).values({
-            sessionId: outsiderCourseId,
-            subject: outsiderCourseSubject,
-            startAt: new Date(Date.now() + 60 * 60 * 1000),
-            endAt: new Date(Date.now() + 2 * 60 * 60 * 1000),
+        await db.insert(resourceTable).values({
+            resourceId: outsiderResourceId,
+            subject: outsiderResourceSubject,
         });
 
-        await db.insert(sessionTeacherTable).values({
-            sessionId: outsiderCourseId,
+        await db.insert(resourceTeacherTable).values({
+            resourceId: outsiderResourceId,
             teacherMail: outsiderTeacherEmail,
+        });
+
+        await db.insert(sessionTable).values({
+            sessionId: outsiderSessionId,
+            resourceId: outsiderResourceId,
+            subject: outsiderResourceSubject,
+            startAt: new Date(Date.now() + 60 * 60 * 1000),
+            endAt: new Date(Date.now() + 2 * 60 * 60 * 1000),
         });
 
         try {
             await authenticatedPage.goto('/professeur/dashboard');
 
-            await expect(authenticatedPage.getByRole('cell', { name: outsiderCourseSubject })).toHaveCount(0);
-            await expect(authenticatedPage.getByText('Cours Passé')).toBeVisible();
+            await expect(authenticatedPage.getByRole('cell', { name: outsiderResourceSubject })).toHaveCount(0);
+            await expect(authenticatedPage.locator('tbody tr').first()).toBeVisible();
 
             // Sanity check: the temporary course is linked to another teacher than the connected one.
             expect(outsiderTeacherEmail).not.toBe(testTeacherEmail);
         } finally {
-            await db.delete(sessionTeacherTable).where(eq(sessionTeacherTable.sessionId, outsiderCourseId));
-            await db.delete(sessionTable).where(eq(sessionTable.sessionId, outsiderCourseId));
+            await db.delete(sessionTable).where(eq(sessionTable.sessionId, outsiderSessionId));
+            await db.delete(resourceTeacherTable).where(eq(resourceTeacherTable.resourceId, outsiderResourceId));
+            await db.delete(resourceTable).where(eq(resourceTable.resourceId, outsiderResourceId));
             await db.delete(teacherTable).where(eq(teacherTable.userMail, outsiderTeacherEmail));
         }
     });
