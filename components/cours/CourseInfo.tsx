@@ -1,7 +1,6 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import QRCode from './QrCode';
-import { CourseStatus } from './course.types';
 
 export interface CourseInfoProps {
     /** Date du cours */
@@ -20,8 +19,10 @@ export interface CourseInfoProps {
     nonScannes: number;
     /** ID du cours pour le lien du QRCode */
     idCours: string;
-    /** Statut du cours pour adapter l'affichage si besoin */
-    status: CourseStatus;
+    /** Date/heure de démarrage de l'appel (null = pas encore démarré) */
+    calledStartAt: Date | null;
+    /** Date/heure de clôture de l'appel (null = pas encore clôturé) */
+    calledEndAt: Date | null;
 }
 
 // Formatte une date en "18 mars 2026"
@@ -52,11 +53,17 @@ export default function CourseInfo({
     presents,
     nonScannes,
     idCours,
-    status
+    calledStartAt,
+    calledEndAt,
 }: Readonly<CourseInfoProps>) {
     const dateFormatee = formatDate(date);
     const horaireFormate = `${heureDebut} — ${heureFin}`;
     const ENT_PAGE_URL = (process.env.NEXT_PUBLIC_BASE_URL ?? '') + '/etudiant?cours_id=' + idCours;
+
+    const now = new Date();
+    const isAppelActif =
+        calledStartAt !== null &&
+        (calledEndAt === null || calledEndAt > now);
 
     return (
         <div className="flex items-stretch gap-4">
@@ -83,7 +90,7 @@ export default function CourseInfo({
             </Card>
 
             {
-                status === CourseStatus.EN_COURS && (
+                isAppelActif && (
                     <div className="self-stretch shrink-0 flex items-center justify-center">
                         <QRCode codePin={ENT_PAGE_URL} />
                     </div>

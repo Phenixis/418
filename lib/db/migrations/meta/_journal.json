@@ -85,6 +85,13 @@
       "when": 1775046337171,
       "tag": "0011_panoramic_ben_urich",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1744017759126,
+      "tag": "0012_add_called_at_to_course",
+      "breakpoints": true
     }
   ]
 }

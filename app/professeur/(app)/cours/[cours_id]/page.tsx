@@ -1,4 +1,4 @@
-import CourseHeader from '@/components/cours/CourseHeader';
+import CourseActionsClient from '@/components/cours/CourseActionsClient';
 import CourseLiveSection from '@/components/cours/CourseLiveSection';
 import { CourseStatus } from '@/components/cours/course.types';
 import { fetchCoursActuel } from '@/lib/actions/cours-actuel';
@@ -41,7 +41,7 @@ export default async function AppelPage({ params }: Readonly<{ params: Promise<{
     return (
         <section className="flex flex-col py-10 gap-6">
             {/* En-tête : matière, statut et actions */}
-            <CourseHeader cours={cours} groups={groups} status={status} />
+            <CourseActionsClient cours={cours} groups={groups} status={status} />
 
             <CourseLiveSection
                 courseId={cours_id}
@@ -49,8 +49,9 @@ export default async function AppelPage({ params }: Readonly<{ params: Promise<{
                 heureDebut={formatHeure(dateDebut)}
                 heureFin={formatHeure(dateFin)}
                 classe={classe}
-                status={status}
                 etudiants={students}
+                calledStartAt={cours.calledStartAt}
+                calledEndAt={cours.calledEndAt}
             />
         </section>
     );

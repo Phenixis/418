@@ -6,7 +6,9 @@ export const table = lib.pgTable('course', {
     courseId: lib.varchar("course_id", { length: 36 }).primaryKey(),     // courseId est un UUID
     startAt: lib.timestamp("start_at").notNull(),
     endAt: lib.timestamp("end_at").notNull(),
-    subject: lib.varchar("subject", { length: 50 }).notNull()
+    subject: lib.varchar("subject", { length: 50 }).notNull(),
+    calledStartAt: lib.timestamp("called_start_at"),
+    calledEndAt: lib.timestamp("called_end_at"),
 });
 
 export const relations = lib.relations(table, ({many}) => ({

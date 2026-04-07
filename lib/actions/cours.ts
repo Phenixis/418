@@ -199,6 +199,47 @@ export async function modifierCours(prevState: ActionResult, formData: FormData)
     };
 }
 
+export async function demarrerAppel(courseId: string): Promise<ActionResult> {
+    await teacherQueries.getTeacher();
+
+    const courseResult = await courseQueries.getByStringId(courseId);
+    if ('error' in courseResult) {
+        return { error: true, message: "Cours introuvable." };
+    }
+
+    const cours = courseResult.entity;
+    const now = new Date();
+    const courseDurationMs = cours.endAt.getTime() - cours.startAt.getTime();
+    const calledEndAt = new Date(now.getTime() + courseDurationMs);
+
+    const result = await courseQueries.update(courseId, {
+        calledStartAt: now,
+        calledEndAt,
+    });
+
+    if ('error' in result) {
+        return { error: true, message: "Erreur lors du démarrage de l'appel." };
+    }
+
+    revalidatePath(`/professeur/cours/${courseId}`);
+    return { success: true };
+}
+
+export async function terminerAppel(courseId: string): Promise<ActionResult> {
+    await teacherQueries.getTeacher();
+
+    const result = await courseQueries.update(courseId, {
+        calledEndAt: new Date(),
+    });
+
+    if ('error' in result) {
+        return { error: true, message: "Erreur lors de la clôture de l'appel." };
+    }
+
+    revalidatePath(`/professeur/cours/${courseId}`);
+    return { success: true };
+}
+
 export async function deleteCourse(formData: FormData): Promise<void> {
     await teacherQueries.getTeacher();
 
