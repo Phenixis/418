@@ -193,8 +193,8 @@ test.describe('Segment dynamique de cours', () => {
 		await expect(qrButton).toBeEnabled();
 	});
 
-	test('doit ouvrir une nouvelle fenêtre QR avec uniquement le QR quand on clique dessus', async ({ authenticatedPage }) => {
-		expect(await openCourseByStatus(authenticatedPage, 'En cours')).toBeTruthy();
+	test('doit ouvrir une nouvelle fenêtre QR avec le QR et les boutons de téléchargement quand on clique dessus', async ({ authenticatedPage }) => {
+		await openCourseByStatus(authenticatedPage, 'En cours');
 
 		const qrButton = getQrButton(authenticatedPage);
 		const [popup] = await Promise.all([
@@ -205,8 +205,65 @@ test.describe('Segment dynamique de cours', () => {
 		await popup.waitForLoadState('domcontentloaded');
 
 		expect(popup.url()).toContain('/api/teacher/qr-code?codePin=');
-		await expect(popup.locator('main svg')).toHaveCount(1);
-		await expect(popup.locator('main > *')).toHaveCount(1);
+		await expect(popup.locator('main canvas')).toHaveCount(1);
+		await expect(popup.getByRole('button', { name: 'Télécharger le QR code en PNG' })).toBeVisible();
+		await expect(popup.getByRole('button', { name: 'Télécharger le QR code en JPG' })).toBeVisible();
+	});
+
+	test('doit télécharger le QR code en PNG quand on clique sur le bouton PNG', async ({ authenticatedPage }) => {
+		await openCourseByStatus(authenticatedPage, 'En cours');
+
+		const qrButton = getQrButton(authenticatedPage);
+		const [popup] = await Promise.all([
+			authenticatedPage.waitForEvent('popup'),
+			qrButton.click(),
+		]);
+
+		await popup.waitForLoadState('domcontentloaded');
+		await popup.locator('main canvas').waitFor({ state: 'visible' });
+		await expect(popup.getByRole('button', { name: 'Télécharger le QR code en PNG' })).toBeEnabled();
+
+		await popup.evaluate(() => {
+			(globalThis as unknown as Record<string, unknown>).__capturedQrMimeType = null;
+			const originalToDataURL = HTMLCanvasElement.prototype.toDataURL;
+			HTMLCanvasElement.prototype.toDataURL = function (...args: [string?, number?]) {
+				(globalThis as unknown as Record<string, unknown>).__capturedQrMimeType = args[0] ?? 'image/png';
+				return originalToDataURL.apply(this, args);
+			};
+		});
+
+		await popup.getByRole('button', { name: 'Télécharger le QR code en PNG' }).click();
+		await popup.waitForFunction(() => (globalThis as unknown as Record<string, unknown>).__capturedQrMimeType !== null);
+		const capturedQrMimeType = await popup.evaluate(() => (globalThis as unknown as Record<string, unknown>).__capturedQrMimeType as string | null);
+		expect(capturedQrMimeType).toBe('image/png');
+	});
+
+	test('doit télécharger le QR code en JPG quand on clique sur le bouton JPG', async ({ authenticatedPage }) => {
+		await openCourseByStatus(authenticatedPage, 'En cours');
+
+		const qrButton = getQrButton(authenticatedPage);
+		const [popup] = await Promise.all([
+			authenticatedPage.waitForEvent('popup'),
+			qrButton.click(),
+		]);
+
+		await popup.waitForLoadState('domcontentloaded');
+		await popup.locator('main canvas').waitFor({ state: 'visible' });
+		await expect(popup.getByRole('button', { name: 'Télécharger le QR code en JPG' })).toBeEnabled();
+
+		await popup.evaluate(() => {
+			(globalThis as unknown as Record<string, unknown>).__capturedQrMimeType = null;
+			const originalToDataURL = HTMLCanvasElement.prototype.toDataURL;
+			HTMLCanvasElement.prototype.toDataURL = function (...args: [string?, number?]) {
+				(globalThis as unknown as Record<string, unknown>).__capturedQrMimeType = args[0] ?? 'image/png';
+				return originalToDataURL.apply(this, args);
+			};
+		});
+
+		await popup.getByRole('button', { name: 'Télécharger le QR code en JPG' }).click();
+		await popup.waitForFunction(() => (globalThis as unknown as Record<string, unknown>).__capturedQrMimeType !== null);
+		const capturedQrMimeType = await popup.evaluate(() => (globalThis as unknown as Record<string, unknown>).__capturedQrMimeType as string | null);
+		expect(capturedQrMimeType).toBe('image/jpeg');
 	});
 
 	test('doit parcourir le cycle complet de présence au clic sur un étudiant', async ({ authenticatedPage }) => {
