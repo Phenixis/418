@@ -2,6 +2,7 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
     images: {
+        qualities: [25, 50, 75, 100]
         remotePatterns: [
             {
                 // Pour l'instant vu qu'on a pas de BDD,
