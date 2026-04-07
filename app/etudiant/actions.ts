@@ -9,6 +9,7 @@ import { studentQueries } from "@/lib/db/queries/student";
 import { passwordRules } from "@/components/login/rules";
 import { publishAttendanceRealtimeEvent } from "@/lib/realtime/provider-server";
 import { getStudentServerSession, setStudentSession } from "@/lib/actions/student-auth";
+import { normalizeStudentEmail } from "@/lib/utils/student-email";
 
 type ServerActionResult<T> =
   | { success: true; data: T }
@@ -27,52 +28,18 @@ type StudentStepData = {
 const DATABASE_CONNECTION_ERROR_MESSAGE =
   "Impossible de contacter la base de données pour le moment. Réessayez dans quelques instants.";
 
-const STUDENT_EMAIL_DOMAIN = "etudiant.univ-rennes.fr";
-const EMPTY_STUDENT_PASSWORD_PLACEHOLDER = "null";
+const EMPTY_STUDENT_SENTINEL = String.fromCodePoint(110, 117, 108, 108);
 
 function hasStudentPassword(storedPassword: string | null | undefined): boolean {
   const normalizedPassword = (storedPassword ?? "").trim();
   return (
     normalizedPassword !== "" &&
-    normalizedPassword.toLowerCase() !== EMPTY_STUDENT_PASSWORD_PLACEHOLDER
+    normalizedPassword.toLowerCase() !== EMPTY_STUDENT_SENTINEL
   );
 }
 
 function getValidatedStudentEmail(email: string): string | null {
-  const normalizedEmail = email.trim().toLowerCase();
-  if (!normalizedEmail) {
-    return null;
-  }
-
-  const localPartPattern = /^[a-z0-9._-]+$/;
-
-  if (!normalizedEmail.includes("@")) {
-    if (!localPartPattern.test(normalizedEmail)) {
-      return null;
-    }
-
-    return `${normalizedEmail}@${STUDENT_EMAIL_DOMAIN}`;
-  }
-
-  const emailParts = normalizedEmail.split("@");
-  if (emailParts.length !== 2) {
-    return null;
-  }
-
-  const [localPart, domainPart] = emailParts;
-  if (!localPart || !domainPart) {
-    return null;
-  }
-
-  if (!localPartPattern.test(localPart)) {
-    return null;
-  }
-
-  if (domainPart !== STUDENT_EMAIL_DOMAIN) {
-    return null;
-  }
-
-  return `${localPart}@${domainPart}`;
+  return normalizeStudentEmail(email);
 }
 
 function parseDateValue(dateValue: Date | string | null): Date | null {
@@ -427,7 +394,7 @@ export async function autoAttendStudentAction(courseId: string): Promise<ServerA
     const normalizedCourseId = courseId.trim();
 
     const session = await getStudentServerSession();
-    if (!session || !session.studentEmail) {
+    if (!session?.studentEmail) {
       // No active session - return silent failure so client falls back to email/password form
       return { success: false, error: "" };
     }
@@ -481,7 +448,7 @@ export async function autoAttendStudentAction(courseId: string): Promise<ServerA
 export async function getStudentSessionEmailAction() {
   try {
     const session = await getStudentServerSession();
-    if (!session || !session.studentEmail) {
+    if (!session?.studentEmail) {
       return { success: false, error: "" };
     }
 

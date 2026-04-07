@@ -16,7 +16,17 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from '@/components/ui/input-group';
+import SelectGroup from '@/components/cours/creation/select-group';
+import {
+    createStudent,
+    deleteStudentByEmail,
+    deleteTemporaryUploadedPicture,
+    updateStudent,
+    uploadStudentPicture,
+} from '@/components/admin/StudentsTable/students-management-api-client';
 import { getStudentPictureSrc } from '@/lib/utils/student-picture';
+import { isStudentBlobPath } from '@/lib/utils/blob';
+import { normalizeStudentEmail, stripStudentEmailDomain, STUDENT_EMAIL_DOMAIN } from '@/lib/utils/student-email';
 import {
     Select,
     SelectContent,
@@ -55,41 +65,22 @@ type StudentFormState = {
     picture: string | null;
 };
 
-const STUDENT_EMAIL_DOMAIN = 'etudiant.univ-rennes.fr';
 const UNASSIGNED_GROUP_ID = 'unassigned';
 const ALL_FILTER_VALUE = 'all';
-
-function isBlobStudentPath(value: string | null | undefined): value is string {
-    return typeof value === 'string' && value.startsWith('students/');
-}
 
 function buildGroupLabel(group: Group): string {
     return `${group.promo}${group.td}${group.tp}`;
 }
 
-function normalizeStudentEmail(inputEmail: string): string {
-    const normalizedEmail = inputEmail.trim().toLowerCase();
 
-    if (!normalizedEmail) {
-        return '';
-    }
+function normalizeStudentEmailForRequest(inputEmail: string): string {
+    const normalizedEmail = normalizeStudentEmail(inputEmail);
 
-    if (normalizedEmail.includes('@')) {
+    if (normalizedEmail) {
         return normalizedEmail;
     }
 
-    return `${normalizedEmail}@${STUDENT_EMAIL_DOMAIN}`;
-}
-
-function stripStudentEmailDomain(inputEmail: string): string {
-    const normalizedEmail = inputEmail.trim().toLowerCase();
-    const suffix = `@${STUDENT_EMAIL_DOMAIN}`;
-
-    if (normalizedEmail.endsWith(suffix)) {
-        return normalizedEmail.slice(0, -suffix.length);
-    }
-
-    return normalizedEmail;
+    return inputEmail.trim().toLowerCase();
 }
 
 function toApiGroupId(rawGroupId: string): number | null {
@@ -98,32 +89,6 @@ function toApiGroupId(rawGroupId: string): number | null {
     }
 
     return Number.parseInt(rawGroupId, 10);
-}
-
-async function parseJsonResponse<T>(response: Response): Promise<T> {
-    const responseBody = await response.json() as T & { error?: string };
-
-    if (!response.ok) {
-        throw new Error(responseBody.error ?? 'Une erreur est survenue.');
-    }
-
-    return responseBody;
-}
-
-async function deleteTemporaryUploadedPicture(pathname: string): Promise<void> {
-    const response = await fetch('/api/admin/students/upload', {
-        method: 'DELETE',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ pathname }),
-    });
-
-    const responseBody = await response.json() as { error?: string };
-
-    if (!response.ok) {
-        throw new Error(responseBody.error ?? 'Suppression image temporaire impossible.');
-    }
 }
 
 function createDefaultFormState(): StudentFormState {
@@ -145,7 +110,7 @@ export default function StudentsManagementClient({ initialStudents, groups }: Re
     const [editFormState, setEditFormState] = useState<StudentFormState>(createDefaultFormState());
     const [selectedStudentEmail, setSelectedStudentEmail] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
-    const [groupFilter, setGroupFilter] = useState<string>(ALL_FILTER_VALUE);
+    const [groupFilters, setGroupFilters] = useState<string[]>([]);
     const [yearFilter, setYearFilter] = useState<string>(ALL_FILTER_VALUE);
     const [isMoveDialogOpen, setIsMoveDialogOpen] = useState(false);
     const [moveTargetGroupId, setMoveTargetGroupId] = useState<string>('');
@@ -242,12 +207,12 @@ export default function StudentsManagementClient({ initialStudents, groups }: Re
     const visibleGroups = useMemo(() => {
         return sortedGroups.filter((group) => {
             const groupKey = String(group.groupId);
-            const matchesGroup = groupFilter === ALL_FILTER_VALUE || groupFilter === groupKey;
+            const matchesGroup = groupFilters.length === 0 || groupFilters.includes(groupKey);
             const matchesYear = yearFilter === ALL_FILTER_VALUE || group.promo === yearFilter;
 
             return matchesGroup && matchesYear;
         });
-    }, [groupFilter, sortedGroups, yearFilter]);
+    }, [groupFilters, sortedGroups, yearFilter]);
 
     const visibleGroupsByYear = useMemo(() => {
         const groupsByYear: Record<string, Group[]> = {};
@@ -268,8 +233,8 @@ export default function StudentsManagementClient({ initialStudents, groups }: Re
     }, [visibleGroupsByYear]);
 
     const shouldShowUnassignedGroup = useMemo(() => {
-        return groupFilter === ALL_FILTER_VALUE || groupFilter === UNASSIGNED_GROUP_ID;
-    }, [groupFilter]);
+        return groupFilters.length === 0;
+    }, [groupFilters]);
 
     const selectedStudent = useMemo(() => {
         if (!selectedStudentEmail) {
@@ -306,15 +271,7 @@ export default function StudentsManagementClient({ initialStudents, groups }: Re
         resetStatusMessages();
 
         try {
-            const formData = new FormData();
-            formData.append('file', file);
-
-            const response = await fetch('/api/admin/students/upload', {
-                method: 'POST',
-                body: formData,
-            });
-
-            const responseData = await parseJsonResponse<{ url: string; pathname: string; success: boolean }>(response);
+            const responseData = await uploadStudentPicture(file);
 
             if (field === 'create') {
                 if (temporaryCreatePicturePath && temporaryCreatePicturePath !== responseData.pathname) {
@@ -354,7 +311,7 @@ export default function StudentsManagementClient({ initialStudents, groups }: Re
             return;
         }
 
-        if (isBlobStudentPath(temporaryCreatePicturePath)) {
+        if (isStudentBlobPath(temporaryCreatePicturePath)) {
             try {
                 await deleteTemporaryUploadedPicture(temporaryCreatePicturePath);
             } catch (error) {
@@ -373,7 +330,7 @@ export default function StudentsManagementClient({ initialStudents, groups }: Re
             return;
         }
 
-        if (isBlobStudentPath(temporaryEditPicturePath)) {
+        if (isStudentBlobPath(temporaryEditPicturePath)) {
             try {
                 await deleteTemporaryUploadedPicture(temporaryEditPicturePath);
             } catch (error) {
@@ -489,23 +446,15 @@ export default function StudentsManagementClient({ initialStudents, groups }: Re
         resetStatusMessages();
 
         try {
-            const response = await fetch('/api/admin/students', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    firstName: createFormState.firstName,
-                    lastName: createFormState.lastName,
-                    email: normalizeStudentEmail(createFormState.email),
-                    groupId: toApiGroupId(createFormState.groupId),
-                    picture: createFormState.picture,
-                }),
+            const createdStudent = await createStudent({
+                firstName: createFormState.firstName,
+                lastName: createFormState.lastName,
+                email: normalizeStudentEmailForRequest(createFormState.email),
+                groupId: toApiGroupId(createFormState.groupId),
+                picture: createFormState.picture,
             });
 
-            const responseBody = await parseJsonResponse<{ student: Student }>(response);
-
-            setStudents((previousStudents) => [responseBody.student, ...previousStudents]);
+            setStudents((previousStudents) => [createdStudent, ...previousStudents]);
             setTemporaryCreatePicturePath(null);
             setIsCreateDialogOpen(false);
             setFeedbackMessage('Étudiant créé avec succès.');
@@ -525,25 +474,17 @@ export default function StudentsManagementClient({ initialStudents, groups }: Re
         resetStatusMessages();
 
         try {
-            const response = await fetch('/api/admin/students', {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    currentEmail: selectedStudent.userMail,
-                    firstName: editFormState.firstName,
-                    lastName: editFormState.lastName,
-                    email: normalizeStudentEmail(editFormState.email),
-                    groupId: toApiGroupId(editFormState.groupId),
-                    picture: editFormState.picture,
-                }),
+            const updatedStudent = await updateStudent({
+                currentEmail: selectedStudent.userMail,
+                firstName: editFormState.firstName,
+                lastName: editFormState.lastName,
+                email: normalizeStudentEmailForRequest(editFormState.email),
+                groupId: toApiGroupId(editFormState.groupId),
+                picture: editFormState.picture,
             });
 
-            const responseBody = await parseJsonResponse<{ student: Student }>(response);
-
             setStudents((previousStudents) => previousStudents.map((student) => (
-                student.userMail === selectedStudent.userMail ? responseBody.student : student
+                student.userMail === selectedStudent.userMail ? updatedStudent : student
             )));
 
             setTemporaryEditPicturePath(null);
@@ -566,17 +507,7 @@ export default function StudentsManagementClient({ initialStudents, groups }: Re
         resetStatusMessages();
 
         try {
-            const response = await fetch('/api/admin/students', {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    email: selectedStudent.userMail,
-                }),
-            });
-
-            await parseJsonResponse<{ student: Student }>(response);
+            await deleteStudentByEmail(selectedStudent.userMail);
 
             setStudents((previousStudents) => previousStudents.filter((student) => student.userMail !== selectedStudent.userMail));
             setIsDeleteDialogOpen(false);
@@ -606,24 +537,16 @@ export default function StudentsManagementClient({ initialStudents, groups }: Re
         resetStatusMessages();
 
         try {
-            const response = await fetch('/api/admin/students', {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    currentEmail: movedStudent.userMail,
-                    firstName: movedStudent.firstName,
-                    lastName: movedStudent.lastName,
-                    email: movedStudent.userMail,
-                    groupId: parsedTargetGroupId,
-                }),
+            const updatedStudent = await updateStudent({
+                currentEmail: movedStudent.userMail,
+                firstName: movedStudent.firstName,
+                lastName: movedStudent.lastName,
+                email: movedStudent.userMail,
+                groupId: parsedTargetGroupId,
             });
 
-            const responseBody = await parseJsonResponse<{ student: Student }>(response);
-
             setStudents((previousStudents) => previousStudents.map((student) => (
-                student.userMail === movedStudent.userMail ? responseBody.student : student
+                student.userMail === movedStudent.userMail ? updatedStudent : student
             )));
 
             setFeedbackMessage('Affectation de classe mise à jour.');
@@ -646,73 +569,63 @@ export default function StudentsManagementClient({ initialStudents, groups }: Re
 
     return (
         <section className="space-y-4">
-            <div className="flex flex-wrap gap-3 items-end justify-between">
-                <div className="flex flex-wrap gap-3 items-end">
-                    <div className="min-w-64 space-y-1">
-                        <Label htmlFor="search-student">Recherche</Label>
-                        <Input
-                            id="search-student"
-                            placeholder="Nom ou email"
-                            value={searchTerm}
-                            onChange={(event) => setSearchTerm(event.target.value)}
-                        />
-                    </div>
-                    <div className="space-y-1">
-                        <Label>Filtre année</Label>
-                        <Select value={yearFilter} onValueChange={setYearFilter}>
-                            <SelectTrigger className="w-52">
-                                <SelectValue placeholder="Toutes les années" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value={ALL_FILTER_VALUE}>Toutes les années</SelectItem>
-                                {availableYears.map((year) => (
-                                    <SelectItem key={year} value={year}>
-                                        Année {year}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <div className="space-y-1">
-                        <Label>Filtre classe</Label>
-                        <Select value={groupFilter} onValueChange={setGroupFilter}>
-                            <SelectTrigger className="w-52">
-                                <SelectValue placeholder="Toutes les classes" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value={ALL_FILTER_VALUE}>Toutes les classes</SelectItem>
-                                {sortedGroups.map((group) => (
-                                    <SelectItem key={group.groupId} value={String(group.groupId)}>
-                                        {buildGroupLabel(group)}
-                                    </SelectItem>
-                                ))}
-                                <SelectItem value={UNASSIGNED_GROUP_ID}>Non assigné</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
+            <div className="rounded-lg p-3 space-y-2">
+                <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
+                    <Input
+                        id="search-student"
+                        placeholder="Recherche (nom ou email)"
+                        value={searchTerm}
+                        onChange={(event) => setSearchTerm(event.target.value)}
+                        className="h-10 w-full text-sm"
+                    />
+
+                    <Select value={yearFilter} onValueChange={setYearFilter}>
+                        <SelectTrigger className="h-10 w-full text-sm data-[size=default]:h-10 data-[placeholder]:text-black/70">
+                            <SelectValue placeholder="Toutes les années" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value={ALL_FILTER_VALUE}>Toutes les années</SelectItem>
+                            {availableYears.map((year) => (
+                                <SelectItem key={year} value={year}>
+                                    Année {year}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+
+                    <SelectGroup
+                        groups={sortedGroups}
+                        groupsSelected={groupFilters}
+                        setGroupsSelected={setGroupFilters}
+                        hideLabel
+                        displayMode="summary"
+                        placeholder="Toutes les classes"
+                        className="mb-0"
+                    />
                 </div>
-                <div className="flex flex-wrap gap-2">
-                    <Button variant="outline" disabled title="L'import CSV sera branché dans une prochaine étape.">
+
+                <div className="flex flex-wrap items-center justify-end gap-1.5">
+                    <Button className="h-10 whitespace-nowrap px-3 text-sm" variant="outline" disabled title="L'import CSV sera branché dans une prochaine étape.">
                         <FileUploadIcon /> Importer des étudiants
                     </Button>
-                    <Button variant="outline" onClick={() => setVisibilityForAllSections(true)}>
+                    <Button className="h-10 whitespace-nowrap px-3 text-sm" variant="outline" onClick={() => setVisibilityForAllSections(true)}>
                         Tout déplier
                     </Button>
-                    <Button variant="outline" onClick={() => setVisibilityForAllSections(false)}>
+                    <Button className="h-10 whitespace-nowrap px-3 text-sm" variant="outline" onClick={() => setVisibilityForAllSections(false)}>
                         Tout replier
                     </Button>
-                    <Button onClick={openCreateDialog}>
+                    <Button className="h-10 whitespace-nowrap px-3 text-sm" onClick={openCreateDialog}>
                         <AddIcon /> Ajouter un étudiant
                     </Button>
                 </div>
             </div>
 
             {feedbackMessage && (
-                <p className="text-sm text-green-700">{feedbackMessage}</p>
+                <p className="rounded-md border border-green-300/80 bg-green-50 px-3 py-2 text-sm text-green-800">{feedbackMessage}</p>
             )}
 
             {errorMessage && (
-                <p className="text-sm text-red-600">{errorMessage}</p>
+                <p className="rounded-md border border-red-300/80 bg-red-50 px-3 py-2 text-sm text-red-700">{errorMessage}</p>
             )}
 
             <div className="space-y-4">
@@ -725,13 +638,13 @@ export default function StudentsManagementClient({ initialStudents, groups }: Re
                     return (
                         <Collapsible
                             key={`year-${year}`}
-                            className="rounded-xl border bg-white/80 p-4 space-y-3"
+                            className="rounded-xl border border-faded/80 bg-transparent p-4 space-y-3"
                             open={openYearKeys[year] ?? true}
                             onOpenChange={(isOpen) => updateYearOpenState(year, isOpen)}
                         >
                             <div className="flex items-center justify-between gap-2">
                                 <h2>
-                                    <CollapsibleTrigger className="h2">
+                                    <CollapsibleTrigger className="cursor-pointer flex w-full items-center gap-2 h2">
                                         Année {year}
                                     </CollapsibleTrigger>
                                 </h2>
@@ -748,13 +661,13 @@ export default function StudentsManagementClient({ initialStudents, groups }: Re
                                     return (
                                         <Collapsible
                                             key={group.groupId}
-                                            className="rounded-lg border bg-white/70 p-4 space-y-3"
+                                            className="rounded-lg border border-faded/70 bg-transparent p-3 space-y-2"
                                             open={openGroupKeys[groupKey] ?? true}
                                             onOpenChange={(isOpen) => updateGroupOpenState(groupKey, isOpen)}
                                         >
                                             <div className="flex items-center justify-between gap-2">
                                                 <h3>
-                                                    <CollapsibleTrigger className="h2">
+                                                    <CollapsibleTrigger className="cursor-pointer flex w-full items-center gap-2 h2">
                                                         Classe {buildGroupLabel(group)}
                                                     </CollapsibleTrigger>
                                                 </h3>
@@ -765,35 +678,32 @@ export default function StudentsManagementClient({ initialStudents, groups }: Re
                                                     {groupStudents.map((student) => (
                                                         <article
                                                             key={student.userMail}
-                                                            className="rounded-md border p-3 bg-white flex items-center justify-between gap-2"
+                                                            className="rounded-md border border-faded/70 bg-transparent p-3 flex items-center gap-3"
                                                         >
-                                                            <div>
-                                                                <p className="font-medium">{student.firstName} {student.lastName}</p>
-                                                                <p className="text-sm text-black/70">{student.userMail}</p>
+                                                            {/* Infos */}
+                                                            <div className="flex flex-col justify-center min-w-0">
+                                                                <p className="font-medium truncate">
+                                                                    {student.firstName} {student.lastName}
+                                                                </p>
+                                                                <p className="text-sm text-black/70 truncate">
+                                                                    {student.userMail}
+                                                                </p>
                                                             </div>
-                                                            <div className="flex items-center gap-1">
-                                                                <Button
-                                                                    size="icon-xs"
-                                                                    variant="ghost"
-                                                                    title="Modifier"
-                                                                    onClick={openEditDialog.bind(null, student)}
-                                                                >
+
+                                                            {/* Actions */}
+                                                            <div className="flex flex-wrap gap-2 ml-auto">
+                                                                <Button size="icon-xs" variant="ghost" title="Modifier"
+                                                                    onClick={openEditDialog.bind(null, student)}>
                                                                     <EditIcon />
                                                                 </Button>
-                                                                <Button
-                                                                    size="icon-xs"
-                                                                    variant="ghost"
-                                                                    title="Déplacer vers une autre classe de la même année"
-                                                                    onClick={openMoveDialog.bind(null, student)}
-                                                                >
+
+                                                                <Button size="icon-xs" variant="ghost" title="Déplacer"
+                                                                    onClick={openMoveDialog.bind(null, student)}>
                                                                     <SwapHorizIcon />
                                                                 </Button>
-                                                                <Button
-                                                                    size="icon-xs"
-                                                                    variant="ghost"
-                                                                    title="Supprimer"
-                                                                    onClick={openDeleteDialog.bind(null, student)}
-                                                                >
+
+                                                                <Button size="icon-xs" variant="ghost" title="Supprimer"
+                                                                    onClick={openDeleteDialog.bind(null, student)}>
                                                                     <DeleteIcon />
                                                                 </Button>
                                                             </div>
@@ -814,13 +724,15 @@ export default function StudentsManagementClient({ initialStudents, groups }: Re
 
                 {shouldShowUnassignedGroup && (
                     <Collapsible
-                        className="rounded-lg border border-dashed bg-white/50 p-4 space-y-3"
+                        className="rounded-lg border border-dashed border-faded/70 bg-transparent p-3 space-y-2"
                         open={openGroupKeys[UNASSIGNED_GROUP_ID] ?? true}
                         onOpenChange={(isOpen) => updateGroupOpenState(UNASSIGNED_GROUP_ID, isOpen)}
                     >
                         <div className="flex items-center justify-between gap-2">
                             <h2>
-                                <CollapsibleTrigger className="h2">Non assigné</CollapsibleTrigger>
+                                <CollapsibleTrigger className="cursor-pointer flex w-full items-center gap-2 h2">
+                                    Non assigné
+                                </CollapsibleTrigger>
                             </h2>
                             <Badge variant="outline">{(groupedStudents.get(UNASSIGNED_GROUP_ID) ?? []).length}</Badge>
                         </div>
@@ -829,7 +741,7 @@ export default function StudentsManagementClient({ initialStudents, groups }: Re
                                 {(groupedStudents.get(UNASSIGNED_GROUP_ID) ?? []).map((student) => (
                                     <article
                                         key={student.userMail}
-                                        className="rounded-md border p-3 bg-white flex items-center justify-between gap-2"
+                                        className="rounded-md border border-faded/70 p-3 bg-transparent flex items-center justify-between gap-2"
                                     >
                                         <div>
                                             <p className="font-medium">{student.firstName} {student.lastName}</p>
@@ -970,7 +882,7 @@ export default function StudentsManagementClient({ initialStudents, groups }: Re
                                                 void handleImageUpload(file, 'create');
                                             }
                                         }}
-                                        className="block w-full text-sm text-black/70 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="block h-9 w-full text-sm text-black/70 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
                                     />
                                 </div>
                                 {createFormState.picture && (
@@ -1081,7 +993,7 @@ export default function StudentsManagementClient({ initialStudents, groups }: Re
                                                 void handleImageUpload(file, 'edit');
                                             }
                                         }}
-                                        className="block w-full text-sm text-black/70 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="block h-9 w-full text-sm text-black/70 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
                                     />
                                 </div>
                                 {editFormState.picture && (

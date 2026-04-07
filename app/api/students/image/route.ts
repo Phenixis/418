@@ -3,6 +3,8 @@ import { get, type GetBlobResult } from '@vercel/blob';
 import { getServerSession } from '@/lib/actions/authentication';
 import { getStudentServerSession } from '@/lib/actions/student-auth';
 import { studentQueries } from '@/lib/db/queries/student';
+import { teacherQueries } from '@/lib/db/queries/teacher';
+import { normalizeBlobSource as normalizeBlobSourceUtil } from '@/lib/utils/blob';
 
 type TeacherSession = Awaited<ReturnType<typeof getServerSession>>;
 type StudentSession = Awaited<ReturnType<typeof getStudentServerSession>>;
@@ -14,24 +16,6 @@ function ensureAuthenticatedSession(teacherSession: TeacherSession, studentSessi
     }
 
     return null;
-}
-
-function normalizeBlobSource(rawSource: string): string {
-    if (!rawSource.startsWith('http')) {
-        return rawSource;
-    }
-
-    try {
-        const sourceUrl = new URL(rawSource);
-
-        if (!sourceUrl.hostname.includes('blob.vercel-storage.com')) {
-            return rawSource;
-        }
-
-        return sourceUrl.pathname.replace(/^\//, '');
-    } catch {
-        return rawSource;
-    }
 }
 
 async function ensureStudentCanAccessSource(studentEmail: string, source: string): Promise<NextResponse | null> {
@@ -47,8 +31,8 @@ async function ensureStudentCanAccessSource(studentEmail: string, source: string
         return NextResponse.json({ error: 'Aucune image associée à cet étudiant.' }, { status: 403 });
     }
 
-    const normalizedRequestedSource = normalizeBlobSource(source);
-    const normalizedStudentPicture = normalizeBlobSource(studentPicture);
+    const normalizedRequestedSource = normalizeBlobSourceUtil(source);
+    const normalizedStudentPicture = normalizeBlobSourceUtil(studentPicture);
 
     if (normalizedRequestedSource !== normalizedStudentPicture) {
         return NextResponse.json({ error: 'Accès non autorisé à cette image.' }, { status: 403 });
@@ -91,6 +75,14 @@ export async function GET(request: Request) {
 
     if (!source) {
         return NextResponse.json({ error: 'Paramètre source manquant.' }, { status: 400 });
+    }
+
+    if (isTeacherAuthenticated) {
+        const teacherResult = await teacherQueries.getByEmail(teacherSession!.teacherEmail);
+
+        if ('error' in teacherResult || !teacherResult.entity.isValidated) {
+            return NextResponse.json({ error: 'Compte enseignant non validé.' }, { status: 403 });
+        }
     }
 
     if (!isTeacherAuthenticated && isStudentAuthenticated) {

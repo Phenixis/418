@@ -4,6 +4,8 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import type { Select as Group } from "@/lib/db/schema/group";
 import type { Select as Student } from "@/lib/db/schema/student";
 import { useEffect, useState } from "react";
+import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
+import UnfoldLessIcon from '@mui/icons-material/UnfoldLess';
 import EtudiantCard from "../etudiant/etudiant-card";
 import EtudiantCardSkeleton from '../etudiant/etudiant-card-skeleton';
 
@@ -54,8 +56,7 @@ export default function CollapsibleGroup({
 
     return (
         <Collapsible open={open} onOpenChange={setOpen}>
-            <CollapsibleTrigger className="cursor-pointer flex w-full items-center gap-2 h3">
-                {group.td}{group.tp}
+            <CollapsibleTrigger className="cursor-pointer flex w-full items-center gap-2 h3">                {open ? <UnfoldLessIcon /> : <UnfoldMoreIcon />}                {group.td}{group.tp}
             </CollapsibleTrigger>
             <CollapsibleContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 md:gap-4">

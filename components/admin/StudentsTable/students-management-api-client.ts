@@ -1,0 +1,97 @@
+import type { Select as Student } from '@/lib/db/schema/student';
+
+type JsonErrorPayload = {
+    error?: string;
+};
+
+type StudentUploadResponse = {
+    url: string;
+    pathname: string;
+    success: boolean;
+};
+
+type StudentResponse = {
+    student: Student;
+};
+
+type StudentWritePayload = {
+    currentEmail?: string;
+    email?: string;
+    firstName?: string;
+    lastName?: string;
+    groupId?: number | null;
+    picture?: string | null;
+};
+
+async function parseJsonResponse<T>(response: Response): Promise<T> {
+    const responseBody = await response.json() as T & JsonErrorPayload;
+
+    if (!response.ok) {
+        throw new Error(responseBody.error ?? 'Une erreur est survenue.');
+    }
+
+    return responseBody;
+}
+
+export async function uploadStudentPicture(file: File): Promise<StudentUploadResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch('/api/admin/students/upload', {
+        method: 'POST',
+        body: formData,
+    });
+
+    return parseJsonResponse<StudentUploadResponse>(response);
+}
+
+export async function deleteTemporaryUploadedPicture(pathname: string): Promise<void> {
+    const response = await fetch('/api/admin/students/upload', {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ pathname }),
+    });
+
+    await parseJsonResponse<JsonErrorPayload>(response);
+}
+
+export async function createStudent(payload: StudentWritePayload): Promise<Student> {
+    const response = await fetch('/api/admin/students', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+    });
+
+    const responseBody = await parseJsonResponse<StudentResponse>(response);
+    return responseBody.student;
+}
+
+export async function updateStudent(payload: StudentWritePayload): Promise<Student> {
+    const response = await fetch('/api/admin/students', {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+    });
+
+    const responseBody = await parseJsonResponse<StudentResponse>(response);
+    return responseBody.student;
+}
+
+export async function deleteStudentByEmail(email: string): Promise<Student> {
+    const response = await fetch('/api/admin/students', {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+    });
+
+    const responseBody = await parseJsonResponse<StudentResponse>(response);
+    return responseBody.student;
+}

@@ -3,6 +3,8 @@ import { del } from '@vercel/blob';
 import { ensureAdminApiSession } from '@/lib/actions/admin-auth';
 import { groupQueries } from '@/lib/db/queries/group';
 import { studentQueries } from '@/lib/db/queries/student';
+import { normalizeStudentEmail } from '@/lib/utils/student-email';
+import { isBlobReference } from '@/lib/utils/blob';
 
 type StudentWriteBody = {
     currentEmail?: string;
@@ -13,7 +15,6 @@ type StudentWriteBody = {
     picture?: string | null;
 };
 
-const STUDENT_EMAIL_DOMAIN = 'etudiant.univ-rennes.fr';
 const DEFAULT_EMPTY_PASSWORD_VALUE: null = null;
 const INVALID_PICTURE = Symbol('invalidPicture');
 
@@ -34,29 +35,7 @@ function parseNormalizedStudentEmail(rawEmail: unknown): string | null {
         return null;
     }
 
-    const normalizedEmail = trimmedEmail.toLowerCase();
-
-    if (!normalizedEmail.includes('@')) {
-        if (!/^[a-z0-9._-]+$/.test(normalizedEmail)) {
-            return null;
-        }
-
-        return `${normalizedEmail}@${STUDENT_EMAIL_DOMAIN}`;
-    }
-
-    const emailParts = normalizedEmail.split('@');
-
-    if (emailParts.length !== 2) {
-        return null;
-    }
-
-    const [localPart, domainPart] = emailParts;
-
-    if (!localPart || !domainPart || !/^[a-z0-9._-]+$/.test(localPart) || domainPart !== STUDENT_EMAIL_DOMAIN) {
-        return null;
-    }
-
-    return `${localPart}@${domainPart}`;
+    return normalizeStudentEmail(trimmedEmail);
 }
 
 function parseOptionalGroupId(rawGroupId: unknown): number | null | 'invalid' {
@@ -87,14 +66,6 @@ function parseOptionalPicture(rawPicture: unknown): string | null | undefined | 
     const trimmedPicture = rawPicture.trim();
 
     return trimmedPicture.length > 0 ? trimmedPicture : null;
-}
-
-function isBlobReference(picture: string | null): picture is string {
-    if (!picture) {
-        return false;
-    }
-
-    return picture.startsWith('students/') || picture.includes('blob.vercel-storage.com');
 }
 
 function hasPictureChanged(previousPicture: string | null, nextPicture: string | null | undefined): boolean {
@@ -167,6 +138,15 @@ export async function POST(request: Request) {
 
     if ('success' in existingStudent) {
         return NextResponse.json({ error: 'Un étudiant existe déjà avec cet email.' }, { status: 409 });
+    }
+
+    const existingStudentIncludingDeleted = await studentQueries.getByEmailIncludingDeleted(studentEmail);
+
+    if ('success' in existingStudentIncludingDeleted && existingStudentIncludingDeleted.entity.deletedAt !== null) {
+        return NextResponse.json(
+            { error: 'Un compte supprimé existe déjà avec cet email. Restaure ce compte au lieu d\'en créer un nouveau.' },
+            { status: 409 }
+        );
     }
 
     const creationResult = await studentQueries.create({

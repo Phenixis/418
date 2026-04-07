@@ -26,17 +26,36 @@ type GroupOption = {
 };
 
 export default function SelectGroup({
+    groups,
     groupsSelected,
     setGroupsSelected,
+    label = 'Groupes',
+    placeholder = 'Choisir les groupes',
+    hideLabel = false,
+    displayMode = 'chips',
+    className,
 }: Readonly<{
+    groups?: Group[];
     groupsSelected: string[];
     setGroupsSelected: (groups: string[]) => void;
+    label?: string;
+    placeholder?: string;
+    hideLabel?: boolean;
+    displayMode?: 'chips' | 'summary';
+    className?: string;
 }>) {
-    const [groups, setGroups] = useState<Group[]>([]);
+    const [loadedGroups, setLoadedGroups] = useState<Group[]>(groups ?? []);
     const [isLoadingGroups, setIsLoadingGroups] = useState<boolean>(false);
     const [groupsError, setGroupsError] = useState<string | null>(null);
 
     useEffect(() => {
+        if (groups) {
+            setLoadedGroups(groups);
+            setGroupsError(null);
+            setIsLoadingGroups(false);
+            return;
+        }
+
         const loadGroups = async () => {
             setIsLoadingGroups(true);
             setGroupsError(null);
@@ -49,7 +68,7 @@ export default function SelectGroup({
                 }
 
                 const groupsData = (await response.json()) as Group[];
-                setGroups(groupsData);
+                setLoadedGroups(groupsData);
             } catch (error) {
                 const errorMessage = error instanceof Error
                     ? error.message
@@ -62,10 +81,10 @@ export default function SelectGroup({
         };
 
         void loadGroups();
-    }, []);
+    }, [groups]);
 
     const groupedOptions = useMemo(() => {
-        const sortedGroups = groups.slice().sort((groupA, groupB) => {
+        const sortedGroups = loadedGroups.slice().sort((groupA, groupB) => {
             const promoComparison = groupA.promo.localeCompare(groupB.promo);
 
             if (promoComparison !== 0) {
@@ -103,7 +122,7 @@ export default function SelectGroup({
             promo,
             options: promoGroups,
         }));
-    }, [groups]);
+    }, [loadedGroups]);
 
     const groupsFlat = useMemo(
         () => groupedOptions.flatMap(({ options }) => options.map((groupOption) => groupOption.value)),
@@ -119,9 +138,18 @@ export default function SelectGroup({
     }, [groupedOptions]);
 
     const chipsAnchor = useComboboxAnchor();
+    const hasGroupsSelected = groupsSelected.length > 0;
+
+    const selectedGroupsSummary = groupsSelected.length === 1
+        ? '1 classe sélectionnée'
+        : `${groupsSelected.length} classes sélectionnées`;
+
+    const containerClassName = hideLabel
+        ? (className ? `w-full h-10 ${className}` : 'w-full h-10')
+        : (className ? `w-full flex flex-col gap-1 ${className}` : 'w-full flex flex-col gap-1');
 
     return (
-        <div className="w-full flex flex-col gap-2 mb-2">
+        <div className={containerClassName}>
             {groupsSelected.map((groupValue) => (
                 <input
                     key={groupValue}
@@ -131,24 +159,30 @@ export default function SelectGroup({
                     readOnly
                 />
             ))}
-            <Label htmlFor="groups">Groupes</Label>
+            {!hideLabel && <Label htmlFor="groups">{label}</Label>}
             <Combobox
                 items={groupsFlat}
                 multiple
                 value={groupsSelected}
                 onValueChange={setGroupsSelected}
             >
-                <ComboboxChips ref={chipsAnchor} className="items-start">
+                <ComboboxChips ref={chipsAnchor} className="h-full items-center overflow-hidden">
                     <ComboboxValue>
-                        <div className="flex w-full flex-wrap gap-1.5">
-                            {groupsSelected.map((item) => (
-                                <ComboboxChip key={item}>{groupLabelByValue.get(item) ?? item}</ComboboxChip>
-                            ))}
-                        </div>
+                        {displayMode === 'summary' ? (
+                            hasGroupsSelected ? (
+                                <span className="truncate text-sm text-black/80">{selectedGroupsSummary}</span>
+                            ) : null
+                        ) : (
+                            <div className="flex w-full flex-wrap gap-1.5">
+                                {groupsSelected.map((item) => (
+                                    <ComboboxChip key={item}>{groupLabelByValue.get(item) ?? item}</ComboboxChip>
+                                ))}
+                            </div>
+                        )}
                     </ComboboxValue>
                     <ComboboxChipsInput
-                        className="mt-1 w-full min-w-0 basis-full"
-                        placeholder="Choisir les groupes"
+                        className="h-full w-full min-w-0 basis-full text-left"
+                        placeholder={placeholder}
                     />
                 </ComboboxChips>
                 <ComboboxContent anchor={chipsAnchor}>

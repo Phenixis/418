@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { ensureAdminApiSession } from '@/lib/actions/admin-auth';
 import { del, put } from '@vercel/blob';
+import { parseStudentBlobPath } from '@/lib/utils/blob';
 
 export async function POST(request: Request) {
     const unauthorizedResponse = await ensureAdminApiSession();
@@ -62,17 +63,7 @@ type UploadDeleteBody = {
 };
 
 function parseBlobPathname(rawPathname: unknown): string | null {
-    if (typeof rawPathname !== 'string') {
-        return null;
-    }
-
-    const pathname = rawPathname.trim();
-
-    if (!pathname.startsWith('students/')) {
-        return null;
-    }
-
-    return pathname;
+    return parseStudentBlobPath(rawPathname);
 }
 
 export async function DELETE(request: Request) {

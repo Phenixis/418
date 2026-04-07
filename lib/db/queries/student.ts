@@ -43,6 +43,19 @@ class StudentQueries extends QueryModel<NewStudent, Student> {
         return { success: "Étudiant trouvé.", entity: result[0] as Student }
     }
 
+    async getByEmailIncludingDeleted(email: string): Promise<QueryResult<Student>> {
+        const result = await lib.db
+            .select()
+            .from(this.table)
+            .where(lib.eq(this.table.userMail, email))
+
+        if (lib.resultEmpty(result)) {
+            return { error: "Étudiant introuvable avec cet email." }
+        }
+
+        return { success: "Étudiant trouvé.", entity: result[0] as Student }
+    }
+
     async getAll(): Promise<QueryResult<Student[]>> {
         const result = await lib.db
             .select()
@@ -156,6 +169,24 @@ class StudentQueries extends QueryModel<NewStudent, Student> {
         }
 
         return { success: "Groupe de l'étudiant mis à jour.", entity: result[0] as Student }
+    }
+
+    async restoreByEmail(studentEmail: string, data: Partial<NewStudent>): Promise<QueryResult<Student>> {
+        const result = await lib.db
+            .update(this.table)
+            .set({
+                ...data,
+                deletedAt: null,
+                updatedAt: new Date(),
+            })
+            .where(lib.eq(this.table.userMail, studentEmail))
+            .returning()
+
+        if (lib.resultEmpty(result)) {
+            return { error: "Étudiant introuvable avec cet email." }
+        }
+
+        return { success: "Étudiant restauré.", entity: result[0] as Student }
     }
 }
 

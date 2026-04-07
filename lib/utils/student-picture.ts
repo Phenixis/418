@@ -1,3 +1,5 @@
+import { normalizeBlobSource } from './blob';
+
 export function getStudentPictureSrc(picture: string | null): string | null {
     if (!picture) {
         return null;
@@ -8,5 +10,5 @@ export function getStudentPictureSrc(picture: string | null): string | null {
         return picture;
     }
 
-    return `/api/students/image?source=${encodeURIComponent(picture)}`;
+    return `/api/students/image?source=${encodeURIComponent(normalizeBlobSource(picture))}`;
 }
