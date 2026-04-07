@@ -17,7 +17,7 @@ export default function QrCodePage() {
         notFound();
     }
 
-    const downloadAs = (format: 'png' | 'jpeg') => {
+    const handleDownloadAs = (format: 'png' | 'jpeg') => {
         const canvas = canvasRef.current;
         if (!canvas) return;
 
@@ -36,7 +36,7 @@ export default function QrCodePage() {
             <div className="flex gap-4">
                 <button
                     type="button"
-                    onClick={() => downloadAs('png')}
+                    onClick={() => handleDownloadAs('png')}
                     className="flex items-center gap-2 rounded-lg bg-black px-6 py-2 text-white transition-colors hover:bg-gray-800"
                     aria-label="Télécharger le QR code en PNG"
                 >
@@ -45,7 +45,7 @@ export default function QrCodePage() {
                 </button>
                 <button
                     type="button"
-                    onClick={() => downloadAs('jpeg')}
+                    onClick={() => handleDownloadAs('jpeg')}
                     className="flex items-center gap-2 rounded-lg bg-black px-6 py-2 text-white transition-colors hover:bg-gray-800"
                     aria-label="Télécharger le QR code en JPG"
                 >
