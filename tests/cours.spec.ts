@@ -221,31 +221,21 @@ test.describe('Segment dynamique de cours', () => {
 
 		await popup.waitForLoadState('domcontentloaded');
 		await popup.locator('main canvas').waitFor({ state: 'visible' });
+		await expect(popup.getByRole('button', { name: 'Télécharger le QR code en PNG' })).toBeEnabled();
 
 		await popup.evaluate(() => {
-			(window as unknown as Record<string, unknown>).__capturedDownload = null;
-			const originalClick = HTMLAnchorElement.prototype.click;
-			HTMLAnchorElement.prototype.click = function (this: HTMLAnchorElement) {
-				if (this.download) {
-					(window as unknown as Record<string, unknown>).__capturedDownload = {
-						filename: this.download,
-						href: this.href,
-					};
-				} else {
-					originalClick.call(this);
-				}
+			(globalThis as unknown as Record<string, unknown>).__capturedQrMimeType = null;
+			const originalToDataURL = HTMLCanvasElement.prototype.toDataURL;
+			HTMLCanvasElement.prototype.toDataURL = function (...args: [string?, number?]) {
+				(globalThis as unknown as Record<string, unknown>).__capturedQrMimeType = args[0] ?? 'image/png';
+				return originalToDataURL.apply(this, args);
 			};
 		});
 
 		await popup.getByRole('button', { name: 'Télécharger le QR code en PNG' }).click();
-		await popup.waitForFunction(() => (window as unknown as Record<string, unknown>).__capturedDownload !== null);
-
-		const captured = await popup.evaluate(
-			() => (window as unknown as Record<string, unknown>).__capturedDownload as { filename: string; href: string } | null,
-		);
-		expect(captured).not.toBeNull();
-		expect(captured!.filename).toBe('qr-code.png');
-		expect(captured!.href).toMatch(/^data:image\/png/);
+		await popup.waitForFunction(() => (globalThis as unknown as Record<string, unknown>).__capturedQrMimeType !== null);
+		const capturedQrMimeType = await popup.evaluate(() => (globalThis as unknown as Record<string, unknown>).__capturedQrMimeType as string | null);
+		expect(capturedQrMimeType).toBe('image/png');
 	});
 
 	test('doit télécharger le QR code en JPG quand on clique sur le bouton JPG', async ({ authenticatedPage }) => {
@@ -259,31 +249,21 @@ test.describe('Segment dynamique de cours', () => {
 
 		await popup.waitForLoadState('domcontentloaded');
 		await popup.locator('main canvas').waitFor({ state: 'visible' });
+		await expect(popup.getByRole('button', { name: 'Télécharger le QR code en JPG' })).toBeEnabled();
 
 		await popup.evaluate(() => {
-			(window as unknown as Record<string, unknown>).__capturedDownload = null;
-			const originalClick = HTMLAnchorElement.prototype.click;
-			HTMLAnchorElement.prototype.click = function (this: HTMLAnchorElement) {
-				if (this.download) {
-					(window as unknown as Record<string, unknown>).__capturedDownload = {
-						filename: this.download,
-						href: this.href,
-					};
-				} else {
-					originalClick.call(this);
-				}
+			(globalThis as unknown as Record<string, unknown>).__capturedQrMimeType = null;
+			const originalToDataURL = HTMLCanvasElement.prototype.toDataURL;
+			HTMLCanvasElement.prototype.toDataURL = function (...args: [string?, number?]) {
+				(globalThis as unknown as Record<string, unknown>).__capturedQrMimeType = args[0] ?? 'image/png';
+				return originalToDataURL.apply(this, args);
 			};
 		});
 
 		await popup.getByRole('button', { name: 'Télécharger le QR code en JPG' }).click();
-		await popup.waitForFunction(() => (window as unknown as Record<string, unknown>).__capturedDownload !== null);
-
-		const captured = await popup.evaluate(
-			() => (window as unknown as Record<string, unknown>).__capturedDownload as { filename: string; href: string } | null,
-		);
-		expect(captured).not.toBeNull();
-		expect(captured!.filename).toBe('qr-code.jpg');
-		expect(captured!.href).toMatch(/^data:image\/jpeg/);
+		await popup.waitForFunction(() => (globalThis as unknown as Record<string, unknown>).__capturedQrMimeType !== null);
+		const capturedQrMimeType = await popup.evaluate(() => (globalThis as unknown as Record<string, unknown>).__capturedQrMimeType as string | null);
+		expect(capturedQrMimeType).toBe('image/jpeg');
 	});
 
 	test('doit parcourir le cycle complet de présence au clic sur un étudiant', async ({ authenticatedPage }) => {

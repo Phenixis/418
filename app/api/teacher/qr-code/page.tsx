@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { notFound, useSearchParams } from 'next/navigation';
 import { QRCodeCanvas } from 'qrcode.react';
 import { Download } from 'lucide-react';
@@ -8,6 +8,7 @@ import { Download } from 'lucide-react';
 export default function QrCodePage() {
     const searchParams = useSearchParams();
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const [isQrPageHydrated, setIsQrPageHydrated] = useState(false);
 
     const codePin = useMemo(() => {
         return searchParams.get('codePin')?.trim() ?? '';
@@ -16,6 +17,10 @@ export default function QrCodePage() {
     if (!codePin) {
         notFound();
     }
+
+    useEffect(() => {
+        setIsQrPageHydrated(true);
+    }, []);
 
     const handleDownloadAs = (format: 'png' | 'jpeg') => {
         const canvas = canvasRef.current ?? document.querySelector<HTMLCanvasElement>('main canvas');
@@ -37,6 +42,7 @@ export default function QrCodePage() {
                 <button
                     type="button"
                     onClick={() => handleDownloadAs('png')}
+                    disabled={!isQrPageHydrated}
                     className="flex items-center gap-2 rounded-lg bg-black px-6 py-2 text-white transition-colors hover:bg-gray-800"
                     aria-label="Télécharger le QR code en PNG"
                 >
@@ -46,6 +52,7 @@ export default function QrCodePage() {
                 <button
                     type="button"
                     onClick={() => handleDownloadAs('jpeg')}
+                    disabled={!isQrPageHydrated}
                     className="flex items-center gap-2 rounded-lg bg-black px-6 py-2 text-white transition-colors hover:bg-gray-800"
                     aria-label="Télécharger le QR code en JPG"
                 >
