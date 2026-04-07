@@ -25,6 +25,7 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { useActionState, useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 
+
 export default function TeachersTableRow({
     teacher
 }: Readonly<{
@@ -55,14 +56,19 @@ export default function TeachersTableRow({
 
     return (
         <TableRow key={teacher.userMail} className="bg-white/80">
-            <TableCell>
-                <Badge variant={teacher.isValidated ? "default" : "destructive"} >
-                    {teacher.isValidated ? "Validé" : "Non validé"}
-                </Badge>
+            <TableCell className="px-6">
+                <form action={validateTeacherAction}>
+                    <input type="hidden" name="teacherEmail" value={teacher.userMail} />
+                    <button type="submit" disabled={teacher.isValidated} className={teacher.isValidated ? "" : "cursor-pointer"}>
+                        <Badge className={teacher.isValidated ? "" : "hover:bg-primary/90"} variant={teacher.isValidated ? "default" : "destructive"} >
+                            {teacher.isValidated ? "Validé" : "Non validé"}
+                        </Badge>
+                    </button>
+                </form>
             </TableCell>
-            <TableCell>{teacher.firstName} {teacher.lastName}</TableCell>
-            <TableCell>{teacher.userMail}</TableCell>
-            <TableCell>{teacher.isAdmin ? "Administrateur" : "Enseignant"}</TableCell>
+            <TableCell className="text-left px-6">{teacher.firstName} {teacher.lastName}</TableCell>
+            <TableCell className="text-left px-6">{teacher.userMail}</TableCell>
+            <TableCell className="text-left px-6">{teacher.isAdmin ? "Administrateur" : "Enseignant"}</TableCell>
             <TableCell>
                 <DropdownMenu>
                     <DropdownMenuTrigger className="cursor-pointer p-2" title="Actions" asChild>

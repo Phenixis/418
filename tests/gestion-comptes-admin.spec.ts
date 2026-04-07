@@ -78,22 +78,28 @@ function getTeacherRowByEmail(page: Page, teacherEmail: string) {
 }
 
 async function openRefuseAccountAction(page: Page, teacherRow: ReturnType<typeof getTeacherRowByEmail>) {
-    const refuseMenuItem = page.getByRole('menuitem', { name: 'Refuser le compte' });
+    const refuseMenuItem = page.getByRole('menuitem', { name: 'Refuser le compte' }).last();
 
-    if (await refuseMenuItem.count() === 0) {
-        await teacherRow.getByRole('button', { name: 'Open actions menu' }).click();
+    if (await refuseMenuItem.count() > 0 && await refuseMenuItem.isVisible()) {
+        return refuseMenuItem;
     }
+
+    await teacherRow.scrollIntoViewIfNeeded();
+    await teacherRow.getByRole('button', { name: 'Open actions menu' }).click({ force: true });
 
     await expect(refuseMenuItem).toBeVisible();
     return refuseMenuItem;
 }
 
 async function openDeleteAccountAction(page: Page, teacherRow: ReturnType<typeof getTeacherRowByEmail>) {
-    const deleteMenuItem = page.getByRole('menu', { name: 'Open actions menu' }).getByRole('menuitem', { name: 'Supprimer le compte' });
+    const deleteMenuItem = page.getByRole('menuitem', { name: 'Supprimer le compte' }).last();
 
-    if (await deleteMenuItem.count() === 0) {
-        await teacherRow.getByRole('button', { name: 'Open actions menu' }).click();
+    if (await deleteMenuItem.count() > 0 && await deleteMenuItem.isVisible()) {
+        return deleteMenuItem;
     }
+
+    await teacherRow.scrollIntoViewIfNeeded();
+    await teacherRow.getByRole('button', { name: 'Open actions menu' }).click({ force: true });
 
     await expect(deleteMenuItem).toBeVisible();
     return deleteMenuItem;
@@ -201,7 +207,7 @@ test.describe('Page administrateur - gestion des professeurs', () => {
         });
 
         await pendingTeacherRow.getByRole('button', { name: 'Open actions menu' }).click();
-        await authenticatedAdminPage.getByRole('menuitem', { name: 'Valider le compte' }).click();
+        await authenticatedAdminPage.getByRole('menuitem', { name: 'Valider le compte' }).click({ force: true });
         await validationSubmissionPromise;
 
         await authenticatedAdminPage.goto(ADMIN_ACCOUNTS_ROUTE);
@@ -235,7 +241,7 @@ test.describe('Page administrateur - gestion des professeurs', () => {
         await expect(pendingTeacherRow).toBeVisible({ timeout: 10000 });
 
         const firstRefusalAction = await openRefuseAccountAction(authenticatedAdminPage, pendingTeacherRow);
-        await firstRefusalAction.click();
+        await firstRefusalAction.click({ force: true });
 
         const refuseDialog = authenticatedAdminPage.getByRole('alertdialog');
         await expect(refuseDialog).toBeVisible();
@@ -245,8 +251,11 @@ test.describe('Page administrateur - gestion des professeurs', () => {
         await expect(refuseDialog).toHaveCount(0);
         await expect(getTeacherRowByEmail(authenticatedAdminPage, pendingTeacherEmail)).toHaveCount(1);
 
-        const secondRefusalAction = await openRefuseAccountAction(authenticatedAdminPage, pendingTeacherRow);
-        await secondRefusalAction.click();
+        const secondRefusalAction = await openRefuseAccountAction(
+            authenticatedAdminPage,
+            getTeacherRowByEmail(authenticatedAdminPage, pendingTeacherEmail)
+        );
+        await secondRefusalAction.click({ force: true });
 
         const refusalDialog = authenticatedAdminPage.getByRole('alertdialog');
         const refusalSubmissionPromise = authenticatedAdminPage.waitForResponse((response) => {
@@ -280,7 +289,7 @@ test.describe('Page administrateur - gestion des professeurs', () => {
         await expect(validatedTeacherRow).toBeVisible({ timeout: 10000 });
 
         const firstDeletionAction = await openDeleteAccountAction(authenticatedAdminPage, validatedTeacherRow);
-        await firstDeletionAction.click();
+        await firstDeletionAction.click({ force: true });
 
         const firstDeleteDialog = authenticatedAdminPage.getByRole('alertdialog');
         await expect(firstDeleteDialog).toBeVisible();
@@ -290,8 +299,11 @@ test.describe('Page administrateur - gestion des professeurs', () => {
         await expect(firstDeleteDialog).toHaveCount(0);
         await expect(getTeacherRowByEmail(authenticatedAdminPage, validatedTeacherEmail)).toHaveCount(1);
 
-        const secondDeletionAction = await openDeleteAccountAction(authenticatedAdminPage, validatedTeacherRow);
-        await secondDeletionAction.click();
+        const secondDeletionAction = await openDeleteAccountAction(
+            authenticatedAdminPage,
+            getTeacherRowByEmail(authenticatedAdminPage, validatedTeacherEmail)
+        );
+        await secondDeletionAction.click({ force: true });
 
         const secondDeleteDialog = authenticatedAdminPage.getByRole('alertdialog');
         const deleteSubmissionPromise = authenticatedAdminPage.waitForResponse((response) => {

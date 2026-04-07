@@ -67,7 +67,7 @@ export default function CreateResetPasswordSession({
                                 value={email}
                                 onChange={(event) => {
                                     const emailWithoutDomain = event.target.value.split("@")[0];
-                                    setEmail(emailWithoutDomain);
+                                    setEmail(emailWithoutDomain.toLowerCase().trim());
                                 }}
                             />
                             <p className="text-faded shrink-0">

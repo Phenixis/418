@@ -43,10 +43,17 @@ export async function GET(request: Request) {
     const attendanceResult = await attendanceQueries.getByCourseId(courseId);
     const presentStudentMails = attendanceResult.entity.map((attendance) => attendance.studentMail);
 
+    // Nouveau format incluant le niveau de retard pour chaque présence
+    const attendanceStatuts = attendanceResult.entity.map((attendance) => ({
+        studentMail: attendance.studentMail,
+        lateStatus: attendance.lateStatus ?? 0
+    }));
+
     return NextResponse.json(
         {
             courseId,
             presentStudentMails,
+            attendanceStatuts,
             syncedAt: new Date().toISOString()
         },
         { status: 200 }
