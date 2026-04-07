@@ -35,7 +35,7 @@ class SessionGroupQueries extends QueryModel<NewSessionGroup, SessionGroup> {
     }
 
     async getBySessionIds(sessionIds: string[]): Promise<SuccessQueryResult<SessionGroup[]>> {
-        const result = await lib.db.select().from(this.table).where(lib.inArray(this.table.sessionId, sessionIds));
+        const result = await lib.db.select().from(this.table).where(lib.and(lib.inArray(this.table.sessionId, sessionIds), lib.isNull(this.table.deletedAt)));
 
         return { success: 'Liens Seance-Groupe trouves.', entity: result as SessionGroup[] };
     }
@@ -44,7 +44,7 @@ class SessionGroupQueries extends QueryModel<NewSessionGroup, SessionGroup> {
         const result = await lib.db
             .update(this.table)
             .set({ deletedAt: new Date() })
-            .where(lib.eq(this.table.sessionId, sessionId))
+            .where(lib.and(lib.eq(this.table.sessionId, sessionId), lib.isNull(this.table.deletedAt)))
             .returning();
 
         if (lib.resultEmpty(result)) {

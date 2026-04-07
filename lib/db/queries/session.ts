@@ -46,12 +46,12 @@ class SessionQueries extends QueryModel<NewSession, Session> {
 
         if (lib.resultEmpty(result)) {
             return {
-                error: 'Aucune seance trouvees pour ces ressources'
+                error: 'Aucune seances trouvees pour ces ressources'
             }
         }
 
         return {
-            success: "Seancse trouvees pour ces ressources", entity: result as Session[]
+            success: "Seances trouvees pour ces ressources", entity: result as Session[]
         }
     }
 

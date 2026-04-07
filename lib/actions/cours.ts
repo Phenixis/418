@@ -157,14 +157,14 @@ export async function modifierCours(prevState: ActionResult, formData: FormData)
 
     const endTimeDate = new Date(startDate.getTime() + (durationInMinutes * 60 * 1000));
 
-    const sessionId = formData.get("resourceId");
+    const resourceId = formData.get("resourceId");
 
-    if (typeof sessionId !== "string") {
+    if (typeof resourceId !== "string") {
         return { error: true, message: "ID de cours manquant ou invalide." };
     }
 
-    const result = await sessionQueries.update(sessionId, {
-        sessionId,
+    const result = await sessionQueries.update(resourceId, {
+        resourceId,
         subject: label,
         startAt: startDate,
         endAt: endTimeDate,
@@ -175,7 +175,7 @@ export async function modifierCours(prevState: ActionResult, formData: FormData)
         return { error: true, message: "Erreur lors de la modification du cours." };
     }
 
-    const deleteCourseGroupsResult = await sessionGroupQueries.deleteBySessionId(sessionId);
+    const deleteCourseGroupsResult = await sessionGroupQueries.deleteBySessionId(resourceId);
 
     if ("error" in deleteCourseGroupsResult) {
         return { error: true, message: "Le cours a été modifié, mais la suppression des anciennes liaisons avec les groupes a échoué." };
@@ -183,7 +183,7 @@ export async function modifierCours(prevState: ActionResult, formData: FormData)
 
     const courseGroupsCreationResults = await Promise.all(
         groupIds.map((groupId) => sessionGroupQueries.create({
-            sessionId,
+            sessionId: resourceId,
             groupId,
         }))
     );
@@ -194,7 +194,7 @@ export async function modifierCours(prevState: ActionResult, formData: FormData)
         return { error: true, message: "Le cours a été modifié, mais la liaison avec les groupes a échoué." };
     }
 
-    const deleteCourseTeachersResult = await sessionTeacherQueries.deleteBySessionId(sessionId);
+    const deleteCourseTeachersResult = await sessionTeacherQueries.deleteBySessionId(resourceId);
 
     if ("error" in deleteCourseTeachersResult) {
         return { error: true, message: "Le cours a été modifié, mais la suppression des anciennes liaisons avec les enseignants a échoué." };
@@ -202,7 +202,7 @@ export async function modifierCours(prevState: ActionResult, formData: FormData)
 
     const courseTeachersCreationResults = await Promise.all(
         teachers.map((teacherMail) => sessionTeacherQueries.create({
-            sessionId,
+            sessionId: resourceId,
             teacherMail,
         }))
     );
@@ -216,22 +216,22 @@ export async function modifierCours(prevState: ActionResult, formData: FormData)
     return {
         success: true,
         course: {
-            id: sessionId
+            id: resourceId
         },
     };
 }
 
-export async function deleteCourse(formData: FormData): Promise<void> {
+export async function deleteCourse(formData: FormData): Promise<ActionResult> {
     await teacherQueries.getTeacher();
 
-    const sessionId = formData.get("courseId");
-    if (typeof sessionId !== "string" || sessionId.trim().length === 0) {
-        return;
+    const resourceId = formData.get("courseId");
+    if (typeof resourceId !== "string" || resourceId.trim().length === 0) {
+        return { error: true, message: "ID de cours manquant ou invalide." };
     }
 
-    const deletionResult = await sessionQueries.deleteBySessionId(sessionId);
+    const deletionResult = await sessionQueries.deleteBySessionId(resourceId);
     if ("error" in deletionResult) {
-        return;
+        return { error: true, message: "Erreur lors de la suppression du cours." };
     }
 
     /*
@@ -241,4 +241,11 @@ export async function deleteCourse(formData: FormData): Promise<void> {
     */
 
     revalidatePath("/professeur/dashboard");
+
+    return {
+        success: true,
+        course: {
+            id: resourceId
+        },
+    }
 }
