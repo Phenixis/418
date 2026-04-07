@@ -43,7 +43,7 @@ export default function TableauCours({
     }
 
     return (
-        <Table className="text-center mb-10">
+        <Table className="text-center mb-4">
             <TableHeader>
                 <TableRow>
                     <TableHead className="w-1/14">Statut</TableHead>
