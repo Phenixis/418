@@ -223,36 +223,29 @@ test.describe('Segment dynamique de cours', () => {
 		await popup.locator('main canvas').waitFor({ state: 'visible' });
 
 		await popup.evaluate(() => {
-			const originalCreateElement = document.createElement.bind(document);
 			(window as unknown as Record<string, unknown>).__capturedDownload = null;
-			document.createElement = function <K extends keyof HTMLElementTagNameMap>(tagName: K, options?: ElementCreationOptions): HTMLElementTagNameMap[K] {
-				const element = originalCreateElement(tagName, options);
-				if (tagName.toLowerCase() === 'a') {
-					const anchor = element as HTMLAnchorElement;
-					const originalClick = anchor.click.bind(anchor);
-					anchor.click = function () {
-						if (anchor.download) {
-							(window as unknown as Record<string, unknown>).__capturedDownload = {
-								filename: anchor.download,
-								mimeType: anchor.href.split(';')[0].replace('data:', ''),
-							};
-						} else {
-							originalClick();
-						}
+			const originalClick = HTMLAnchorElement.prototype.click;
+			HTMLAnchorElement.prototype.click = function (this: HTMLAnchorElement) {
+				if (this.download) {
+					(window as unknown as Record<string, unknown>).__capturedDownload = {
+						filename: this.download,
+						href: this.href,
 					};
+				} else {
+					originalClick.call(this);
 				}
-				return element;
-			} as typeof document.createElement;
+			};
 		});
 
 		await popup.getByRole('button', { name: 'Télécharger le QR code en PNG' }).click();
+		await popup.waitForFunction(() => (window as unknown as Record<string, unknown>).__capturedDownload !== null);
 
 		const captured = await popup.evaluate(
-			() => (window as unknown as Record<string, unknown>).__capturedDownload as { filename: string; mimeType: string } | null,
+			() => (window as unknown as Record<string, unknown>).__capturedDownload as { filename: string; href: string } | null,
 		);
 		expect(captured).not.toBeNull();
 		expect(captured!.filename).toBe('qr-code.png');
-		expect(captured!.mimeType).toBe('image/png');
+		expect(captured!.href).toMatch(/^data:image\/png/);
 	});
 
 	test('doit télécharger le QR code en JPG quand on clique sur le bouton JPG', async ({ authenticatedPage }) => {
@@ -268,36 +261,29 @@ test.describe('Segment dynamique de cours', () => {
 		await popup.locator('main canvas').waitFor({ state: 'visible' });
 
 		await popup.evaluate(() => {
-			const originalCreateElement = document.createElement.bind(document);
 			(window as unknown as Record<string, unknown>).__capturedDownload = null;
-			document.createElement = function <K extends keyof HTMLElementTagNameMap>(tagName: K, options?: ElementCreationOptions): HTMLElementTagNameMap[K] {
-				const element = originalCreateElement(tagName, options);
-				if (tagName.toLowerCase() === 'a') {
-					const anchor = element as HTMLAnchorElement;
-					const originalClick = anchor.click.bind(anchor);
-					anchor.click = function () {
-						if (anchor.download) {
-							(window as unknown as Record<string, unknown>).__capturedDownload = {
-								filename: anchor.download,
-								mimeType: anchor.href.split(';')[0].replace('data:', ''),
-							};
-						} else {
-							originalClick();
-						}
+			const originalClick = HTMLAnchorElement.prototype.click;
+			HTMLAnchorElement.prototype.click = function (this: HTMLAnchorElement) {
+				if (this.download) {
+					(window as unknown as Record<string, unknown>).__capturedDownload = {
+						filename: this.download,
+						href: this.href,
 					};
+				} else {
+					originalClick.call(this);
 				}
-				return element;
-			} as typeof document.createElement;
+			};
 		});
 
 		await popup.getByRole('button', { name: 'Télécharger le QR code en JPG' }).click();
+		await popup.waitForFunction(() => (window as unknown as Record<string, unknown>).__capturedDownload !== null);
 
 		const captured = await popup.evaluate(
-			() => (window as unknown as Record<string, unknown>).__capturedDownload as { filename: string; mimeType: string } | null,
+			() => (window as unknown as Record<string, unknown>).__capturedDownload as { filename: string; href: string } | null,
 		);
 		expect(captured).not.toBeNull();
 		expect(captured!.filename).toBe('qr-code.jpg');
-		expect(captured!.mimeType).toBe('image/jpeg');
+		expect(captured!.href).toMatch(/^data:image\/jpeg/);
 	});
 
 	test('doit parcourir le cycle complet de présence au clic sur un étudiant', async ({ authenticatedPage }) => {

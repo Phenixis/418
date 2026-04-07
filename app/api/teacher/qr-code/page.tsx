@@ -18,7 +18,7 @@ export default function QrCodePage() {
     }
 
     const handleDownloadAs = (format: 'png' | 'jpeg') => {
-        const canvas = canvasRef.current;
+        const canvas = canvasRef.current ?? document.querySelector<HTMLCanvasElement>('main canvas');
         if (!canvas) return;
 
         const mimeType = format === 'png' ? 'image/png' : 'image/jpeg';
