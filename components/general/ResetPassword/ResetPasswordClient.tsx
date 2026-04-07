@@ -78,7 +78,7 @@ export default function ResetPasswordFormClient({
                                     value={email}
                                     onChange={(event) => {
                                         const emailLocalPart = event.target.value.split("@")[0];
-                                        setEmail(emailLocalPart);
+                                        setEmail(emailLocalPart.toLowerCase().trim());
                                     }}
                                 />
                                 <p className="text-faded shrink-0">{emailSuffix}</p>

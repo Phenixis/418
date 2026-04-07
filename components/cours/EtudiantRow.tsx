@@ -1,9 +1,11 @@
 "use client"
 
 import CheckIcon from "@mui/icons-material/Check"
+import AccessTimeIcon from "@mui/icons-material/AccessTime"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
 import { StatutEtudiant } from "@/components/cours/course.types"
+import { isEtudiantPresent } from "@/components/cours/course-utils"
 import { StudentWithStatus } from "@/lib/actions/cours-actuel"
 
 interface EtudiantRowProps {
@@ -11,6 +13,24 @@ interface EtudiantRowProps {
     onClick?: (student: StudentWithStatus) => void
     isDisabled?: boolean
 }
+
+/** Couleurs de bordure et fond selon le statut */
+const STYLES_ROW: Record<string, string> = {
+    [StatutEtudiant.PRESENT]: "border-green bg-green/10",
+    [StatutEtudiant["RETARD+5"]]: "border-yellow-400 bg-yellow-400/10",
+    [StatutEtudiant["RETARD+10"]]: "border-orange bg-orange/10",
+    [StatutEtudiant["RETARD+15"]]: "border-red bg-red/10",
+}
+
+/** Couleurs de l'icône selon le statut */
+const COULEURS_ICONE: Record<string, string> = {
+    [StatutEtudiant.PRESENT]: "text-green",
+    [StatutEtudiant["RETARD+5"]]: "text-yellow-600",
+    [StatutEtudiant["RETARD+10"]]: "text-orange",
+    [StatutEtudiant["RETARD+15"]]: "text-red",
+}
+
+
 
 // Photo miniature de l'étudiant, ou silhouette générique
 function PhotoMiniature({ photoUrl, prenom, nom }: Readonly<{ photoUrl: string | null; prenom: string; nom: string }>) {
@@ -46,7 +66,12 @@ export default function EtudiantRow({
     isDisabled = false,
 }: Readonly<EtudiantRowProps>) {
     const { firstName, lastName, picture, statut, groupName } = etudiant
-    const isPresent = statut === StatutEtudiant.PRESENT
+    const isPresent = isEtudiantPresent(statut)
+    const rowStyle = STYLES_ROW[statut] ?? ""
+    const iconeCouleur = COULEURS_ICONE[statut] ?? ""
+    const isEnRetard = statut === StatutEtudiant["RETARD+5"]
+        || statut === StatutEtudiant["RETARD+10"]
+        || statut === StatutEtudiant["RETARD+15"]
 
     return (
         <button
@@ -55,7 +80,7 @@ export default function EtudiantRow({
             onClick={() => onClick?.(etudiant)}
             className={cn(
                 "flex w-full items-center gap-4 rounded-lg border border-faded bg-white px-4 py-2 text-left transition-colors",
-                isPresent && "border-green bg-green/10",
+                rowStyle,
                 isDisabled && "opacity-70 cursor-not-allowed",
                 onClick && !isDisabled && "cursor-pointer hover:bg-black/5 active:bg-black/10"
             )}
@@ -72,10 +97,13 @@ export default function EtudiantRow({
             {/* Groupe */}
             <span className="text-xs text-faded ml-1">{groupName}</span>
 
-            {/* Espacement automatique + indicateur de présence */}
-            <div className="ml-auto shrink-0">
-                {isPresent && (
-                    <CheckIcon className="text-green" style={{ fontSize: "1.25rem" }} />
+            {/* Espacement automatique + indicateur de statut */}
+            <div className="ml-auto shrink-0 flex items-center gap-1">
+                {isPresent && !isEnRetard && (
+                    <CheckIcon className={iconeCouleur} style={{ fontSize: "1.25rem" }} />
+                )}
+                {isEnRetard && (
+                    <AccessTimeIcon className={iconeCouleur} style={{ fontSize: "1.25rem" }} />
                 )}
             </div>
         </button>

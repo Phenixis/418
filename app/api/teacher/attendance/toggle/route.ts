@@ -6,10 +6,13 @@ import { courseTeacherQueries } from "@/lib/db/queries/course-teacher";
 import { courseGroupQueries } from "@/lib/db/queries/course-group";
 import { studentQueries } from "@/lib/db/queries/student";
 import { publishAttendanceRealtimeEvent } from "@/lib/realtime/provider-server";
+import { StatutEtudiant } from "@/components/cours/course.types";
+import { isEtudiantPresent, statutVersLateStatus } from "@/components/cours/course-utils";
 
 type ToggleAttendanceBody = {
     courseId?: string;
     studentMail?: string;
+    nextStatut?: string;
 };
 
 export async function PATCH(request: Request) {
@@ -90,6 +93,53 @@ export async function PATCH(request: Request) {
         return NextResponse.json({ error: "L'étudiant n'appartient pas à ce cours." }, { status: 403 });
     }
 
+    // ── Nouveau : gestion du cycle complet via nextStatut ──────────────
+    const nextStatut = requestBody.nextStatut as StatutEtudiant | undefined;
+
+    if (nextStatut) {
+        // Passage à non-scanné → supprimer la présence
+        if (nextStatut === StatutEtudiant["NON-SCANNE"]) {
+            await attendanceQueries.markNonScanne(courseId, studentMail);
+
+            await publishAttendanceRealtimeEvent({
+                eventId: crypto.randomUUID(),
+                courseId,
+                studentMail,
+                status: "non-scanne",
+                lateStatus: 0,
+                source: "teacher-toggle",
+                occurredAt: new Date().toISOString()
+            });
+
+            return NextResponse.json({ status: StatutEtudiant["NON-SCANNE"] }, { status: 200 });
+        }
+
+        // Passage à un statut présent (présent ou retard +5/+10/+15)
+        if (isEtudiantPresent(nextStatut)) {
+            const lateStatus = statutVersLateStatus(nextStatut);
+            const result = await attendanceQueries.markPresentAvecRetard(courseId, studentMail, lateStatus);
+
+            if ("error" in result) {
+                return NextResponse.json({ error: result.error }, { status: 500 });
+            }
+
+            await publishAttendanceRealtimeEvent({
+                eventId: crypto.randomUUID(),
+                courseId,
+                studentMail,
+                status: "present",
+                lateStatus,
+                source: "teacher-toggle",
+                occurredAt: new Date().toISOString()
+            });
+
+            return NextResponse.json({ status: nextStatut }, { status: 200 });
+        }
+
+        return NextResponse.json({ error: "Statut invalide." }, { status: 400 });
+    }
+
+    // ── Rétro-compatibilité : toggle simple (présent ↔ non-scanné) ────
     const attendanceResult = await attendanceQueries.getByCourseAndStudent(courseId, studentMail);
 
     const isStudentPresent = attendanceResult.entity.length > 0;

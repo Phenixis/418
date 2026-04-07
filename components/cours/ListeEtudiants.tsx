@@ -5,6 +5,7 @@ import EtudiantCard from '@/components/cours/EtudiantCard';
 import EtudiantRow from '@/components/cours/EtudiantRow';
 import BarreActions, { type FiltrePresence, type ModeAffichage } from '@/components/cours/BarreActions';
 import { StatutEtudiant } from '@/components/cours/course.types';
+import { getProchainStatut, isEtudiantPresent } from '@/components/cours/course-utils';
 import { StudentWithStatus } from '@/lib/actions/cours-actuel';
 import { useAttendanceRealtime } from '@/hooks/use-attendance-realtime';
 
@@ -18,19 +19,33 @@ type ToggleAttendanceResponse = {
     status: StatutEtudiant;
 };
 
+/**
+ * Applique un snapshot de présence issu du polling, tout en préservant
+ * les statuts de retard déjà définis localement par le professeur.
+ */
 function applyPresenceSnapshot(
     previousStudents: StudentWithStatus[],
     pendingStudentMails: Set<string>,
     presentStudentMails: Set<string>
 ): StudentWithStatus[] {
     return previousStudents.map((previousStudent) => {
+        // Ne pas écraser un étudiant dont la requête est en cours
         if (pendingStudentMails.has(previousStudent.userMail)) {
+            return previousStudent;
+        }
+
+        const isDejaPresent = isEtudiantPresent(previousStudent.statut);
+        const shouldBePresent = presentStudentMails.has(previousStudent.userMail);
+
+        // Si l'étudiant est déjà marqué présent (ou en retard) et toujours présent
+        // en BDD, on préserve son statut local (retard inclus)
+        if (shouldBePresent && isDejaPresent) {
             return previousStudent;
         }
 
         return {
             ...previousStudent,
-            statut: presentStudentMails.has(previousStudent.userMail)
+            statut: shouldBePresent
                 ? StatutEtudiant.PRESENT
                 : StatutEtudiant["NON-SCANNE"]
         };
@@ -54,9 +69,10 @@ function correspondAuFiltre(etudiant: StudentWithStatus, filtre: FiltrePresence)
         case "tous":
             return true;
         case "presents":
-            return etudiant.statut === StatutEtudiant.PRESENT;
+            // Un étudiant en retard est considéré comme présent
+            return isEtudiantPresent(etudiant.statut);
         case "absents":
-            return etudiant.statut !== StatutEtudiant.PRESENT;
+            return !isEtudiantPresent(etudiant.statut);
     }
 }
 
@@ -98,6 +114,12 @@ export default function ListeEtudiants({ courseId, etudiants, onStudentsChange }
         onAttendanceEvent: (attendanceEvent) => {
             setStudents((previousStudents) => previousStudents.map((previousStudent) => {
                 if (previousStudent.userMail !== attendanceEvent.studentMail) {
+                    return previousStudent;
+                }
+
+                // Si l'étudiant a déjà un statut de retard défini par le professeur
+                // et que l'événement indique « présent », on préserve le retard
+                if (attendanceEvent.status === "present" && isEtudiantPresent(previousStudent.statut)) {
                     return previousStudent;
                 }
 
@@ -158,10 +180,10 @@ export default function ListeEtudiants({ courseId, etudiants, onStudentsChange }
         }
 
         const previousStudentStatus = student.statut;
-        const optimisticStudentStatus = previousStudentStatus === StatutEtudiant.PRESENT
-            ? StatutEtudiant["NON-SCANNE"]
-            : StatutEtudiant.PRESENT;
+        // Calcul du prochain statut dans le cycle
+        const optimisticStudentStatus = getProchainStatut(previousStudentStatus);
 
+        // Mise à jour optimiste
         setStudents((previousStudents) => previousStudents.map((previousStudent) => {
             if (previousStudent.userMail !== student.userMail) {
                 return previousStudent;
@@ -187,16 +209,18 @@ export default function ListeEtudiants({ courseId, etudiants, onStudentsChange }
                 },
                 body: JSON.stringify({
                     courseId,
-                    studentMail: student.userMail
+                    studentMail: student.userMail,
+                    nextStatut: optimisticStudentStatus
                 })
             });
 
             if (!response.ok) {
-                throw new Error("Impossible de mettre à jour la présence de l'étudiant.");
+                throw new Error("Impossible de mettre à jour le statut de l'étudiant.");
             }
 
             const responseData = await response.json() as ToggleAttendanceResponse;
 
+            // Confirmation du serveur : on applique le statut réel
             setStudents((previousStudents) => previousStudents.map((previousStudent) => {
                 if (previousStudent.userMail !== student.userMail) {
                     return previousStudent;
@@ -210,6 +234,7 @@ export default function ListeEtudiants({ courseId, etudiants, onStudentsChange }
         } catch (error) {
             console.error(error);
 
+            // Rollback en cas d'erreur
             setStudents((previousStudents) => previousStudents.map((previousStudent) => {
                 if (previousStudent.userMail !== student.userMail) {
                     return previousStudent;
