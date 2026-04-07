@@ -97,7 +97,7 @@ export default function CourseTableRow({ cours, groups, showStatus = true }: Rea
             }}
         >
             {showStatus && (
-                <TableCell>
+                <TableCell className="w-px">
                     <Vignette status={cours.status} />
                 </TableCell>
             )}
@@ -108,7 +108,7 @@ export default function CourseTableRow({ cours, groups, showStatus = true }: Rea
                     </span>
                 ))}
             </TableCell>
-            <TableCell className="font-bold text-left">{cours.subject}</TableCell>
+            <TableCell className="font-bold text-left pl-10">{cours.subject}</TableCell>
             <TableCell className="w-px text-lg">{formatInTimeZone(cours.startAt, PARIS_TIME_ZONE, 'HH:mm', { locale: fr })}</TableCell>
             <TableCell className="w-px text-lg">{formatInTimeZone(cours.endAt, PARIS_TIME_ZONE, 'HH:mm', { locale: fr })}</TableCell>
             <TableCell className="w-px text-left pl-5">{formatDate(cours.startAt)}</TableCell>

@@ -48,7 +48,7 @@ export default function TableauCours({
                 <TableRow>
                     <TableHead className="w-1/14">Statut</TableHead>
                     <TableHead className="w-1/9">Groupes</TableHead>
-                    <TableHead className="text-left text-lg">Cours</TableHead>
+                    <TableHead className="text-left text-lg pl-10">Cours</TableHead>
                     <TableHead className="w-1/20">Début</TableHead>
                     <TableHead className="w-1/20">Fin</TableHead>
                     <TableHead className="w-1/12">Jour</TableHead>

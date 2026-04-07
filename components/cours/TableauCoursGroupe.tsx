@@ -43,7 +43,7 @@ export default function TableauCoursGroupe({
                 <CourseTableRow
                     key={course.courseId}
                     cours={course}
-                    showStatus={false}
+                    showStatus={true}
                     groups={groups.filter(group =>
                         groupCourses.some(
                             groupCourse =>
