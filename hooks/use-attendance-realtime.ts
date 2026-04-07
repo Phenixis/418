@@ -8,7 +8,7 @@ import {
 } from "@/lib/realtime/provider-client";
 
 interface UseAttendanceRealtimeOptions {
-    courseId: string;
+    sessionId: string;
     pendingStudentMails: Set<string>;
     onAttendanceEvent: (event: AttendanceRealtimeEvent) => void;
 }
@@ -29,7 +29,7 @@ export function useAttendanceRealtime(options: Readonly<UseAttendanceRealtimeOpt
 
     useEffect(() => {
         return subscribeToAttendanceUpdates({
-            courseId: options.courseId,
+            sessionId: options.sessionId,
             onConnectionStateChange: setConnectionState,
             onAttendanceEvent: (event) => {
                 if (handledEventIdsRef.current.has(event.eventId)) {
@@ -48,7 +48,7 @@ export function useAttendanceRealtime(options: Readonly<UseAttendanceRealtimeOpt
                 onAttendanceEventRef.current(event);
             }
         });
-    }, [options.courseId]);
+    }, [options.sessionId]);
 
     return { connectionState };
 }

@@ -1,5 +1,6 @@
 import * as lib from './lib'
-import * as CourseTable from './course';
+import * as ResourceTeacherTable from './resource-teacher';
+import * as SessionTeacherTable from './session-teacher';
 
 export const table = lib.pgTable('teacher', {
     ...lib.userAttributes,
@@ -7,9 +8,10 @@ export const table = lib.pgTable('teacher', {
     isValidated: lib.boolean('is_validated').notNull().default(false)
 })
 
-export const relations = lib.relations(table, ({many}) => ({
-    courses: many(CourseTable.table)
-}))
+export const relations = lib.relations(table, ({ many }) => ({
+    resourceTeachers: many(ResourceTeacherTable.table),
+    sessionTeachers: many(SessionTeacherTable.table),
+}));
 
 export type Select = typeof table.$inferSelect
 export type Insert = typeof table.$inferInsert

@@ -24,43 +24,42 @@ class AttendanceQueries extends QueryModel<NewAttendance, Attendance> {
         return { success: "Présence trouvée.", entity: result[0] as Attendance }
     }
 
-    // Récupère toutes les présences pour un cours donné
-    async getByCourseId(courseId: string): Promise<SuccessQueryResult<Attendance[]>> {
+    // Recupere toutes les presences pour une seance donnee.
+    async getBySessionId(sessionId: string): Promise<SuccessQueryResult<Attendance[]>> {
         const result = await lib.db
             .select()
             .from(this.table)
             .where(lib.and(
-                lib.eq(this.table.courseId, courseId),
+                lib.eq(this.table.sessionId, sessionId),
                 lib.isNull(this.table.deletedAt)
             ))
 
-        // Un cours sans aucune présence enregistrée est valide — on retourne un tableau vide
-        return { success: "Présences récupérées.", entity: result as Attendance[] }
+        return { success: "Presences recuperees.", entity: result as Attendance[] }
     }
 
-    async getByCourseAndStudent(courseId: string, studentMail: string): Promise<SuccessQueryResult<Attendance[]>> {
+    async getBySessionAndStudent(sessionId: string, studentMail: string): Promise<SuccessQueryResult<Attendance[]>> {
         const result = await lib.db
             .select()
             .from(this.table)
             .where(lib.and(
-                lib.eq(this.table.courseId, courseId),
+                lib.eq(this.table.sessionId, sessionId),
                 lib.eq(this.table.studentMail, studentMail),
                 lib.isNull(this.table.deletedAt)
             ))
 
-        return { success: "Présences récupérées.", entity: result as Attendance[] }
+        return { success: "Presences recuperees.", entity: result as Attendance[] }
     }
 
-    async markPresent(courseId: string, studentMail: string): Promise<QueryResult<Attendance>> {
-        const existingAttendance = await this.getByCourseAndStudent(courseId, studentMail)
+    async markPresent(sessionId: string, studentMail: string): Promise<QueryResult<Attendance>> {
+        const existingAttendance = await this.getBySessionAndStudent(sessionId, studentMail)
 
         if (existingAttendance.entity.length > 0) {
-            return { success: "Étudiant déjà présent.", entity: existingAttendance.entity[0] }
+            return { success: "Etudiant deja present.", entity: existingAttendance.entity[0] }
         }
 
         const createResult = await this.create({
             hourDate: new Date(),
-            courseId,
+            sessionId,
             studentMail
         })
 
@@ -68,7 +67,7 @@ class AttendanceQueries extends QueryModel<NewAttendance, Attendance> {
             return createResult
         }
 
-        return { success: "Présence ajoutée.", entity: createResult.entity }
+        return { success: "Presence ajoutee.", entity: createResult.entity }
     }
 
     /**
@@ -77,8 +76,8 @@ class AttendanceQueries extends QueryModel<NewAttendance, Attendance> {
      *
      * @param lateStatus 0 = présent, 1 = retard +5, 2 = retard +10, 3 = retard +15
      */
-    async markPresentAvecRetard(courseId: string, studentMail: string, lateStatus: number): Promise<QueryResult<Attendance>> {
-        const existingAttendance = await this.getByCourseAndStudent(courseId, studentMail)
+    async markPresentAvecRetard(sessionId: string, studentMail: string, lateStatus: number): Promise<QueryResult<Attendance>> {
+        const existingAttendance = await this.getBySessionAndStudent(sessionId, studentMail)
 
         if (existingAttendance.entity.length > 0) {
             // Mettre à jour le late_status de la présence existante
@@ -86,7 +85,7 @@ class AttendanceQueries extends QueryModel<NewAttendance, Attendance> {
                 .update(this.table)
                 .set({ lateStatus, updatedAt: new Date() })
                 .where(lib.and(
-                    lib.eq(this.table.courseId, courseId),
+                    lib.eq(this.table.sessionId, sessionId),
                     lib.eq(this.table.studentMail, studentMail),
                     lib.isNull(this.table.deletedAt)
                 ))
@@ -102,7 +101,7 @@ class AttendanceQueries extends QueryModel<NewAttendance, Attendance> {
         // Créer une nouvelle présence avec le late_status
         const createResult = await this.create({
             hourDate: new Date(),
-            courseId,
+            sessionId,
             studentMail,
             lateStatus
         })
@@ -114,18 +113,19 @@ class AttendanceQueries extends QueryModel<NewAttendance, Attendance> {
         return { success: "Présence ajoutée avec retard.", entity: createResult.entity }
     }
 
-    async markNonScanne(courseId: string, studentMail: string): Promise<SuccessQueryResult<Attendance[]>> {
+    async markNonScanne(sessionId: string, studentMail: string): Promise<SuccessQueryResult<Attendance[]>> {
         const deletedAttendances = await lib.db
             .delete(this.table)
             .where(lib.and(
-                lib.eq(this.table.courseId, courseId),
+                lib.eq(this.table.sessionId, sessionId),
                 lib.eq(this.table.studentMail, studentMail),
                 lib.isNull(this.table.deletedAt)
             ))
             .returning()
 
-        return { success: "Présence supprimée.", entity: deletedAttendances as Attendance[] }
+        return { success: "Presence supprimee.", entity: deletedAttendances as Attendance[] }
     }
+
 }
 
 export const attendanceQueries = new AttendanceQueries()

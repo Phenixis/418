@@ -2,15 +2,15 @@ import { NextResponse } from "next/server";
 import { attendanceQueries } from "@/lib/db/queries/attendance";
 import { getServerSession } from "@/lib/actions/authentication";
 import { teacherQueries } from "@/lib/db/queries/teacher";
-import { courseTeacherQueries } from "@/lib/db/queries/course-teacher";
-import { courseGroupQueries } from "@/lib/db/queries/course-group";
+import { sessionTeacherQueries } from "@/lib/db/queries/session-teacher";
+import { sessionGroupQueries } from "@/lib/db/queries/session-group";
 import { studentQueries } from "@/lib/db/queries/student";
 import { publishAttendanceRealtimeEvent } from "@/lib/realtime/provider-server";
 import { StatutEtudiant } from "@/components/cours/course.types";
 import { isEtudiantPresent, statutVersLateStatus } from "@/components/cours/course-utils";
 
 type ToggleAttendanceBody = {
-    courseId?: string;
+    sessionId?: string;
     studentMail?: string;
     nextStatut?: string;
 };
@@ -39,26 +39,26 @@ export async function PATCH(request: Request) {
         return NextResponse.json({ error: "Le corps de la requête doit être un JSON valide." }, { status: 400 });
     }
 
-    const rawCourseId = requestBody.courseId;
+    const rawSessionId = requestBody.sessionId;
     const rawStudentMail = requestBody.studentMail;
 
-    if (typeof rawCourseId !== "string" || typeof rawStudentMail !== "string") {
+    if (typeof rawSessionId !== "string" || typeof rawStudentMail !== "string") {
         return NextResponse.json(
-            { error: "Les champs courseId et studentMail doivent être des chaînes de caractères non vides." },
+            { error: "Les champs sessionId et studentMail doivent être des chaînes de caractères non vides." },
             { status: 400 }
         );
     }
 
-    const courseId = rawCourseId.trim();
+    const sessionId = rawSessionId.trim();
     const studentMail = rawStudentMail.trim();
-    if (!courseId || !studentMail) {
+    if (!sessionId || !studentMail) {
         return NextResponse.json(
-            { error: "Les champs courseId et studentMail sont requis." },
+            { error: "Les champs sessionId et studentMail sont requis." },
             { status: 400 }
         );
     }
 
-    const courseTeachersResult = await courseTeacherQueries.getByCourseId(courseId);
+    const courseTeachersResult = await sessionTeacherQueries.getBySessionId(sessionId);
 
     if ("error" in courseTeachersResult) {
         return NextResponse.json({ error: "Cours introuvable ou non autorisé." }, { status: 403 });
@@ -79,7 +79,7 @@ export async function PATCH(request: Request) {
         return NextResponse.json({ error: "Étudiant introuvable." }, { status: 404 });
     }
 
-    const courseGroupsResult = await courseGroupQueries.getByCourseId(courseId);
+    const courseGroupsResult = await sessionGroupQueries.getBySessionId(sessionId);
 
     if ("error" in courseGroupsResult) {
         return NextResponse.json({ error: "Aucun groupe associé à ce cours." }, { status: 403 });
@@ -99,11 +99,11 @@ export async function PATCH(request: Request) {
     if (nextStatut) {
         // Passage à non-scanné → supprimer la présence
         if (nextStatut === StatutEtudiant["NON-SCANNE"]) {
-            await attendanceQueries.markNonScanne(courseId, studentMail);
+            await attendanceQueries.markNonScanne(sessionId, studentMail);
 
             await publishAttendanceRealtimeEvent({
                 eventId: crypto.randomUUID(),
-                courseId,
+                sessionId,
                 studentMail,
                 status: "non-scanne",
                 lateStatus: 0,
@@ -117,7 +117,7 @@ export async function PATCH(request: Request) {
         // Passage à un statut présent (présent ou retard +5/+10/+15)
         if (isEtudiantPresent(nextStatut)) {
             const lateStatus = statutVersLateStatus(nextStatut);
-            const result = await attendanceQueries.markPresentAvecRetard(courseId, studentMail, lateStatus);
+            const result = await attendanceQueries.markPresentAvecRetard(sessionId, studentMail, lateStatus);
 
             if ("error" in result) {
                 return NextResponse.json({ error: result.error }, { status: 500 });
@@ -125,7 +125,7 @@ export async function PATCH(request: Request) {
 
             await publishAttendanceRealtimeEvent({
                 eventId: crypto.randomUUID(),
-                courseId,
+                sessionId,
                 studentMail,
                 status: "present",
                 lateStatus,
@@ -140,16 +140,16 @@ export async function PATCH(request: Request) {
     }
 
     // ── Rétro-compatibilité : toggle simple (présent ↔ non-scanné) ────
-    const attendanceResult = await attendanceQueries.getByCourseAndStudent(courseId, studentMail);
+    const attendanceResult = await attendanceQueries.getBySessionAndStudent(sessionId, studentMail);
 
     const isStudentPresent = attendanceResult.entity.length > 0;
 
     if (isStudentPresent) {
-        await attendanceQueries.markNonScanne(courseId, studentMail);
+        await attendanceQueries.markNonScanne(sessionId, studentMail);
 
         await publishAttendanceRealtimeEvent({
             eventId: crypto.randomUUID(),
-            courseId,
+            sessionId,
             studentMail,
             status: "non-scanne",
             source: "teacher-toggle",
@@ -159,7 +159,7 @@ export async function PATCH(request: Request) {
         return NextResponse.json({ status: "non-scanne" }, { status: 200 });
     }
 
-    const markPresentResult = await attendanceQueries.markPresent(courseId, studentMail);
+    const markPresentResult = await attendanceQueries.markPresent(sessionId, studentMail);
 
     if ("error" in markPresentResult) {
         return NextResponse.json({ error: markPresentResult.error }, { status: 500 });
@@ -167,7 +167,7 @@ export async function PATCH(request: Request) {
 
     await publishAttendanceRealtimeEvent({
         eventId: crypto.randomUUID(),
-        courseId,
+        sessionId,
         studentMail,
         status: "present",
         source: "teacher-toggle",

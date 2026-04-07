@@ -2,17 +2,17 @@
 
 import { StatutEtudiant } from '@/components/cours/course.types';
 import { attendanceQueries } from '@/lib/db/queries/attendance';
-import { courseQueries } from '@/lib/db/queries/course';
-import { courseGroupQueries } from '@/lib/db/queries/course-group';
+import { sessionQueries } from '@/lib/db/queries/session';
+import { sessionGroupQueries } from '@/lib/db/queries/session-group';
 import { groupQueries } from '@/lib/db/queries/group';
 import { studentQueries } from '@/lib/db/queries/student';
 import * as Schema from '@/lib/db/schema';
 
-type Course = Schema.CourseTable.Select;
+type Course = Schema.SessionTable.Select;
 type Student = Schema.StudentTable.Select;
 export type StudentWithStatus = Student & { groupName: string, statut: StatutEtudiant };
 type Attendance = Schema.AttendanceTable.Select;
-type CourseGroup = Schema.CourseGroupTable.Select;
+type CourseGroup = Schema.SessionGroupTable.Select;
 type Group = Schema.GroupTable.Select;
 
 export interface CoursActuelData {
@@ -22,17 +22,17 @@ export interface CoursActuelData {
 }
 
 export async function fetchCoursActuel(
-    courseId: string
+    sessionId: string
 ): Promise<{ success: true; data: CoursActuelData } | { success: false; error: string }> {
     // --- 1. Récupération du cours ---
-    const courseResult = await courseQueries.getByStringId(courseId);
+    const courseResult = await sessionQueries.getByStringId(sessionId);
     if ('error' in courseResult) {
         return { success: false, error: courseResult.error };
     }
     const cours = courseResult.entity;
 
     // --- 2. Récupération du lien cours-groupe ---
-    const courseGroupResult = await courseGroupQueries.getByCourseId(courseId);
+    const courseGroupResult = await sessionGroupQueries.getBySessionId(sessionId);
     if ('error' in courseGroupResult) {
         return { success: false, error: courseGroupResult.error };
     }
@@ -50,8 +50,7 @@ export async function fetchCoursActuel(
     const students = studentsResult.entity;
 
     // --- 5. Récupération des présences pour ce cours ---
-    const attendanceResult = await attendanceQueries.getByCourseId(courseId);
-    // getByCourseId ne retourne jamais d'erreur, tableau vide = aucune présence
+    const attendanceResult = await attendanceQueries.getBySessionId(sessionId);
     const presentMails = new Set(attendanceResult.entity.map((a: Attendance) => a.studentMail));
 
     // --- Assemblage des étudiants avec leur statut ---

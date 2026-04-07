@@ -1,4 +1,4 @@
-import { courseGroupQueries } from './course-group'
+import { sessionGroupQueries } from './session-group'
 import * as lib from './lib'
 import { QueryModel, QueryResult, SuccessQueryResult } from './model'
 
@@ -65,11 +65,11 @@ class GroupQueries extends QueryModel<NewGroup, Group> {
         return { success: "Groupes trouvés.", entity: result as Group[] }
     }
 
-    async getByCourseId(courseId: string): Promise<QueryResult<Group[]>> {
-        const groupsIds = await courseGroupQueries.getByCourseId(courseId)
+    async getBySessionId(sessionId: string): Promise<QueryResult<Group[]>> {
+        const groupsIds = await sessionGroupQueries.getBySessionId(sessionId)
 
         if ('error' in groupsIds) {
-            return { error: "Aucun groupe trouvé pour ce cours." }
+            return { error: "Aucun groupe trouve pour cette seance." }
         }
 
         const groupIdsArray = groupsIds.entity.map((cg) => cg.groupId)
@@ -80,10 +80,10 @@ class GroupQueries extends QueryModel<NewGroup, Group> {
             .where(lib.inArray(this.table.groupId, groupIdsArray))
 
         if (lib.resultEmpty(result)) {
-            return { error: "Aucun groupe trouvé pour ce cours." }
+            return { error: "Aucun groupe trouve pour cette seance." }
         }
 
-        return { success: "Groupes trouvés pour ce cours.", entity: result as Group[] }
+        return { success: "Groupes trouves pour cette seance.", entity: result as Group[] }
     }
 }
 

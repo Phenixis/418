@@ -96,7 +96,7 @@ async function openRefuseAccountAction(page: Page, teacherRow: ReturnType<typeof
     }
 
     await teacherRow.scrollIntoViewIfNeeded();
-    await teacherRow.getByRole('button', { name: 'Open actions menu' }).click({ force: true });
+    await teacherRow.locator('td').last().locator('button').first().click();
 
     await expect(refuseMenuItem).toBeVisible();
     return refuseMenuItem;
@@ -110,7 +110,7 @@ async function openDeleteAccountAction(page: Page, teacherRow: ReturnType<typeof
     }
 
     await teacherRow.scrollIntoViewIfNeeded();
-    await teacherRow.getByRole('button', { name: 'Open actions menu' }).click({ force: true });
+    await teacherRow.locator('td').last().locator('button').first().click();
 
     await expect(deleteMenuItem).toBeVisible();
     return deleteMenuItem;
@@ -210,7 +210,7 @@ test.describe('Page administrateur - gestion des comptes', () => {
 
         const pendingTeacherRow = getTeacherRowByEmail(authenticatedAdminPage, pendingTeacherEmail);
 
-        await pendingTeacherRow.getByRole('button', { name: 'Open actions menu' }).click();
+        await pendingTeacherRow.locator('td').last().locator('button').first().click();
         const validationSubmissionPromise = authenticatedAdminPage.waitForResponse((response) => {
             return response.url().includes('/administrateur/gestion-comptes')
                 && response.request().method() === 'POST';
@@ -220,7 +220,7 @@ test.describe('Page administrateur - gestion des comptes', () => {
 
         await expect(getTeacherRowByEmail(authenticatedAdminPage, pendingTeacherEmail)).toContainText('Validé');
 
-        await getTeacherRowByEmail(authenticatedAdminPage, pendingTeacherEmail).getByRole('button', { name: 'Open actions menu' }).click();
+        await getTeacherRowByEmail(authenticatedAdminPage, pendingTeacherEmail).locator('td').last().locator('button').first().click();
         await expect(authenticatedAdminPage.getByRole('menuitem', { name: 'Valider le compte' })).toHaveCount(0);
         await expect(authenticatedAdminPage.getByRole('menuitem', { name: 'Refuser le compte' })).toHaveCount(0);
         await expect(authenticatedAdminPage.getByRole('menuitem', { name: 'Supprimer le compte' })).toBeVisible();

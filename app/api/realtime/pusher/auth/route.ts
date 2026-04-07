@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "@/lib/actions/authentication";
-import { courseTeacherQueries } from "@/lib/db/queries/course-teacher";
+import { sessionTeacherQueries } from "@/lib/db/queries/session-teacher";
 import { teacherQueries } from "@/lib/db/queries/teacher";
 import { authorizePrivateChannel } from "@/lib/realtime/provider-server";
 
-const COURSE_CHANNEL_PREFIX = "private-course-attendance-";
+const SESSION_CHANNEL_PREFIX = "private-session-attendance-";
 
 export async function POST(request: Request) {
     const session = await getServerSession();
@@ -25,16 +25,16 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Paramètres d'authentification invalides." }, { status: 400 });
     }
 
-    if (!rawChannelName.startsWith(COURSE_CHANNEL_PREFIX)) {
+    if (!rawChannelName.startsWith(SESSION_CHANNEL_PREFIX)) {
         return NextResponse.json({ error: "Canal non autorisé." }, { status: 403 });
     }
 
-    const courseId = rawChannelName.slice(COURSE_CHANNEL_PREFIX.length).trim();
-    if (!courseId) {
-        return NextResponse.json({ error: "Identifiant de cours invalide." }, { status: 400 });
+    const sessionId = rawChannelName.slice(SESSION_CHANNEL_PREFIX.length).trim();
+    if (!sessionId) {
+        return NextResponse.json({ error: "Identifiant de séance invalide." }, { status: 400 });
     }
 
-    const courseTeachersResult = await courseTeacherQueries.getByCourseId(courseId);
+    const courseTeachersResult = await sessionTeacherQueries.getBySessionId(sessionId);
     if ("error" in courseTeachersResult) {
         return NextResponse.json({ error: "Cours introuvable ou non autorisé." }, { status: 403 });
     }

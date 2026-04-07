@@ -2,10 +2,11 @@ import { test as baseTest, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 import { db } from '@/lib/db/drizzle';
+import { table as resourceTable } from '@/lib/db/schema/resource';
 import { table as studentTable } from '@/lib/db/schema/student';
-import { table as courseTable } from '@/lib/db/schema/course';
+import { table as sessionTable } from '@/lib/db/schema/session';
 import { table as groupTable } from '@/lib/db/schema/group';
-import { table as courseGroupTable } from '@/lib/db/schema/course-group';
+import { table as sessionGroupTable } from '@/lib/db/schema/session-group';
 import { table as attendanceTable } from '@/lib/db/schema/attendance';
 import { ensureStudentAccountByEmail, deleteStudentAccountByEmail } from './helpers/test-account';
 import { and, eq } from 'drizzle-orm';
@@ -19,7 +20,8 @@ type StudentCredentials = {
 };
 
 type CourseFixture = {
-    courseId: string;
+    sessionId: string;
+    resourceId: string;
     courseName: string;
 };
 
@@ -28,12 +30,13 @@ type StudentCourseAccessFixture = {
     localPart: string;
     password: string;
     groupId: number;
-    courseId: string;
+    sessionId: string;
 };
 
 type TestCleanupState = {
     createdStudentEmails: string[];
     createdCourseIds: string[];
+    createdResourceIds: string[];
     createdGroupIds: number[];
 };
 
@@ -42,6 +45,7 @@ const test = baseTest.extend<{ cleanupState: TestCleanupState }>({
         const cleanupState: TestCleanupState = {
             createdStudentEmails: [],
             createdCourseIds: [],
+            createdResourceIds: [],
             createdGroupIds: [],
         };
 
@@ -54,6 +58,10 @@ const test = baseTest.extend<{ cleanupState: TestCleanupState }>({
 
             for (const courseId of cleanupState.createdCourseIds) {
                 await deleteCourseById(courseId);
+            }
+
+            for (const resourceId of cleanupState.createdResourceIds) {
+                await deleteResourceById(resourceId);
             }
 
             for (const groupId of cleanupState.createdGroupIds) {
@@ -84,21 +92,32 @@ async function deleteStudentByEmail(studentEmail: string): Promise<void> {
 
 async function createActiveCourseFixture(): Promise<CourseFixture> {
     const randomSuffix = Math.random().toString(36).slice(2, 10);
-    const courseId = randomUUID();
+    const sessionId = randomUUID();
+    const resourceId = randomUUID();
     const courseName = `Cours UI ${randomSuffix}`;
 
-    await db.insert(courseTable).values({
-        courseId,
+    await db.insert(resourceTable).values({
+        resourceId,
+        subject: courseName,
+    });
+
+    await db.insert(sessionTable).values({
+        sessionId,
+        resourceId,
         subject: courseName,
         startAt: new Date(Date.now() - 5 * 60 * 1000),
         endAt: new Date(Date.now() + 60 * 60 * 1000),
     });
 
-    return { courseId, courseName };
+    return { sessionId, resourceId, courseName };
 }
 
-async function deleteCourseById(courseId: string): Promise<void> {
-    await db.delete(courseTable).where(eq(courseTable.courseId, courseId));
+async function deleteCourseById(sessionId: string): Promise<void> {
+    await db.delete(sessionTable).where(eq(sessionTable.sessionId, sessionId));
+}
+
+async function deleteResourceById(resourceId: string): Promise<void> {
+    await db.delete(resourceTable).where(eq(resourceTable.resourceId, resourceId));
 }
 
 async function createGroupFixture(): Promise<number> {
@@ -119,9 +138,9 @@ async function deleteGroupById(groupId: number): Promise<void> {
     await db.delete(groupTable).where(eq(groupTable.groupId, groupId));
 }
 
-async function linkCourseToGroup(courseId: string, groupId: number): Promise<void> {
-    await db.insert(courseGroupTable).values({
-        courseId,
+async function linkCourseToGroup(sessionId: string, groupId: number): Promise<void> {
+    await db.insert(sessionGroupTable).values({
+        sessionId,
         groupId,
     });
 }
@@ -139,10 +158,11 @@ async function createStudentWithCourseAccessFixture(
         groupId,
     });
 
-    await linkCourseToGroup(activeCourse.courseId, groupId);
+    await linkCourseToGroup(activeCourse.sessionId, groupId);
 
     cleanupState.createdStudentEmails.push(studentCredentials.email);
-    cleanupState.createdCourseIds.push(activeCourse.courseId);
+    cleanupState.createdCourseIds.push(activeCourse.sessionId);
+    cleanupState.createdResourceIds.push(activeCourse.resourceId);
     cleanupState.createdGroupIds.push(groupId);
 
     return {
@@ -150,7 +170,7 @@ async function createStudentWithCourseAccessFixture(
         localPart: studentCredentials.localPart,
         password: studentCredentials.password,
         groupId,
-        courseId: activeCourse.courseId,
+        sessionId: activeCourse.sessionId,
     };
 }
 
@@ -183,13 +203,13 @@ async function signInStudentFromAttendancePage(
     await expect(page.getByText('Présence validée')).toBeVisible();
 }
 
-async function countAttendanceRecords(courseId: string, studentEmail: string): Promise<number> {
+async function countAttendanceRecords(sessionId: string, studentEmail: string): Promise<number> {
     const attendanceRecords = await db
         .select({ attendanceId: attendanceTable.attendanceId })
         .from(attendanceTable)
         .where(
             and(
-                eq(attendanceTable.courseId, courseId),
+                eq(attendanceTable.sessionId, sessionId),
                 eq(attendanceTable.studentMail, studentEmail),
             ),
         );
@@ -197,10 +217,10 @@ async function countAttendanceRecords(courseId: string, studentEmail: string): P
     return attendanceRecords.length;
 }
 
-async function deleteAttendanceRecords(courseId: string, studentEmail: string): Promise<void> {
+async function deleteAttendanceRecords(sessionId: string, studentEmail: string): Promise<void> {
     await db.delete(attendanceTable).where(
         and(
-            eq(attendanceTable.courseId, courseId),
+            eq(attendanceTable.sessionId, sessionId),
             eq(attendanceTable.studentMail, studentEmail),
         ),
     );
@@ -226,9 +246,9 @@ test.describe('Student attendance UI and session persistence', () => {
 
     test('should show email input when page loads with valid course', async ({ page, cleanupState }) => {
         const activeCourse = await createActiveCourseFixture();
-        cleanupState.createdCourseIds.push(activeCourse.courseId);
+        cleanupState.createdCourseIds.push(activeCourse.sessionId);
 
-        await page.goto(`/etudiant?cours_id=${activeCourse.courseId}`);
+        await page.goto(`/etudiant?cours_id=${activeCourse.sessionId}`);
 
         const emailInput = page.getByLabel('Adresse email IUT');
         await expect(emailInput).toBeVisible();
@@ -239,8 +259,8 @@ test.describe('Student attendance UI and session persistence', () => {
         cleanupState.createdStudentEmails.push(credentials.email);
 
         const activeCourse = await createActiveCourseFixture();
-        cleanupState.createdCourseIds.push(activeCourse.courseId);
-        await page.goto(`/etudiant?cours_id=${activeCourse.courseId}`);
+        cleanupState.createdCourseIds.push(activeCourse.sessionId);
+        await page.goto(`/etudiant?cours_id=${activeCourse.sessionId}`);
 
         // Remplir l'email
         const emailInput = page.getByLabel('Adresse email IUT');
@@ -254,8 +274,8 @@ test.describe('Student attendance UI and session persistence', () => {
 
     test('should format email input correctly on blur', async ({ page, cleanupState }) => {
         const activeCourse = await createActiveCourseFixture();
-        cleanupState.createdCourseIds.push(activeCourse.courseId);
-        await page.goto(`/etudiant?cours_id=${activeCourse.courseId}`);
+        cleanupState.createdCourseIds.push(activeCourse.sessionId);
+        await page.goto(`/etudiant?cours_id=${activeCourse.sessionId}`);
 
         const emailInput = page.getByLabel('Adresse email IUT');
         await expect(emailInput).toBeVisible();
@@ -271,8 +291,8 @@ test.describe('Student attendance UI and session persistence', () => {
 
     test('should display domain suffix next to email input', async ({ page, cleanupState }) => {
         const activeCourse = await createActiveCourseFixture();
-        cleanupState.createdCourseIds.push(activeCourse.courseId);
-        await page.goto(`/etudiant?cours_id=${activeCourse.courseId}`);
+        cleanupState.createdCourseIds.push(activeCourse.sessionId);
+        await page.goto(`/etudiant?cours_id=${activeCourse.sessionId}`);
 
         // Vérifier que le suffixe de domaine est affiché
         const domainSuffix = page.getByText(`@${STUDENT_EMAIL_DOMAIN}`);
@@ -313,7 +333,7 @@ test.describe('Student attendance UI and session persistence', () => {
     test('should create student_session cookie with persistent flag depending on remember option', async ({ page, cleanupState }, testInfo) => {
         const rememberedStudentFixture = await createStudentWithCourseAccessFixture(cleanupState);
 
-        await page.goto(`/etudiant?cours_id=${rememberedStudentFixture.courseId}`);
+        await page.goto(`/etudiant?cours_id=${rememberedStudentFixture.sessionId}`);
         await signInStudentFromAttendancePage(
             page,
             rememberedStudentFixture.localPart,
@@ -347,7 +367,7 @@ test.describe('Student attendance UI and session persistence', () => {
 
         try {
             const secondPage = await secondContext.newPage();
-            await secondPage.goto(`/etudiant?cours_id=${notRememberedStudentFixture.courseId}`);
+            await secondPage.goto(`/etudiant?cours_id=${notRememberedStudentFixture.sessionId}`);
             await signInStudentFromAttendancePage(
                 secondPage,
                 notRememberedStudentFixture.localPart,
@@ -373,7 +393,7 @@ test.describe('Student attendance UI and session persistence', () => {
     test('should auto-attend student after reload when session is valid', async ({ page, cleanupState }) => {
         const studentAccessFixture = await createStudentWithCourseAccessFixture(cleanupState);
 
-        await page.goto(`/etudiant?cours_id=${studentAccessFixture.courseId}`);
+        await page.goto(`/etudiant?cours_id=${studentAccessFixture.sessionId}`);
         await signInStudentFromAttendancePage(
             page,
             studentAccessFixture.localPart,
@@ -382,19 +402,19 @@ test.describe('Student attendance UI and session persistence', () => {
         );
 
         expect(
-            await countAttendanceRecords(studentAccessFixture.courseId, studentAccessFixture.email),
+            await countAttendanceRecords(studentAccessFixture.sessionId, studentAccessFixture.email),
         ).toBe(1);
 
-        await deleteAttendanceRecords(studentAccessFixture.courseId, studentAccessFixture.email);
+        await deleteAttendanceRecords(studentAccessFixture.sessionId, studentAccessFixture.email);
         expect(
-            await countAttendanceRecords(studentAccessFixture.courseId, studentAccessFixture.email),
+            await countAttendanceRecords(studentAccessFixture.sessionId, studentAccessFixture.email),
         ).toBe(0);
 
         await page.reload();
         await expect(page.getByText('Présence validée')).toBeVisible();
 
         expect(
-            await countAttendanceRecords(studentAccessFixture.courseId, studentAccessFixture.email),
+            await countAttendanceRecords(studentAccessFixture.sessionId, studentAccessFixture.email),
         ).toBe(1);
     });
 
@@ -402,9 +422,9 @@ test.describe('Student attendance UI and session persistence', () => {
         const studentAccessFixture = await createStudentWithCourseAccessFixture(cleanupState);
 
         const unauthorizedCourse = await createActiveCourseFixture();
-        cleanupState.createdCourseIds.push(unauthorizedCourse.courseId);
+        cleanupState.createdCourseIds.push(unauthorizedCourse.sessionId);
 
-        await page.goto(`/etudiant?cours_id=${studentAccessFixture.courseId}`);
+        await page.goto(`/etudiant?cours_id=${studentAccessFixture.sessionId}`);
         await signInStudentFromAttendancePage(
             page,
             studentAccessFixture.localPart,
@@ -412,7 +432,7 @@ test.describe('Student attendance UI and session persistence', () => {
             true,
         );
 
-        await page.goto(`/etudiant?cours_id=${unauthorizedCourse.courseId}`);
+        await page.goto(`/etudiant?cours_id=${unauthorizedCourse.sessionId}`);
 
         await expect(page.getByRole('heading', { name: 'Vérification du compte' })).toBeVisible();
         await expect(page.getByText(/n'est pas inscrit à ce cours/i)).toBeVisible();

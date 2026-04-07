@@ -1,10 +1,12 @@
 "use server";
 
-import { courseGroupQueries } from "../db/queries/course-group";
-import { courseQueries } from "../db/queries/course";
+import { sessionGroupQueries } from "../db/queries/session-group";
+import { sessionQueries } from "../db/queries/session";
 import { ActionResult } from "./types";
 import { fromZonedTime } from "date-fns-tz";
-import { courseTeacherQueries } from "../db/queries/course-teacher";
+import { resourceQueries } from "../db/queries/resource";
+import { resourceTeacherQueries } from "../db/queries/resource-teacher";
+import { sessionTeacherQueries } from "../db/queries/session-teacher";
 import { revalidatePath } from "next/cache";
 import { teacherQueries } from "@/lib/db/queries/teacher";
 
@@ -76,50 +78,70 @@ export async function creerCours(prevState: ActionResult, formData: FormData): P
 
     const endTimeDate = new Date(startDate.getTime() + (durationInMinutes * 60 * 1000));
 
-    const uuid = crypto.randomUUID()
+    const sessionId = crypto.randomUUID()
+    const resourceId = crypto.randomUUID()
 
-    const result = await courseQueries.create({
-        courseId: uuid,
+    const resourceCreationResult = await resourceQueries.create({
+        resourceId,
+        subject: label,
+    })
+
+    if ("error" in resourceCreationResult) {
+        console.error("Error creating resource:", resourceCreationResult.error);
+        return { error: true, message: "Erreur lors de la création de la ressource." };
+    }
+
+    const sessionCreationResult = await sessionQueries.create({
+        sessionId,
+        resourceId,
         subject: label,
         startAt: startDate,
         endAt: endTimeDate,
     })
 
-    if ("error" in result) {
-        console.error("Error creating course:", result.error);
-        return { error: true, message: "Erreur lors de la création du cours." };
+    if ("error" in sessionCreationResult) {
+        console.error("Error creating session:", sessionCreationResult.error);
+        return { error: true, message: "Erreur lors de la création de la séance." };
     }
 
-    const courseGroupsCreationResults = await Promise.all(
-        groupIds.map((groupId) => courseGroupQueries.create({
-            courseId: uuid,
+    const sessionGroupsCreationResults = await Promise.all(
+        groupIds.map((groupId) => sessionGroupQueries.create({
+            sessionId,
             groupId,
         }))
     );
 
-    const hasCourseGroupCreationError = courseGroupsCreationResults.some((creationResult) => "error" in creationResult);
+    const hasSessionGroupCreationError = sessionGroupsCreationResults.some((creationResult) => "error" in creationResult);
 
-    if (hasCourseGroupCreationError) {
-        return { error: true, message: "Le cours a été créé, mais la liaison avec les groupes a échoué." };
+    if (hasSessionGroupCreationError) {
+        return { error: true, message: "La séance a été créée, mais la liaison avec les groupes a échoué." };
     }
 
-    const courseTeachersCreationResults = await Promise.all(
-        teachers.map((teacherMail) => courseTeacherQueries.create({
-            courseId: uuid,
-            teacherMail: teacherMail ,
+    const resourceTeachersCreationResults = await Promise.all(
+        teachers.map((teacherMail) => resourceTeacherQueries.create({
+            resourceId,
+            teacherMail,
         }))
     );
 
-    const hasCourseTeacherCreationError = courseTeachersCreationResults.some((creationResult) => "error" in creationResult);
+    const sessionTeachersCreationResults = await Promise.all(
+        teachers.map((teacherMail) => sessionTeacherQueries.create({
+            sessionId,
+            teacherMail,
+        }))
+    );
 
-    if (hasCourseTeacherCreationError) {
-        return { error: true, message: "Le cours a été créé, mais la liaison avec les enseignants a échoué." };
+    const hasResourceTeacherCreationError = resourceTeachersCreationResults.some((creationResult) => "error" in creationResult);
+    const hasSessionTeacherCreationError = sessionTeachersCreationResults.some((creationResult) => "error" in creationResult);
+
+    if (hasResourceTeacherCreationError || hasSessionTeacherCreationError) {
+        return { error: true, message: "La séance a été créée, mais la liaison avec les enseignants a échoué." };
     }
 
     return {
         success: true,
         course: {
-            id: uuid
+            id: sessionId
         },
     };
 }
@@ -135,14 +157,14 @@ export async function modifierCours(prevState: ActionResult, formData: FormData)
 
     const endTimeDate = new Date(startDate.getTime() + (durationInMinutes * 60 * 1000));
 
-    const courseId = formData.get("courseId");
+    const resourceId = formData.get("resourceId");
 
-    if (typeof courseId !== "string") {
+    if (typeof resourceId !== "string") {
         return { error: true, message: "ID de cours manquant ou invalide." };
     }
 
-    const result = await courseQueries.update(courseId, {
-        courseId,
+    const result = await sessionQueries.update(resourceId, {
+        resourceId,
         subject: label,
         startAt: startDate,
         endAt: endTimeDate,
@@ -153,15 +175,15 @@ export async function modifierCours(prevState: ActionResult, formData: FormData)
         return { error: true, message: "Erreur lors de la modification du cours." };
     }
 
-    const deleteCourseGroupsResult = await courseGroupQueries.deleteByCourseId(courseId);
+    const deleteCourseGroupsResult = await sessionGroupQueries.deleteBySessionId(resourceId);
 
     if ("error" in deleteCourseGroupsResult) {
         return { error: true, message: "Le cours a été modifié, mais la suppression des anciennes liaisons avec les groupes a échoué." };
     }
 
     const courseGroupsCreationResults = await Promise.all(
-        groupIds.map((groupId) => courseGroupQueries.create({
-            courseId,
+        groupIds.map((groupId) => sessionGroupQueries.create({
+            sessionId: resourceId,
             groupId,
         }))
     );
@@ -172,16 +194,16 @@ export async function modifierCours(prevState: ActionResult, formData: FormData)
         return { error: true, message: "Le cours a été modifié, mais la liaison avec les groupes a échoué." };
     }
 
-    const deleteCourseTeachersResult = await courseTeacherQueries.deleteByCourseId(courseId);
+    const deleteCourseTeachersResult = await sessionTeacherQueries.deleteBySessionId(resourceId);
 
     if ("error" in deleteCourseTeachersResult) {
         return { error: true, message: "Le cours a été modifié, mais la suppression des anciennes liaisons avec les enseignants a échoué." };
     }
 
     const courseTeachersCreationResults = await Promise.all(
-        teachers.map((teacherMail) => courseTeacherQueries.create({
-            courseId,
-            teacherMail: teacherMail ,
+        teachers.map((teacherMail) => sessionTeacherQueries.create({
+            sessionId: resourceId,
+            teacherMail,
         }))
     );
 
@@ -194,29 +216,36 @@ export async function modifierCours(prevState: ActionResult, formData: FormData)
     return {
         success: true,
         course: {
-            id: courseId
+            id: resourceId
         },
     };
 }
 
-export async function deleteCourse(formData: FormData): Promise<void> {
+export async function deleteCourse(formData: FormData): Promise<ActionResult> {
     await teacherQueries.getTeacher();
 
-    const courseId = formData.get("courseId");
-    if (typeof courseId !== "string" || courseId.trim().length === 0) {
-        return;
+    const resourceId = formData.get("courseId");
+    if (typeof resourceId !== "string" || resourceId.trim().length === 0) {
+        return { error: true, message: "ID de cours manquant ou invalide." };
     }
 
-    const deletionResult = await courseQueries.deleteByCourseId(courseId);
+    const deletionResult = await sessionQueries.deleteBySessionId(resourceId);
     if ("error" in deletionResult) {
-        return;
+        return { error: true, message: "Erreur lors de la suppression du cours." };
     }
 
     /*
-    La suppression d'un cours utilise un soft delete (mise à jour du champ deletedAt).
-    Les relations course_group, course_teacher et attendance ne sont donc pas supprimées automatiquement en cascade
+    La suppression d'une seance utilise un soft delete (mise a jour du champ deletedAt).
+    Les relations session_group, session_teacher et attendance ne sont donc pas supprimees automatiquement en cascade
     au niveau de la base de données et doivent être gérées séparément si nécessaire.
     */
 
     revalidatePath("/professeur/dashboard");
+
+    return {
+        success: true,
+        course: {
+            id: resourceId
+        },
+    }
 }

@@ -15,15 +15,12 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuSeparator,
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { deleteTeacherAccount, refuseTeacherAccount, validateTeacherAccount } from "@/lib/actions/admin";
 import { Select as Teacher } from "@/lib/db/schema/teacher";
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import CheckIcon from '@mui/icons-material/Check';
-import DeleteIcon from '@mui/icons-material/Delete';
 import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -71,17 +68,86 @@ export default function TeachersTableRow({
             <TableCell className="text-left px-6">{teacher.userMail}</TableCell>
             <TableCell className="text-left px-6">{teacher.isAdmin ? "Administrateur" : "Enseignant"}</TableCell>
             <TableCell>
-                <form action={validateTeacherAction}>
-                    <input type="hidden" name="teacherEmail" value={teacher.userMail} />
-                    {/* Bouton de validation visible seulement si non validé */}
-                    <Button type="submit" hidden={teacher.isValidated} variant="default" className="bg-green hover:bg-green/90">
-                        <CheckIcon />
-                    </Button>
-                    {/* Bouton de suppression visible seulement si validé */}
-                    <Button type="reset" hidden={!teacher.isValidated} variant="destructive">
-                        <DeleteIcon />
-                    </Button>
-                </form>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" title="Actions">
+                            <span className="sr-only">Open actions menu</span>
+                            <MoreVertIcon />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                        {!teacher.isValidated && (
+                            <form action={validateTeacherAction}>
+                                <input type="hidden" name="teacherEmail" value={teacher.userMail} />
+                                <DropdownMenuItem asChild>
+                                    <button type="submit" className="w-full cursor-pointer">
+                                        Valider le compte
+                                    </button>
+                                </DropdownMenuItem>
+                            </form>
+                        )}
+
+                        {!teacher.isValidated && (
+                            <DropdownMenuItem
+                                onSelect={(event) => {
+                                    event.preventDefault();
+                                    setIsRefuseDialogOpen(true);
+                                }}
+                                variant="destructive"
+                            >
+                                Refuser le compte
+                            </DropdownMenuItem>
+                        )}
+
+                        {teacher.isValidated && (
+                            <DropdownMenuItem
+                                onSelect={(event) => {
+                                    event.preventDefault();
+                                    setIsDeleteDialogOpen(true);
+                                }}
+                                variant="destructive"
+                            >
+                                Supprimer le compte
+                            </DropdownMenuItem>
+                        )}
+                    </DropdownMenuContent>
+                </DropdownMenu>
+
+                <AlertDialog open={isRefuseDialogOpen} onOpenChange={setIsRefuseDialogOpen}>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Refuser ce compte ?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Cette action supprimera le compte {teacher.userMail}.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Annuler</AlertDialogCancel>
+                            <form action={refuseTeacherAction}>
+                                <input type="hidden" name="teacherEmail" value={teacher.userMail} />
+                                <Button type="submit" variant="destructive">Refuser</Button>
+                            </form>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+
+                <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Supprimer ce compte ?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Cette action supprimera le compte {teacher.userMail}.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Annuler</AlertDialogCancel>
+                            <form action={deleteTeacherAction}>
+                                <input type="hidden" name="teacherEmail" value={teacher.userMail} />
+                                <Button type="submit" variant="destructive">Supprimer</Button>
+                            </form>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             </TableCell>
         </TableRow>
     )
