@@ -3,15 +3,6 @@ import type { NextConfig } from 'next';
 const nextConfig: NextConfig = {
     images: {
         qualities: [25, 50, 75, 100]
-        remotePatterns: [
-            {
-                // Pour l'instant vu qu'on a pas de BDD,
-                // je fetch les images aléatoirement depuis randomuser.me
-                // plus tard on mettera ici le lien de Supabase pour les images
-                protocol: 'https',
-                hostname: 'randomuser.me'
-            }
-        ]
     }
 };
 

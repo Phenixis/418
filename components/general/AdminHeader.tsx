@@ -10,7 +10,8 @@ import { usePathname } from 'next/navigation';
 import SettingsMenu from '../admin/SettingsMenu';
 
 const ROUTES = {
-    "Gestion des comptes": '/administrateur/gestion-comptes',
+    "Gestion des professeurs": '/administrateur/gestion-professeurs',
+    "Gestion des étudiants": '/administrateur/gestion-etudiants',
 };
 
 export default function AdminHeader() {
