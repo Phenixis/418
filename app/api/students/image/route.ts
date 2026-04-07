@@ -4,7 +4,7 @@ import { getServerSession } from '@/lib/actions/authentication';
 import { getStudentServerSession } from '@/lib/actions/student-auth';
 import { studentQueries } from '@/lib/db/queries/student';
 import { teacherQueries } from '@/lib/db/queries/teacher';
-import { normalizeBlobSource as normalizeBlobSourceUtil } from '@/lib/utils/blob';
+import { isStudentBlobPath, normalizeBlobSource as normalizeBlobSourceUtil } from '@/lib/utils/blob';
 
 type TeacherSession = Awaited<ReturnType<typeof getServerSession>>;
 type StudentSession = Awaited<ReturnType<typeof getStudentServerSession>>;
@@ -78,6 +78,12 @@ export async function GET(request: Request) {
     }
 
     if (isTeacherAuthenticated) {
+        const normalizedRequestedSource = normalizeBlobSourceUtil(source);
+
+        if (!isStudentBlobPath(normalizedRequestedSource)) {
+            return NextResponse.json({ error: 'Accès non autorisé à cette image.' }, { status: 403 });
+        }
+
         const teacherResult = await teacherQueries.getByEmail(teacherSession!.teacherEmail);
 
         if ('error' in teacherResult || !teacherResult.entity.isValidated) {

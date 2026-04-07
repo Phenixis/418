@@ -56,14 +56,16 @@ export default function CollapsibleGroup({
 
     return (
         <Collapsible open={open} onOpenChange={setOpen}>
-            <CollapsibleTrigger className="cursor-pointer flex w-full items-center gap-2 h3">                {open ? <UnfoldLessIcon /> : <UnfoldMoreIcon />}                {group.td}{group.tp}
+            <CollapsibleTrigger className="cursor-pointer flex w-full items-center gap-2 h3">
+                {open ? <UnfoldLessIcon /> : <UnfoldMoreIcon />}
+                {group.td}{group.tp}
             </CollapsibleTrigger>
             <CollapsibleContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 md:gap-4">
                     {isLoadingStudents && (
                         <>
-                            {Array.from({ length: 12 }).map((_, index) => (
-                                <EtudiantCardSkeleton key={index} />
+                            {Array.from({ length: 12 }, (_, index) => `skeleton-${index + 1}`).map((skeletonKey) => (
+                                <EtudiantCardSkeleton key={skeletonKey} />
                             ))}
                         </>
                     )}

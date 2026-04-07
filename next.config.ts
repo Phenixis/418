@@ -2,11 +2,6 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
     images: {
-        localPatterns: [
-            {
-                pathname: '/api/students/image',
-            },
-        ],
         remotePatterns: [
             {
                 // Pour l'instant vu qu'on a pas de BDD,

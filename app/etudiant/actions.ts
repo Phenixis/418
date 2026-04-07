@@ -28,7 +28,7 @@ type StudentStepData = {
 const DATABASE_CONNECTION_ERROR_MESSAGE =
   "Impossible de contacter la base de données pour le moment. Réessayez dans quelques instants.";
 
-const EMPTY_STUDENT_SENTINEL = String.fromCodePoint(110, 117, 108, 108);
+const EMPTY_STUDENT_SENTINEL = 'null';
 
 function hasStudentPassword(storedPassword: string | null | undefined): boolean {
   const normalizedPassword = (storedPassword ?? "").trim();

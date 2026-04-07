@@ -1046,7 +1046,7 @@ export default function StudentsManagementClient({ initialStudents, groups }: Re
                     <AlertDialogHeader>
                         <AlertDialogTitle>Supprimer cet étudiant ?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Cette action supprimera définitivement le compte de {selectedStudent?.firstName} {selectedStudent?.lastName} ({selectedStudent?.userMail}).
+                            Cette action désactivera le compte de {selectedStudent?.firstName} {selectedStudent?.lastName} ({selectedStudent?.userMail}) via une suppression logique.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

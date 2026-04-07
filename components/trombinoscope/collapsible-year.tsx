@@ -15,7 +15,7 @@ export default function CollapsibleYear({
     groups: Group[];
 }>) {
     const [isOpen, setIsOpen] = useState(true);
-    
+
     return (
         <Collapsible open={isOpen} onOpenChange={setIsOpen}>
             <CollapsibleTrigger className="cursor-pointer flex w-full items-center gap-2 h2">
