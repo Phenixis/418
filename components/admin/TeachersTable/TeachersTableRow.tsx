@@ -71,97 +71,13 @@ export default function TeachersTableRow({
             <TableCell className="text-left px-6">{teacher.userMail}</TableCell>
             <TableCell className="text-left px-6">{teacher.isAdmin ? "Administrateur" : "Enseignant"}</TableCell>
             <TableCell>
-                {/* <DropdownMenu>
-                    <DropdownMenuTrigger className="cursor-pointer p-2" title="Actions" asChild>
-                        <Button variant="ghost" size="icon">
-                            <span className="sr-only">Open actions menu</span>
-                            <MoreVertIcon />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                        <DropdownMenuItem disabled title="Cette action n'est pas encore implémentée">
-                            Modifier le professeur
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        {
-                            teacher.isValidated ? (
-                                <DropdownMenuItem
-                                    variant="destructive"
-                                    onSelect={(event) => {
-                                        event.preventDefault();
-                                        setIsDeleteDialogOpen(true);
-                                    }}
-                                >
-                                    Supprimer le compte
-                                </DropdownMenuItem>
-                            ) : (
-                                <>
-                                    <form action={validateTeacherAction}>
-                                        <input type="hidden" name="teacherEmail" value={teacher.userMail} />
-                                        <DropdownMenuItem asChild variant="default">
-                                            <button type="submit" className="w-full text-left cursor-pointer">
-                                                Valider le compte
-                                            </button>
-                                        </DropdownMenuItem>
-                                    </form>
-                                    <DropdownMenuItem
-                                        variant="destructive"
-                                        onSelect={(event) => {
-                                            event.preventDefault();
-                                            setIsRefuseDialogOpen(true);
-                                        }}
-                                    >
-                                        Refuser le compte
-                                    </DropdownMenuItem>
-                                </>
-                            )
-                        }
-                    </DropdownMenuContent>
-                </DropdownMenu>
-                <AlertDialog open={isRefuseDialogOpen} onOpenChange={setIsRefuseDialogOpen}>
-                    <AlertDialogContent size="sm">
-                        <form action={refuseTeacherAction}>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>Refuser ce compte ?</AlertDialogTitle>
-                            </AlertDialogHeader>
-                            <AlertDialogDescription>
-                                Cette action supprimera le compte de {teacher.firstName} {teacher.lastName} ({teacher.userMail}).
-                            </AlertDialogDescription>
-                            <AlertDialogFooter>
-                                <AlertDialogCancel>Annuler</AlertDialogCancel>
-                                <input type="hidden" name="teacherEmail" value={teacher.userMail} />
-                                <Button variant="destructive" type="submit">
-                                    Refuser
-                                </Button>
-                            </AlertDialogFooter>
-                        </form>
-                    </AlertDialogContent>
-                </AlertDialog>
-                <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-                    <AlertDialogContent size="sm">
-                        <form action={deleteTeacherAction}>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>Supprimer ce compte ?</AlertDialogTitle>
-                            </AlertDialogHeader>
-                            <AlertDialogDescription>
-                                Cette action supprimera le compte de {teacher.firstName} {teacher.lastName} ({teacher.userMail}).
-                            </AlertDialogDescription>
-                            <AlertDialogFooter>
-                                <AlertDialogCancel>Annuler</AlertDialogCancel>
-                                <input type="hidden" name="teacherEmail" value={teacher.userMail} />
-                                <Button variant="destructive" type="submit">
-                                    Supprimer
-                                </Button>
-                            </AlertDialogFooter>
-                        </form>
-                    </AlertDialogContent>
-                </AlertDialog> */}
                 <form action={validateTeacherAction}>
                     <input type="hidden" name="teacherEmail" value={teacher.userMail} />
-
+                    {/* Bouton de validation visible seulement si non validé */}
                     <Button type="submit" hidden={teacher.isValidated} variant="default" className="bg-green hover:bg-green/90">
                         <CheckIcon />
                     </Button>
+                    {/* Bouton de suppression visible seulement si validé */}
                     <Button type="reset" hidden={!teacher.isValidated} variant="destructive">
                         <DeleteIcon />
                     </Button>
