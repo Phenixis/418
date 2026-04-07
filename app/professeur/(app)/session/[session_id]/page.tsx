@@ -36,7 +36,7 @@ export default async function SessionPage({ params }: Readonly<{ params: Promise
     const status = resolveCourseStatus(dateDebut, dateFin);
 
     return (
-        <section className="flex flex-col py-10 gap-6">
+        <section className="flex flex-col gap-6">
             <CourseHeader cours={cours} groups={groups} status={status} />
 
             <CourseLiveSection

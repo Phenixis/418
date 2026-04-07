@@ -77,7 +77,7 @@ class AttendanceQueries extends QueryModel<NewAttendance, Attendance> {
      * @param lateStatus 0 = présent, 1 = retard +5, 2 = retard +10, 3 = retard +15
      */
     async markPresentAvecRetard(sessionId: string, studentMail: string, lateStatus: number): Promise<QueryResult<Attendance>> {
-        const existingAttendance = await this.getByCourseAndStudent(sessionId, studentMail)
+        const existingAttendance = await this.getBySessionAndStudent(sessionId, studentMail)
 
         if (existingAttendance.entity.length > 0) {
             // Mettre à jour le late_status de la présence existante

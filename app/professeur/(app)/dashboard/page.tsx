@@ -92,7 +92,7 @@ export default async function DashboardPage() {
         });
 
     return (
-        <section className="flex flex-col py-10 gap-6">
+        <section className="flex flex-col">
             <ResourceTable resourceItems={resourceItems} />
         </section>
     );
