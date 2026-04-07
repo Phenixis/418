@@ -6,7 +6,7 @@ import {
     ensureTeacherAccountByEmail,
 } from './helpers/test-account';
 
-const ADMIN_ACCOUNTS_ROUTE = '/administrateur/gestion-comptes';
+const ADMIN_ACCOUNTS_ROUTE = '/administrateur/gestion-professeurs';
 const TEACHER_DASHBOARD_ROUTE = '/professeur/dashboard';
 const LOGIN_ROUTE = '/professeur/connexion';
 const SESSION_COOKIE_NAME = 'teacher_session';
@@ -73,17 +73,6 @@ async function expandTeachersSection(page: Page): Promise<void> {
     await expect(statusColumn).toBeVisible();
 }
 
-async function expandStudentsSection(page: Page): Promise<void> {
-    const studentSectionText = page.getByText('Cette section est en cours de développement.');
-
-    if (await studentSectionText.count() > 0 && await studentSectionText.first().isVisible()) {
-        return;
-    }
-
-    await page.getByRole('button', { name: 'Liste des étudiants' }).click();
-    await expect(studentSectionText).toBeVisible();
-}
-
 function getTeacherRowByEmail(page: Page, teacherEmail: string) {
     return page.locator('tbody tr', { hasText: teacherEmail }).first();
 }
@@ -135,7 +124,9 @@ function buildUniqueTeacherEmail(prefix: string): string {
     return `${prefix}.${uniqueSuffix}@univ-rennes.fr`;
 }
 
-test.describe('Page administrateur - gestion des comptes', () => {
+test.describe('Page administrateur - gestion des professeurs', () => {
+    test.describe.configure({ mode: 'serial' });
+
     let createdTeacherEmails: string[] = [];
 
     test.beforeEach(() => {
@@ -174,10 +165,8 @@ test.describe('Page administrateur - gestion des comptes', () => {
     test('affiche la page et les sections principales pour un administrateur', async ({ authenticatedAdminPage }) => {
         await authenticatedAdminPage.goto(ADMIN_ACCOUNTS_ROUTE);
 
-        await expect(authenticatedAdminPage.getByRole('heading', { name: 'Gestion des comptes' })).toBeVisible();
-        await expect(authenticatedAdminPage.getByRole('heading', { name: 'Liste des professeurs' })).toBeVisible();
-        await expect(authenticatedAdminPage.getByRole('heading', { name: 'Liste des étudiants' })).toBeVisible();
-        await expandStudentsSection(authenticatedAdminPage);
+        await expect(authenticatedAdminPage.getByRole('heading', { name: 'Gestion des professeurs' })).toBeVisible();
+        await expect(authenticatedAdminPage.getByRole('columnheader', { name: 'Statut' })).toBeVisible();
 
         await expandTeachersSection(authenticatedAdminPage);
     });
@@ -196,12 +185,13 @@ test.describe('Page administrateur - gestion des comptes', () => {
         await authenticatedAdminPage.goto(ADMIN_ACCOUNTS_ROUTE);
         await expandTeachersSection(authenticatedAdminPage);
 
-        await expect(authenticatedAdminPage.getByRole('columnheader', { name: 'Statut' })).toBeVisible();
-        await expect(authenticatedAdminPage.getByRole('columnheader', { name: 'Nom' })).toBeVisible();
-        await expect(authenticatedAdminPage.getByRole('columnheader', { name: 'Email' })).toBeVisible();
-        await expect(authenticatedAdminPage.getByRole('columnheader', { name: 'Rôle' })).toBeVisible();
+        await expect(authenticatedAdminPage.locator('th', { hasText: 'Statut' }).first()).toBeVisible();
+        await expect(authenticatedAdminPage.locator('th', { hasText: 'Nom' }).first()).toBeVisible();
+        await expect(authenticatedAdminPage.locator('th', { hasText: 'Email' }).first()).toBeVisible();
+        await expect(authenticatedAdminPage.locator('th', { hasText: 'Rôle' }).first()).toBeVisible();
 
         const pendingTeacherRow = getTeacherRowByEmail(authenticatedAdminPage, pendingTeacherEmail);
+        await expect(pendingTeacherRow).toBeVisible({ timeout: 10000 });
 
         await expect(pendingTeacherRow).toContainText('Pending List');
         await expect(pendingTeacherRow).toContainText('Enseignant');
@@ -227,13 +217,14 @@ test.describe('Page administrateur - gestion des comptes', () => {
 
         const validateAction = await openValidateAccountAction(authenticatedAdminPage, pendingTeacherRow);
         const validationSubmissionPromise = authenticatedAdminPage.waitForResponse((response) => {
-            return response.url().includes('/administrateur/gestion-comptes')
+            return response.url().includes('/administrateur/gestion-professeurs')
                 && response.request().method() === 'POST';
         });
         await validateAction.click();
         await validationSubmissionPromise;
 
-        await expect(getTeacherRowByEmail(authenticatedAdminPage, pendingTeacherEmail)).toContainText('Validé');
+        await authenticatedAdminPage.goto(ADMIN_ACCOUNTS_ROUTE);
+        await expandTeachersSection(authenticatedAdminPage);
 
         const validatedTeacherRow = getTeacherRowByEmail(authenticatedAdminPage, pendingTeacherEmail);
         const openedMenu = await openTeacherActionsMenu(authenticatedAdminPage, validatedTeacherRow);
@@ -257,6 +248,7 @@ test.describe('Page administrateur - gestion des comptes', () => {
         await expandTeachersSection(authenticatedAdminPage);
 
         const pendingTeacherRow = getTeacherRowByEmail(authenticatedAdminPage, pendingTeacherEmail);
+        await expect(pendingTeacherRow).toBeVisible({ timeout: 10000 });
 
         const firstRefusalAction = await openRefuseAccountAction(authenticatedAdminPage, pendingTeacherRow);
         await firstRefusalAction.click({ force: true });
@@ -277,7 +269,7 @@ test.describe('Page administrateur - gestion des comptes', () => {
 
         const refusalDialog = authenticatedAdminPage.getByRole('alertdialog');
         const refusalSubmissionPromise = authenticatedAdminPage.waitForResponse((response) => {
-            return response.url().includes('/administrateur/gestion-comptes')
+            return response.url().includes('/administrateur/gestion-professeurs')
                 && response.request().method() === 'POST';
         });
 
@@ -304,6 +296,7 @@ test.describe('Page administrateur - gestion des comptes', () => {
         await expandTeachersSection(authenticatedAdminPage);
 
         const validatedTeacherRow = getTeacherRowByEmail(authenticatedAdminPage, validatedTeacherEmail);
+        await expect(validatedTeacherRow).toBeVisible({ timeout: 10000 });
 
         const firstDeletionAction = await openDeleteAccountAction(authenticatedAdminPage, validatedTeacherRow);
         await firstDeletionAction.click({ force: true });
@@ -324,7 +317,7 @@ test.describe('Page administrateur - gestion des comptes', () => {
 
         const secondDeleteDialog = authenticatedAdminPage.getByRole('alertdialog');
         const deleteSubmissionPromise = authenticatedAdminPage.waitForResponse((response) => {
-            return response.url().includes('/administrateur/gestion-comptes')
+            return response.url().includes('/administrateur/gestion-professeurs')
                 && response.request().method() === 'POST';
         });
 

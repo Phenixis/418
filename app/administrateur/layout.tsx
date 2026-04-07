@@ -1,6 +1,6 @@
-import AdminHeader from '@/components/general/AdminHeader';
 import { teacherQueries } from '@/lib/db/queries/teacher';
 import { AdminProvider } from '@/lib/hooks/useAdmin';
+import AdminHeaderNoSSR from '@/components/general/AdminHeaderNoSSR';
 
 export const dynamic = "force-dynamic"
 
@@ -9,7 +9,7 @@ export default function AdminLayout({ children }: Readonly<{ children: React.Rea
 
     return (
         <AdminProvider adminPromise={adminPromise}>
-            <AdminHeader />
+            <AdminHeaderNoSSR />
             <main className="container mx-auto">{children}</main>
         </AdminProvider>
     );

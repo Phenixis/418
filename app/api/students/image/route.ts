@@ -1,0 +1,132 @@
+import { NextResponse } from 'next/server';
+import { get, type GetBlobResult } from '@vercel/blob';
+import { getServerSession } from '@/lib/actions/authentication';
+import { getStudentServerSession } from '@/lib/actions/student-auth';
+import { studentQueries } from '@/lib/db/queries/student';
+import { teacherQueries } from '@/lib/db/queries/teacher';
+import { isStudentBlobPath, normalizeBlobSource as normalizeBlobSourceUtil } from '@/lib/utils/blob';
+
+type TeacherSession = Awaited<ReturnType<typeof getServerSession>>;
+type StudentSession = Awaited<ReturnType<typeof getStudentServerSession>>;
+
+function ensureAuthenticatedSession(teacherSession: TeacherSession, studentSession: StudentSession): NextResponse | null {
+
+    if (!teacherSession?.teacherEmail && !studentSession?.studentEmail) {
+        return NextResponse.json({ error: 'Non authentifié.' }, { status: 401 });
+    }
+
+    return null;
+}
+
+async function ensureStudentCanAccessSource(studentEmail: string, normalizedRequestedSource: string): Promise<NextResponse | null> {
+    const studentResult = await studentQueries.getByEmail(studentEmail);
+
+    if ('error' in studentResult) {
+        return NextResponse.json({ error: 'Étudiant introuvable.' }, { status: 404 });
+    }
+
+    const studentPicture = studentResult.entity.picture;
+
+    if (!studentPicture) {
+        return NextResponse.json({ error: 'Aucune image associée à cet étudiant.' }, { status: 403 });
+    }
+
+    const normalizedStudentPicture = normalizeBlobSourceUtil(studentPicture);
+
+    if (!isStudentBlobPath(normalizedStudentPicture)) {
+        return NextResponse.json({ error: 'Accès non autorisé à cette image.' }, { status: 403 });
+    }
+
+    if (normalizedRequestedSource !== normalizedStudentPicture) {
+        return NextResponse.json({ error: 'Accès non autorisé à cette image.' }, { status: 403 });
+    }
+
+    return null;
+}
+
+function buildNotModifiedResponse(result: Extract<GetBlobResult, { statusCode: 304 }>): Response {
+    return new Response(null, {
+        status: 304,
+        headers: {
+            ETag: result.blob.etag,
+            'Cache-Control': 'private, max-age=60',
+        },
+    });
+}
+
+export async function GET(request: Request) {
+    const [teacherSession, studentSession] = await Promise.all([
+        getServerSession(),
+        getStudentServerSession(),
+    ]);
+
+    const isTeacherAuthenticated = Boolean(teacherSession?.teacherEmail);
+    const isStudentAuthenticated = Boolean(studentSession?.studentEmail);
+
+    const unauthorizedResponse = ensureAuthenticatedSession(teacherSession, studentSession);
+
+    if (unauthorizedResponse) {
+        return unauthorizedResponse;
+    }
+
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+        return NextResponse.json({ error: 'Configuration Blob manquante (BLOB_READ_WRITE_TOKEN).' }, { status: 500 });
+    }
+
+    const url = new URL(request.url);
+    const source = url.searchParams.get('source');
+
+    if (!source) {
+        return NextResponse.json({ error: 'Paramètre source manquant.' }, { status: 400 });
+    }
+
+    const normalizedRequestedSource = normalizeBlobSourceUtil(source);
+
+    if (!isStudentBlobPath(normalizedRequestedSource)) {
+        return NextResponse.json({ error: 'Accès non autorisé à cette image.' }, { status: 403 });
+    }
+
+    if (isTeacherAuthenticated) {
+        const teacherResult = await teacherQueries.getByEmail(teacherSession!.teacherEmail);
+
+        if ('error' in teacherResult || !teacherResult.entity.isValidated) {
+            return NextResponse.json({ error: 'Compte enseignant non validé.' }, { status: 403 });
+        }
+    }
+
+    if (!isTeacherAuthenticated && isStudentAuthenticated) {
+        const authorizationError = await ensureStudentCanAccessSource(studentSession!.studentEmail, normalizedRequestedSource);
+
+        if (authorizationError) {
+            return authorizationError;
+        }
+    }
+
+    try {
+        const blobResult = await get(normalizedRequestedSource, {
+            token: process.env.BLOB_READ_WRITE_TOKEN,
+            access: 'private',
+            useCache: true,
+        });
+
+        if (!blobResult) {
+            return NextResponse.json({ error: 'Image introuvable.' }, { status: 404 });
+        }
+
+        if (blobResult.statusCode === 304) {
+            return buildNotModifiedResponse(blobResult);
+        }
+
+        return new Response(blobResult.stream, {
+            status: 200,
+            headers: {
+                'Content-Type': blobResult.blob.contentType,
+                'Cache-Control': 'private, max-age=60',
+                ETag: blobResult.blob.etag,
+            },
+        });
+    } catch (error) {
+        console.error('Erreur lors de la récupération de l\'image Blob privée:', error);
+        return NextResponse.json({ error: 'Erreur lors de la récupération de l\'image.' }, { status: 500 });
+    }
+}

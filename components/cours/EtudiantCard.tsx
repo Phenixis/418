@@ -5,6 +5,7 @@ import AccessTimeIcon from "@mui/icons-material/AccessTime"
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
+import { getStudentPictureSrc } from "@/lib/utils/student-picture"
 import { StatutEtudiant } from "@/components/cours/course.types"
 import { isEtudiantPresent } from "@/components/cours/course-utils"
 import { StudentWithStatus } from "@/lib/actions/cours-actuel"
@@ -50,7 +51,9 @@ const STYLES_ZONE_NOM: Record<string, string> = {
 
 // Affiche la photo carrée de l'étudiant, ou une silhouette générique si indisponible
 function PhotoEtudiant({ photoUrl, prenom, nom }: Readonly<{ photoUrl: string | null; prenom: string; nom: string }>) {
-    if (!isValidPhotoSource(photoUrl)) {
+    const resolvedPhotoUrl = getStudentPictureSrc(photoUrl)
+
+    if (!isValidPhotoSource(resolvedPhotoUrl)) {
         return (
             <div className="w-full aspect-square rounded-[6px] bg-faded/20 flex items-center justify-center">
                 <Image
@@ -67,9 +70,10 @@ function PhotoEtudiant({ photoUrl, prenom, nom }: Readonly<{ photoUrl: string | 
     return (
         <div className="w-full aspect-square relative rounded-[6px] overflow-hidden">
             <Image
-                src={photoUrl}
+                src={resolvedPhotoUrl}
                 alt={`Photo de ${prenom} ${nom}`}
                 fill
+                unoptimized
                 className="object-cover object-top"
             />
         </div>
