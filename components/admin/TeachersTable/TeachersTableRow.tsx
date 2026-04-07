@@ -22,8 +22,11 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import { deleteTeacherAccount, refuseTeacherAccount, validateTeacherAccount } from "@/lib/actions/admin";
 import { Select as Teacher } from "@/lib/db/schema/teacher";
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import CheckIcon from '@mui/icons-material/Check';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+
 
 export default function TeachersTableRow({
     teacher
@@ -68,7 +71,7 @@ export default function TeachersTableRow({
             <TableCell className="text-left px-6">{teacher.userMail}</TableCell>
             <TableCell className="text-left px-6">{teacher.isAdmin ? "Administrateur" : "Enseignant"}</TableCell>
             <TableCell>
-                <DropdownMenu>
+                {/* <DropdownMenu>
                     <DropdownMenuTrigger className="cursor-pointer p-2" title="Actions" asChild>
                         <Button variant="ghost" size="icon">
                             <span className="sr-only">Open actions menu</span>
@@ -152,7 +155,17 @@ export default function TeachersTableRow({
                             </AlertDialogFooter>
                         </form>
                     </AlertDialogContent>
-                </AlertDialog>
+                </AlertDialog> */}
+                <form action={validateTeacherAction}>
+                    <input type="hidden" name="teacherEmail" value={teacher.userMail} />
+
+                    <Button type="submit" hidden={teacher.isValidated} variant="default" className="bg-green hover:bg-green/90">
+                        <CheckIcon />
+                    </Button>
+                    <Button type="reset" hidden={!teacher.isValidated} variant="destructive">
+                        <DeleteIcon />
+                    </Button>
+                </form>
             </TableCell>
         </TableRow>
     )
