@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { attendanceQueries } from "@/lib/db/queries/attendance";
 import { getServerSession } from "@/lib/actions/authentication";
 import { teacherQueries } from "@/lib/db/queries/teacher";
-import { courseTeacherQueries } from "@/lib/db/queries/course-teacher";
+import { sessionTeacherQueries } from "@/lib/db/queries/session-teacher";
 
 export async function GET(request: Request) {
     const session = await getServerSession();
@@ -18,15 +18,15 @@ export async function GET(request: Request) {
     }
 
     const url = new URL(request.url);
-    const rawCourseId = url.searchParams.get("courseId");
+    const rawSessionId = url.searchParams.get("sessionId");
 
-    if (!rawCourseId?.trim()) {
-        return NextResponse.json({ error: "Le paramètre courseId est requis." }, { status: 400 });
+    if (!rawSessionId?.trim()) {
+        return NextResponse.json({ error: "Le paramètre sessionId est requis." }, { status: 400 });
     }
 
-    const courseId = rawCourseId.trim();
+    const sessionId = rawSessionId.trim();
 
-    const courseTeachersResult = await courseTeacherQueries.getByCourseId(courseId);
+    const courseTeachersResult = await sessionTeacherQueries.getBySessionId(sessionId);
 
     if ("error" in courseTeachersResult) {
         return NextResponse.json({ error: "Cours introuvable ou non autorisé." }, { status: 403 });
@@ -40,7 +40,7 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: "Vous n'êtes pas autorisé à consulter ce cours." }, { status: 403 });
     }
 
-    const attendanceResult = await attendanceQueries.getByCourseId(courseId);
+    const attendanceResult = await attendanceQueries.getBySessionId(sessionId);
     const presentStudentMails = attendanceResult.entity.map((attendance) => attendance.studentMail);
 
     // Nouveau format incluant le niveau de retard pour chaque présence
@@ -51,7 +51,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(
         {
-            courseId,
+            sessionId,
             presentStudentMails,
             attendanceStatuts,
             syncedAt: new Date().toISOString()

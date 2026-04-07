@@ -11,7 +11,7 @@ import {
 export type RealtimeConnectionState = "disabled" | "connecting" | "connected" | "unavailable";
 
 interface SubscribeOptions {
-    courseId: string;
+    sessionId: string;
     onAttendanceEvent: (event: AttendanceRealtimeEvent) => void;
     onConnectionStateChange?: (state: RealtimeConnectionState) => void;
 }
@@ -60,7 +60,7 @@ export function subscribeToAttendanceUpdates(options: SubscribeOptions): () => v
 
     options.onConnectionStateChange?.("connecting");
 
-    const channelName = buildAttendanceChannelName(options.courseId);
+    const channelName = buildAttendanceChannelName(options.sessionId);
     const channel: Channel = pusherClient.subscribe(channelName);
 
     const handleAttendanceEvent = (payload: unknown) => {

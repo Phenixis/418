@@ -7,7 +7,7 @@ import {
     AlertDialogDescription,
     AlertDialogFooter,
     AlertDialogHeader,
-    AlertDialogTitle
+    AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,20 +16,19 @@ import {
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuSeparator,
-    DropdownMenuTrigger
+    DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { deleteTeacherAccount, refuseTeacherAccount, validateTeacherAccount } from "@/lib/actions/admin";
 import { Select as Teacher } from "@/lib/db/schema/teacher";
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { useActionState, useEffect, useState, useRef } from "react";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
-
 export default function TeachersTableRow({
-    teacher
+    teacher,
 }: Readonly<{
-    teacher: Teacher
+    teacher: Teacher;
 }>) {
     const router = useRouter();
     const [isRefuseDialogOpen, setIsRefuseDialogOpen] = useState(false);
@@ -52,6 +51,7 @@ export default function TeachersTableRow({
             router.refresh();
         }
     }, [validateState, refuseState, deleteState, router]);
+
     const validateTeacherFormRef = useRef<HTMLFormElement>(null);
 
     return (
@@ -60,7 +60,7 @@ export default function TeachersTableRow({
                 <form action={validateTeacherAction}>
                     <input type="hidden" name="teacherEmail" value={teacher.userMail} />
                     <button type="submit" disabled={teacher.isValidated} className={teacher.isValidated ? "" : "cursor-pointer"}>
-                        <Badge className={teacher.isValidated ? "" : "hover:bg-primary/90"} variant={teacher.isValidated ? "default" : "destructive"} >
+                        <Badge className={teacher.isValidated ? "" : "hover:bg-primary/90"} variant={teacher.isValidated ? "default" : "destructive"}>
                             {teacher.isValidated ? "Validé" : "Non validé"}
                         </Badge>
                     </button>
@@ -82,45 +82,44 @@ export default function TeachersTableRow({
                             Modifier le professeur
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        {
-                            teacher.isValidated ? (
+                        {teacher.isValidated ? (
+                            <DropdownMenuItem
+                                variant="destructive"
+                                onSelect={(event) => {
+                                    event.preventDefault();
+                                    setIsDeleteDialogOpen(true);
+                                }}
+                            >
+                                Supprimer le compte
+                            </DropdownMenuItem>
+                        ) : (
+                            <>
+                                <form action={validateTeacherAction} ref={validateTeacherFormRef}>
+                                    <input type="hidden" name="teacherEmail" value={teacher.userMail} />
+                                </form>
+                                <DropdownMenuItem
+                                    variant="default"
+                                    onSelect={(event) => {
+                                        event.preventDefault();
+                                        validateTeacherFormRef.current?.requestSubmit();
+                                    }}
+                                >
+                                    Valider le compte
+                                </DropdownMenuItem>
                                 <DropdownMenuItem
                                     variant="destructive"
                                     onSelect={(event) => {
                                         event.preventDefault();
-                                        setIsDeleteDialogOpen(true);
+                                        setIsRefuseDialogOpen(true);
                                     }}
                                 >
-                                    Supprimer le compte
+                                    Refuser le compte
                                 </DropdownMenuItem>
-                            ) : (
-                                <>
-                                    <form action={validateTeacherAction} ref={validateTeacherFormRef}>
-                                        <input type="hidden" name="teacherEmail" value={teacher.userMail} />
-                                    </form>
-                                    <DropdownMenuItem
-                                        variant="default"
-                                        onSelect={(event) => {
-                                            event.preventDefault();
-                                            validateTeacherFormRef.current?.requestSubmit();
-                                        }}
-                                    >
-                                        Valider le compte
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem
-                                        variant="destructive"
-                                        onSelect={(event) => {
-                                            event.preventDefault();
-                                            setIsRefuseDialogOpen(true);
-                                        }}
-                                    >
-                                        Refuser le compte
-                                    </DropdownMenuItem>
-                                </>
-                            )
-                        }
+                            </>
+                        )}
                     </DropdownMenuContent>
                 </DropdownMenu>
+
                 <AlertDialog open={isRefuseDialogOpen} onOpenChange={setIsRefuseDialogOpen}>
                     <AlertDialogContent size="sm">
                         <form action={refuseTeacherAction}>
@@ -140,6 +139,7 @@ export default function TeachersTableRow({
                         </form>
                     </AlertDialogContent>
                 </AlertDialog>
+
                 <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
                     <AlertDialogContent size="sm">
                         <form action={deleteTeacherAction}>
@@ -161,5 +161,5 @@ export default function TeachersTableRow({
                 </AlertDialog>
             </TableCell>
         </TableRow>
-    )
+    );
 }

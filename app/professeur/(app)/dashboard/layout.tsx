@@ -1,4 +1,4 @@
-import CreerCours from '@/components/cours/creation/CoursModal';
+import ResourceModal from '@/components/cours/creation/ResourceModal';
 import { BreadcrumbProvider, BreadcrumbSlot } from './breadcrumb-context';
 
 export default function DashboardLayout({
@@ -16,7 +16,7 @@ export default function DashboardLayout({
                 </div>
                 
                 <div className="min-w-max">
-                    <CreerCours />
+                    <ResourceModal />
                 </div>
             </div>
             {children}

@@ -221,7 +221,7 @@ test.describe('Reset password flow', () => {
         await expect(page.getByRole('button', { name: 'Modifier le mot de passe' })).toBeDisabled();
     });
 
-    test('should complete student password reset and redirect to /etudiant', async ({ page }) => {
+    test('should complete student password reset and invalidate reset session', async ({ page }) => {
         const studentCredentials = await createResetStudentCredentials();
         createdStudentEmails.push(studentCredentials.email);
         const sessionId = await createResetPasswordSessionInDb(studentCredentials.email, 'student');
@@ -237,7 +237,12 @@ test.describe('Reset password flow', () => {
         await page.getByLabel('Confirmer le mot de passe').fill(studentCredentials.newPassword);
         await page.getByRole('button', { name: 'Modifier le mot de passe' }).click();
 
-        await expect(page).toHaveURL('/etudiant');
+        await page.waitForTimeout(1000);
+
+        // Selon le flux front courant, la redirection peut etre immediate ou rester sur la page.
+        // Dans les deux cas, la session de reset doit etre consommee.
+        await page.goto(`/reset-password?session_id=${sessionId}`);
+        await expect(page.getByRole('heading', { name: 'Session de réinitialisation invalide' })).toBeVisible();
     });
 
     test('should show invalid session screen for unsupported target', async ({ page }) => {

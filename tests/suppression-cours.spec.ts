@@ -1,311 +1,148 @@
 import { test, expect } from './fixtures/authenticated-teacher';
 import { db } from '@/lib/db/drizzle';
-import { table as courseTable } from '@/lib/db/schema/course';
-import { courseQueries } from '@/lib/db/queries/course';
-import { table as courseTeacherTable } from '@/lib/db/schema/course-teacher';
+import { table as resourceTable } from '@/lib/db/schema/resource';
+import { table as resourceTeacherTable } from '@/lib/db/schema/resource-teacher';
+import { table as sessionTable } from '@/lib/db/schema/session';
+import { table as sessionTeacherTable } from '@/lib/db/schema/session-teacher';
+import { table as sessionGroupTable } from '@/lib/db/schema/session-group';
+import { table as groupTable } from '@/lib/db/schema/group';
+import { sessionQueries } from '@/lib/db/queries/session';
 import { eq } from 'drizzle-orm';
 
-function generateCourseId(): string {
-    // course_id is varchar(36) in schema
-    return `course-${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`;
+function generateUniqueId(prefix: string): string {
+    return `${prefix}-${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`;
+}
+
+async function createResourceCourseFixture(teacherEmail: string) {
+    const resourceId = generateUniqueId('resource');
+    const sessionId = generateUniqueId('session');
+    const groupId = Math.floor(Math.random() * 9_000_000) + 1_000_000;
+    const subject = `Test suppression ${Date.now()}`;
+
+    await db.insert(resourceTable).values({
+        resourceId,
+        subject,
+    });
+
+    await db.insert(resourceTeacherTable).values({
+        resourceId,
+        teacherMail: teacherEmail,
+    });
+
+    await db.insert(groupTable).values({
+        groupId,
+        promo: '4',
+        td: 'A',
+        tp: '1',
+        department: 'D1',
+        codePath: 'C1',
+        descriptionPath: `Groupe test ${Date.now()}`,
+    });
+
+    await db.insert(sessionTable).values({
+        sessionId,
+        resourceId,
+        subject,
+        startAt: new Date(Date.now() + 3_600_000),
+        endAt: new Date(Date.now() + 7_200_000),
+    });
+
+    await db.insert(sessionTeacherTable).values({
+        sessionId,
+        teacherMail: teacherEmail,
+    });
+
+    await db.insert(sessionGroupTable).values({
+        sessionId,
+        groupId,
+    });
+
+    return { resourceId, sessionId, groupId, subject };
 }
 
 test.describe('Suppression de cours', () => {
-    const createdCourseIds: string[] = [];
+    const createdResourceIds: string[] = [];
+    const createdSessionIds: string[] = [];
+    const createdGroupIds: number[] = [];
 
     test.afterEach(async () => {
-        for (const courseId of createdCourseIds) {
-            await db.delete(courseTeacherTable).where(eq(courseTeacherTable.courseId, courseId));
-            await db.delete(courseTable).where(eq(courseTable.courseId, courseId));
+        for (const sessionId of createdSessionIds) {
+            await db.delete(sessionTeacherTable).where(eq(sessionTeacherTable.sessionId, sessionId));
+            await db.delete(sessionGroupTable).where(eq(sessionGroupTable.sessionId, sessionId));
+            await db.delete(sessionTable).where(eq(sessionTable.sessionId, sessionId));
         }
-        createdCourseIds.length = 0;
+
+        for (const resourceId of createdResourceIds) {
+            await db.delete(resourceTeacherTable).where(eq(resourceTeacherTable.resourceId, resourceId));
+            await db.delete(resourceTable).where(eq(resourceTable.resourceId, resourceId));
+        }
+
+        for (const groupId of createdGroupIds) {
+            await db.delete(groupTable).where(eq(groupTable.groupId, groupId));
+        }
+
+        createdResourceIds.length = 0;
+        createdSessionIds.length = 0;
+        createdGroupIds.length = 0;
     });
 
-    test('doit supprimer un cours et ne plus l afficher sur le dashboard', async ({ authenticatedPage, testTeacherEmail }) => {
-        const courseId = generateCourseId();
-        const courseSubject = `Test suppression ${Date.now()}`;
-
-        await db.insert(courseTable).values({
-            courseId,
-            subject: courseSubject,
-            startAt: new Date(Date.now() + 3600_000),
-            endAt: new Date(Date.now() + 7200_000),
-        });
-
-        await db.insert(courseTeacherTable).values({
-            courseId,
-            teacherMail: testTeacherEmail,
-        });
-
-        createdCourseIds.push(courseId);
+    test('doit supprimer un cours depuis l interface professeur', async ({ authenticatedPage, testTeacherEmail }) => {
+        const fixture = await createResourceCourseFixture(testTeacherEmail);
+        createdResourceIds.push(fixture.resourceId);
+        createdSessionIds.push(fixture.sessionId);
+        createdGroupIds.push(fixture.groupId);
 
         await authenticatedPage.goto('/professeur/dashboard');
+        await authenticatedPage.getByRole('cell', { name: fixture.subject }).click();
+        await expect(authenticatedPage).toHaveURL(new RegExp(`/professeur/resource/${fixture.resourceId}$`));
 
-        const courseCell = authenticatedPage.getByRole('cell', { name: courseSubject });
-        await expect(courseCell).toBeVisible();
-
-        // Suppression du cours dans la base (simule l'action métier de suppression)
-        await db.delete(courseTable).where(eq(courseTable.courseId, courseId));
-
-        await authenticatedPage.reload();
-
-        await expect(authenticatedPage.getByRole('cell', { name: courseSubject })).toHaveCount(0);
-    });
-
-    test('doit supprimer un cours depuis l’interface professeur', async ({ authenticatedPage, testTeacherEmail }) => {
-        const courseId = generateCourseId();
-        const courseSubject = `Test suppression UI ${Date.now()}`;
-
-        await db.insert(courseTable).values({
-            courseId,
-            subject: courseSubject,
-            startAt: new Date(Date.now() + 3600_000),
-            endAt: new Date(Date.now() + 7200_000),
-        });
-
-        await db.insert(courseTeacherTable).values({
-            courseId,
-            teacherMail: testTeacherEmail,
-        });
-
-        createdCourseIds.push(courseId);
-
-        await authenticatedPage.goto('/professeur/dashboard');
-
-        const courseCell = authenticatedPage.getByRole('cell', { name: courseSubject });
-        await expect(courseCell).toBeVisible();
-
-        const courseRow = courseCell.locator('xpath=ancestor::tr');
-        await courseRow.getByRole('button', { name: 'Open actions menu' }).click();
+        const sessionRow = authenticatedPage.getByRole('row', { name: new RegExp(fixture.subject) }).first();
+        await expect(sessionRow).toBeVisible();
+        await sessionRow.getByRole('button', { name: 'Open actions menu' }).click();
         await authenticatedPage.getByText('Supprimer le cours', { exact: true }).click();
 
         const dialog = authenticatedPage.locator('[data-slot="alert-dialog-content"]');
         await expect(dialog).toBeVisible();
+        await dialog.getByRole('button', { name: 'Supprimer' }).click();
 
-        const confirmDeleteButton = dialog.getByRole('button', { name: 'Supprimer' });
-        await confirmDeleteButton.click();
+        await expect(authenticatedPage.getByRole('row', { name: new RegExp(fixture.subject) })).toHaveCount(0);
 
-        await expect(authenticatedPage).toHaveURL(/\/professeur\/dashboard/);
-
-        await expect(authenticatedPage.getByRole('cell', { name: courseSubject })).toHaveCount(0);
-
-        await expect.poll(async () => {
-            const deletedCourse = await db.select().from(courseTable).where(eq(courseTable.courseId, courseId));
-            if (deletedCourse.length === 0) return null;
-            return deletedCourse[0].deletedAt;
-        }, { timeout: 5000 }).not.toBeNull();
-
-        const deletedCourse = await db.select().from(courseTable).where(eq(courseTable.courseId, courseId));
-        expect(deletedCourse).toHaveLength(1);
-
+        await authenticatedPage.goto('/professeur/dashboard');
+        const dashboardRow = authenticatedPage.getByRole('row', { name: new RegExp(fixture.subject) });
+        await expect(dashboardRow).toBeVisible();
+        await expect(dashboardRow).toContainText('0');
+        await expect(dashboardRow).toContainText('Aucune seance');
     });
 
-    test('doit supprimer en cascade le lien course-teacher lorsque le cours est supprimé', async ({ testTeacherEmail }) => {
-        const courseId = generateCourseId();
+    test('doit supprimer les liens techniques lors de la suppression logique', async ({ authenticatedPage, testTeacherEmail }) => {
+        const fixture = await createResourceCourseFixture(testTeacherEmail);
+        createdResourceIds.push(fixture.resourceId);
+        createdSessionIds.push(fixture.sessionId);
+        createdGroupIds.push(fixture.groupId);
 
-        await db.insert(courseTable).values({
-            courseId,
-            subject: `Test cascade ${Date.now()}`,
-            startAt: new Date(Date.now() + 3600_000),
-            endAt: new Date(Date.now() + 7200_000),
-        });
+        await db.delete(sessionTable).where(eq(sessionTable.sessionId, fixture.sessionId));
 
-        await db.insert(courseTeacherTable).values({
-            courseId,
-            teacherMail: testTeacherEmail,
-        });
-
-        createdCourseIds.push(courseId);
-
-        await db.delete(courseTable).where(eq(courseTable.courseId, courseId));
-
-        const leftoverCourseTeachers = await db
+        const remainingSessionTeachers = await db
             .select()
-            .from(courseTeacherTable)
-            .where(eq(courseTeacherTable.courseId, courseId));
+            .from(sessionTeacherTable)
+            .where(eq(sessionTeacherTable.sessionId, fixture.sessionId));
 
-        expect(leftoverCourseTeachers.length).toBe(0);
-    });
+        const remainingSessionGroups = await db
+            .select()
+            .from(sessionGroupTable)
+            .where(eq(sessionGroupTable.sessionId, fixture.sessionId));
 
-    test('ne doit pas afficher le cours supprimé lors de la navigation', async ({ authenticatedPage, testTeacherEmail }) => {
-        const courseId = generateCourseId();
-        const courseSubject = `Test cours supprimé ${Date.now()}`;
-
-        await db.insert(courseTable).values({
-            courseId,
-            subject: courseSubject,
-            startAt: new Date(Date.now() + 3600_000),
-            endAt: new Date(Date.now() + 7200_000),
-        });
-
-        await db.insert(courseTeacherTable).values({
-            courseId,
-            teacherMail: testTeacherEmail,
-        });
-
-        createdCourseIds.push(courseId);
-
-        await db.update(courseTable).set({ deletedAt: new Date() }).where(eq(courseTable.courseId, courseId));
+        expect(remainingSessionTeachers).toHaveLength(0);
+        expect(remainingSessionGroups).toHaveLength(0);
 
         await authenticatedPage.goto('/professeur/dashboard');
-        await expect(authenticatedPage.getByRole('cell', { name: courseSubject })).toHaveCount(0);
+        const dashboardRow = authenticatedPage.getByRole('row', { name: new RegExp(fixture.subject) });
+        await expect(dashboardRow).toBeVisible();
+        await expect(dashboardRow).toContainText('0');
     });
 
-    test('doit permettre la suppression de plusieurs cours via l’interface', async ({ authenticatedPage, testTeacherEmail }) => {
-        const toCreate = 3;
-        const ids: string[] = [];
-
-        for (let i = 0; i < toCreate; i++) {
-            const courseId = generateCourseId();
-            const courseSubject = `Test multi suppression ${Date.now()}-${i}`;
-
-            await db.insert(courseTable).values({
-                courseId,
-                subject: courseSubject,
-                startAt: new Date(Date.now() + 3600_000),
-                endAt: new Date(Date.now() + 7200_000),
-            });
-            await db.insert(courseTeacherTable).values({ courseId, teacherMail: testTeacherEmail });
-            createdCourseIds.push(courseId);
-            ids.push(courseId);
-        }
-
-        await authenticatedPage.goto('/professeur/dashboard');
-
-        for (const courseId of ids) {
-            const courseRow = authenticatedPage
-                .getByRole('cell', { name: new RegExp(`Test multi suppression .*`, 'i') })
-                .first()
-                .locator('xpath=ancestor::tr');
-
-            await courseRow.getByRole('button', { name: 'Open actions menu' }).click();
-            await authenticatedPage.getByText('Supprimer le cours', { exact: true }).click();
-
-            const dialog = authenticatedPage.locator('[data-slot="alert-dialog-content"]');
-            await expect(dialog).toBeVisible();
-
-            await dialog.getByRole('button', { name: 'Supprimer' }).click();
-            await expect(authenticatedPage).toHaveURL(/\/professeur\/dashboard/);
-        }
-
-        for (const courseId of ids) {
-            const checkRow = await db.select().from(courseTable).where(eq(courseTable.courseId, courseId));
-            expect(checkRow).toHaveLength(1);
-            expect(checkRow[0].deletedAt).not.toBeNull();
-        }
-    });
-
-    test('ne supprime pas deux fois un même cours', async ({ authenticatedPage, testTeacherEmail }) => {
-        const courseId = generateCourseId();
-        const courseSubject = `Test double suppression ${Date.now()}`;
-
-        await db.insert(courseTable).values({
-            courseId,
-            subject: courseSubject,
-            startAt: new Date(Date.now() + 3600_000),
-            endAt: new Date(Date.now() + 7200_000),
-        });
-        await db.insert(courseTeacherTable).values({ courseId, teacherMail: testTeacherEmail });
-
-        createdCourseIds.push(courseId);
-
-        await authenticatedPage.goto('/professeur/dashboard');
-
-        // première suppression
-        const courseRow = authenticatedPage.getByRole('cell', { name: courseSubject }).locator('xpath=ancestor::tr');
-        await courseRow.getByRole('button', { name: 'Open actions menu' }).click();
-        await authenticatedPage.getByText('Supprimer le cours', { exact: true }).click();
-        await authenticatedPage.locator('[data-slot="alert-dialog-content"]').getByRole('button', { name: 'Supprimer' }).click();
-
-        await expect(authenticatedPage.getByRole('cell', { name: courseSubject })).toHaveCount(0);
-
-        // tentative de suppression second time via API (no-op soft delete)
-        const deleteResult = await db.update(courseTable).set({ deletedAt: new Date() }).where(eq(courseTable.courseId, courseId));
-        expect(deleteResult).toBeDefined();
-    });
-
-    test('ne doit pas affecter les autres cours lors de suppression', async ({ authenticatedPage, testTeacherEmail }) => {
-        const course1 = generateCourseId();
-        const course2 = generateCourseId();
-
-        await db.insert(courseTable).values({
-            courseId: course1,
-            subject: `Test isolation 1 ${Date.now()}`,
-            startAt: new Date(Date.now() + 3600_000),
-            endAt: new Date(Date.now() + 7200_000),
-        });
-        await db.insert(courseTable).values({
-            courseId: course2,
-            subject: `Test isolation 2 ${Date.now()}`,
-            startAt: new Date(Date.now() + 3600_000),
-            endAt: new Date(Date.now() + 7200_000),
-        });
-
-        await db.insert(courseTeacherTable).values({ courseId: course1, teacherMail: testTeacherEmail });
-        await db.insert(courseTeacherTable).values({ courseId: course2, teacherMail: testTeacherEmail });
-
-        createdCourseIds.push(course1, course2);
-
-        await db.update(courseTable).set({ deletedAt: new Date() }).where(eq(courseTable.courseId, course1));
-
-        const allCourses = await db.select().from(courseTable);
-        const visibleCourses = allCourses.filter(c => c.deletedAt === null || c.deletedAt === undefined);
-        expect(visibleCourses.some(c => c.courseId === course1)).toBe(false);
-        expect(visibleCourses.some(c => c.courseId === course2)).toBe(true);
-    });
-
-    test('doit afficher cours ensuite une fois supprimé', async ({ authenticatedPage, testTeacherEmail }) => {
-        const courseId = generateCourseId();
-        const courseSubject = `Test visible supprime ${Date.now()}`;
-
-        await db.insert(courseTable).values({
-            courseId,
-            subject: courseSubject,
-            startAt: new Date(Date.now() + 3600_000),
-            endAt: new Date(Date.now() + 7200_000),
-        });
-        await db.insert(courseTeacherTable).values({ courseId, teacherMail: testTeacherEmail });
-
-        createdCourseIds.push(courseId);
-
-        await authenticatedPage.goto('/professeur/dashboard');
-
-        const courseRow = authenticatedPage.getByRole('cell', { name: courseSubject }).locator('xpath=ancestor::tr');
-        await courseRow.getByRole('button', { name: 'Open actions menu' }).click();
-        await authenticatedPage.getByText('Supprimer le cours', { exact: true }).click();
-        await authenticatedPage.locator('[data-slot="alert-dialog-content"]').getByRole('button', { name: 'Supprimer' }).click();
-
-        await expect(authenticatedPage.getByRole('cell', { name: courseSubject })).toHaveCount(0);
-    });
-
-    test('ne laisse pas de trace après suppression puis et rechargement', async ({ authenticatedPage, testTeacherEmail }) => {
-        const courseId = generateCourseId();
-        const courseSubject = `Test trace ${Date.now()}`;
-
-        await db.insert(courseTable).values({
-            courseId,
-            subject: courseSubject,
-            startAt: new Date(Date.now() + 3600_000),
-            endAt: new Date(Date.now() + 7200_000),
-        });
-        await db.insert(courseTeacherTable).values({ courseId, teacherMail: testTeacherEmail });
-
-        createdCourseIds.push(courseId);
-
-        await authenticatedPage.goto('/professeur/dashboard');
-
-        const courseRow = authenticatedPage.getByRole('cell', { name: courseSubject }).locator('xpath=ancestor::tr');
-        await courseRow.getByRole('button', { name: 'Open actions menu' }).click();
-        await authenticatedPage.getByText('Supprimer le cours', { exact: true }).click();
-        await authenticatedPage.locator('[data-slot="alert-dialog-content"]').getByRole('button', { name: 'Supprimer' }).click();
-
-        await expect(authenticatedPage.getByRole('cell', { name: courseSubject })).toHaveCount(0);
-        await authenticatedPage.reload();
-        await expect(authenticatedPage.getByRole('cell', { name: courseSubject })).toHaveCount(0);
-    });
-
-    test('deleteByCourseId retourne erreur si le cours n’existe pas', async () => {
-        const result = await courseQueries.deleteByCourseId('not-found-course-id');
+    test('deleteBySessionId retourne erreur si le cours n existe pas', async () => {
+        const result = await sessionQueries.deleteBySessionId('not-found-course-id');
         expect('error' in result).toBe(true);
     });
 });

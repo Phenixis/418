@@ -1,16 +1,16 @@
 import CourseTableRow from '@/components/cours/CourseTableRow';
 import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import type { Select as Course } from '@/lib/db/schema/course';
+import type { Select as Session } from '@/lib/db/schema/session';
 import type { Select as Group } from '@/lib/db/schema/group';
-import type { Select as CourseGroup } from '@/lib/db/schema/course-group';
+import type { Select as SessionGroup } from '@/lib/db/schema/session-group';
 
 export default function TableauCours({
     courses,
     groupCourses,
     groups
 }: Readonly<{
-    courses: Course[];
-    groupCourses: CourseGroup[];
+    courses: Session[];
+    groupCourses: SessionGroup[];
     groups: Group[];
 }>) {
     if (courses.length === 0) {
@@ -37,12 +37,12 @@ export default function TableauCours({
             <TableBody className="rounded-lg overflow-hidden">
                 {courses.map(course => (
                     <CourseTableRow
-                        key={course.courseId}
+                        key={course.sessionId}
                         cours={course}
                         groups={groups.filter(group =>
                             groupCourses.some(
                                 groupCourse =>
-                                    groupCourse.courseId === course.courseId &&
+                                    groupCourse.sessionId === course.sessionId &&
                                     groupCourse.groupId === group.groupId
                             )
                         )}

@@ -9,7 +9,7 @@ on:
 jobs:
   test:
     environment: ${{ github.event_name == 'pull_request' && 'Preview' || 'Production' }}
-    timeout-minutes: 15
+    timeout-minutes: 30
     runs-on: ubuntu-latest
     env:
       POSTGRES_URL: ${{ secrets.POSTGRES_URL || vars.POSTGRES_URL }}

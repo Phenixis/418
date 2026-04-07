@@ -1,7 +1,7 @@
-import { courseTeacherQueries } from "@/lib/db/queries/course-teacher"
+import { resourceTeacherQueries } from "@/lib/db/queries/resource-teacher"
 
 export default async function CourseTeacherPage() {
-    const courseTeachers = await courseTeacherQueries.getAll()
+    const courseTeachers = await resourceTeacherQueries.getAll()
     return (
         <div>
             <h1>Course Teachers</h1>
@@ -9,7 +9,7 @@ export default async function CourseTeacherPage() {
                 "success" in courseTeachers ? (
                     <ul>
                         {(courseTeachers.entity as any[]).map((courseTeacher) => (
-                            <li key={courseTeacher.courseTeacherId}>{JSON.stringify(courseTeacher, null, 2)}</li>
+                            <li key={courseTeacher.resourceTeacherId}>{JSON.stringify(courseTeacher, null, 2)}</li>
                         ))}
                     </ul>
                 ) : (

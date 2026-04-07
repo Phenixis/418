@@ -4,17 +4,17 @@ import { PortalToBreadcrumb } from "@/app/professeur/(app)/dashboard/breadcrumb-
 import { useMemo, useState } from "react";
 import FiltresCours, { CourseFilter } from "./FiltresCours";
 import TableauCours from "./TableauCours";
-import type { Select as Course } from '@/lib/db/schema/course';
-import type { Select as CourseGroup } from '@/lib/db/schema/course-group';
+import type { Select as Session } from '@/lib/db/schema/session';
+import type { Select as SessionGroup } from '@/lib/db/schema/session-group';
 import type { Select as Group } from '@/lib/db/schema/group';
 
 interface CoursContainerProps {
-    courses: Course[];
-    groupCourses: CourseGroup[];
+    courses: Session[];
+    groupCourses: SessionGroup[];
     groups: Group[];
 }
 
-export default function CoursContainer({ courses, groupCourses, groups }: CoursContainerProps) {
+export default function CoursContainer({ courses, groupCourses, groups }: Readonly<CoursContainerProps>) {
     const [selectedFilters, setSelectedFilters] = useState<CourseFilter[]>([]);
 
     const filteredCourses = useMemo(() => {

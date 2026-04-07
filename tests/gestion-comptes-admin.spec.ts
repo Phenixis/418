@@ -85,7 +85,7 @@ async function openRefuseAccountAction(page: Page, teacherRow: ReturnType<typeof
     }
 
     await teacherRow.scrollIntoViewIfNeeded();
-    await teacherRow.getByRole('button', { name: 'Open actions menu' }).click({ force: true });
+    await teacherRow.locator('td').last().locator('button').first().click();
 
     await expect(refuseMenuItem).toBeVisible();
     return refuseMenuItem;
@@ -99,7 +99,7 @@ async function openDeleteAccountAction(page: Page, teacherRow: ReturnType<typeof
     }
 
     await teacherRow.scrollIntoViewIfNeeded();
-    await teacherRow.getByRole('button', { name: 'Open actions menu' }).click({ force: true });
+    await teacherRow.locator('td').last().locator('button').first().click();
 
     await expect(deleteMenuItem).toBeVisible();
     return deleteMenuItem;
