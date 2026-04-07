@@ -2,6 +2,16 @@ import { expect, test } from './fixtures/authenticated-teacher';
 import type { Locator, Page } from '@playwright/test';
 
 const QR_BUTTON_ACCESSIBLE_NAME = 'Ouvrir le QR code dans une nouvelle fenêtre';
+const BOUTON_DEMARRER_APPEL = 'Démarrer le cours';
+
+async function demarrerAppelSiNecessaire(page: Page): Promise<void> {
+	const boutonDemarrer = page.getByRole('button', { name: BOUTON_DEMARRER_APPEL, exact: true });
+	if (await boutonDemarrer.isVisible()) {
+		await boutonDemarrer.click();
+		// Attendre que le QR code apparaisse pour confirmer que l'action a bien été traitée
+		await expect(page.getByRole('button', { name: QR_BUTTON_ACCESSIBLE_NAME })).toBeVisible({ timeout: 10_000 });
+	}
+}
 
 async function openCourseByStatus(page: Page, statusLabel: 'En cours' | 'Terminé' | 'À venir'): Promise<void> {
 	await page.goto('/professeur/dashboard');
@@ -140,18 +150,24 @@ test.describe('Segment dynamique de cours', () => {
 		}
 	});
 
-	test('doit afficher le QR code si le cours est en cours', async ({ authenticatedPage }) => {
+	test('doit afficher le QR code une fois l\'appel de présence démarré', async ({ authenticatedPage }) => {
 		await openCourseByStatus(authenticatedPage, 'En cours');
 
-		const qrButton = getQrButton(authenticatedPage);
-
 		await expect(authenticatedPage.getByText('En cours', { exact: true })).toBeVisible();
+
+		// Le QR code n'est visible qu'après avoir démarré l'appel
+		await demarrerAppelSiNecessaire(authenticatedPage);
+
+		const qrButton = getQrButton(authenticatedPage);
 		await expect(qrButton).toBeVisible();
 		await expect(qrButton).toBeEnabled();
 	});
 
 	test('doit ouvrir une nouvelle fenêtre QR avec uniquement le QR quand on clique dessus', async ({ authenticatedPage }) => {
 		await openCourseByStatus(authenticatedPage, 'En cours');
+
+		// Le QR code n'est visible qu'après avoir démarré l'appel
+		await demarrerAppelSiNecessaire(authenticatedPage);
 
 		const qrButton = getQrButton(authenticatedPage);
 		const [popup] = await Promise.all([
