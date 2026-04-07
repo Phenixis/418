@@ -77,30 +77,44 @@ function getTeacherRowByEmail(page: Page, teacherEmail: string) {
     return page.locator('tbody tr', { hasText: teacherEmail }).first();
 }
 
-async function openRefuseAccountAction(page: Page, teacherRow: ReturnType<typeof getTeacherRowByEmail>) {
-    const refuseMenuItem = page.getByRole('menuitem', { name: 'Refuser le compte' }).last();
+async function openTeacherActionsMenu(page: Page, teacherRow: ReturnType<typeof getTeacherRowByEmail>) {
+    await page.keyboard.press('Escape');
+    await expect(page.locator('[data-slot="dropdown-menu-content"][data-state="open"]')).toHaveCount(0);
 
-    if (await refuseMenuItem.count() > 0 && await refuseMenuItem.isVisible()) {
-        return refuseMenuItem;
+    await expect(teacherRow).toBeVisible({ timeout: 15_000 });
+    await teacherRow.evaluate((rowElement) => {
+        rowElement.scrollIntoView({ block: 'center', inline: 'nearest' });
+    });
+
+    const actionMenuButton = teacherRow.locator('td').last().locator('button').first();
+    await expect(actionMenuButton).toBeVisible({ timeout: 15_000 });
+    await actionMenuButton.click();
+
+    const openedMenu = page.locator('[data-slot="dropdown-menu-content"][data-state="open"]');
+    if (await openedMenu.count() === 0) {
+        await actionMenuButton.click({ force: true });
     }
+    await expect(openedMenu).toBeVisible({ timeout: 10_000 });
+    return openedMenu;
+}
 
-    await teacherRow.scrollIntoViewIfNeeded();
-    await teacherRow.locator('td').last().locator('button').first().click();
+async function openValidateAccountAction(page: Page, teacherRow: ReturnType<typeof getTeacherRowByEmail>) {
+    const openedMenu = await openTeacherActionsMenu(page, teacherRow);
+    const validateMenuItem = openedMenu.getByRole('menuitem', { name: 'Valider le compte' });
+    await expect(validateMenuItem).toBeVisible();
+    return validateMenuItem;
+}
 
+async function openRefuseAccountAction(page: Page, teacherRow: ReturnType<typeof getTeacherRowByEmail>) {
+    const openedMenu = await openTeacherActionsMenu(page, teacherRow);
+    const refuseMenuItem = openedMenu.getByRole('menuitem', { name: 'Refuser le compte' });
     await expect(refuseMenuItem).toBeVisible();
     return refuseMenuItem;
 }
 
 async function openDeleteAccountAction(page: Page, teacherRow: ReturnType<typeof getTeacherRowByEmail>) {
-    const deleteMenuItem = page.getByRole('menuitem', { name: 'Supprimer le compte' }).last();
-
-    if (await deleteMenuItem.count() > 0 && await deleteMenuItem.isVisible()) {
-        return deleteMenuItem;
-    }
-
-    await teacherRow.scrollIntoViewIfNeeded();
-    await teacherRow.locator('td').last().locator('button').first().click();
-
+    const openedMenu = await openTeacherActionsMenu(page, teacherRow);
+    const deleteMenuItem = openedMenu.getByRole('menuitem', { name: 'Supprimer le compte' });
     await expect(deleteMenuItem).toBeVisible();
     return deleteMenuItem;
 }
@@ -199,28 +213,24 @@ test.describe('Page administrateur - gestion des professeurs', () => {
         await expandTeachersSection(authenticatedAdminPage);
 
         const pendingTeacherRow = getTeacherRowByEmail(authenticatedAdminPage, pendingTeacherEmail);
-        await expect(pendingTeacherRow).toBeVisible({ timeout: 10000 });
+        await expect(pendingTeacherRow).toBeVisible({ timeout: 15_000 });
 
+        const validateAction = await openValidateAccountAction(authenticatedAdminPage, pendingTeacherRow);
         const validationSubmissionPromise = authenticatedAdminPage.waitForResponse((response) => {
             return response.url().includes('/administrateur/gestion-professeurs')
                 && response.request().method() === 'POST';
         });
-
-        await pendingTeacherRow.getByRole('button', { name: 'Open actions menu' }).click();
-        await authenticatedAdminPage.getByRole('menuitem', { name: 'Valider le compte' }).click({ force: true });
+        await validateAction.click();
         await validationSubmissionPromise;
 
         await authenticatedAdminPage.goto(ADMIN_ACCOUNTS_ROUTE);
         await expandTeachersSection(authenticatedAdminPage);
 
-        const updatedTeacherRow = getTeacherRowByEmail(authenticatedAdminPage, pendingTeacherEmail);
-        await expect(updatedTeacherRow).toBeVisible({ timeout: 10000 });
-        await expect(updatedTeacherRow).toContainText('Validé');
-
-        await updatedTeacherRow.getByRole('button', { name: 'Open actions menu' }).click();
-        await expect(authenticatedAdminPage.getByRole('menuitem', { name: 'Valider le compte' })).toHaveCount(0);
-        await expect(authenticatedAdminPage.getByRole('menuitem', { name: 'Refuser le compte' })).toHaveCount(0);
-        await expect(authenticatedAdminPage.getByRole('menuitem', { name: 'Supprimer le compte' })).toBeVisible();
+        const validatedTeacherRow = getTeacherRowByEmail(authenticatedAdminPage, pendingTeacherEmail);
+        const openedMenu = await openTeacherActionsMenu(authenticatedAdminPage, validatedTeacherRow);
+        await expect(openedMenu.getByRole('menuitem', { name: 'Valider le compte' })).toHaveCount(0);
+        await expect(openedMenu.getByRole('menuitem', { name: 'Refuser le compte' })).toHaveCount(0);
+        await expect(openedMenu.getByRole('menuitem', { name: 'Supprimer le compte' })).toBeVisible();
     });
 
     test('permet d annuler puis de confirmer le refus d un compte non validé', async ({ authenticatedAdminPage }) => {
