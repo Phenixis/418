@@ -71,6 +71,20 @@ class TeacherQueries extends QueryModel<NewTeacher, Teacher> {
         return { success: "Enseignant refusé.", entity: result[0] as Teacher }
     }
 
+    async saveIcalUrl(teacherMail: string, icalUrl: string): Promise<QueryResult<Teacher>> {
+        const result = await lib.db
+            .update(this.table)
+            .set({ icalUrl, updatedAt: new Date() })
+            .where(lib.eq(this.table.userMail, teacherMail))
+            .returning()
+
+        if (lib.resultEmpty(result)) {
+            return { error: 'Enseignant introuvable avec cet email.' }
+        }
+
+        return { success: 'URL iCal enregistrée.', entity: result[0] as Teacher }
+    }
+
     async getTeacherEmailFromSession(): Promise<string | null> {
         const session = await getClientSession();
 

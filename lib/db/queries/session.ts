@@ -109,6 +109,67 @@ class SessionQueries extends QueryModel<NewSession, Session> {
         return { success: 'Seances trouvees pour cet etudiant.', entity: result as Session[] };
     }
 
+    async findByAdeUid(adeUid: string): Promise<QueryResult<Session>> {
+        const result = await lib.db
+            .select()
+            .from(this.table)
+            .where(lib.and(lib.eq(this.table.adeUid, adeUid), lib.isNull(this.table.deletedAt)))
+            .limit(1);
+
+        if (lib.resultEmpty(result)) {
+            return { error: 'Séance introuvable avec cet UID ADE.' };
+        }
+
+        return { success: 'Séance trouvée.', entity: result[0] as Session };
+    }
+
+    async upsertAde(data: {
+        adeUid: string;
+        resourceId: string;
+        subject: string;
+        startAt: Date;
+        endAt: Date;
+        teacherMail: string;
+    }): Promise<QueryResult<Session>> {
+        const existing = await this.findByAdeUid(data.adeUid);
+
+        if ('entity' in existing) {
+            return this.update(existing.entity.sessionId, {
+                resourceId: data.resourceId,
+                subject: data.subject,
+                startAt: data.startAt,
+                endAt: data.endAt,
+            });
+        }
+
+        const sessionId = crypto.randomUUID();
+
+        const createResult = await this.create({
+            sessionId,
+            resourceId: data.resourceId,
+            subject: data.subject,
+            startAt: data.startAt,
+            endAt: data.endAt,
+            source: 'ADE',
+            adeUid: data.adeUid,
+        });
+
+        if ('error' in createResult) {
+            return createResult;
+        }
+
+        const linkResult = await sessionTeacherQueries.create({
+            sessionId,
+            teacherMail: data.teacherMail,
+        });
+
+        if ('error' in linkResult) {
+            return { error: 'Séance créée, mais liaison enseignant échouée.' };
+        }
+
+        return createResult;
+    }
+
     async update(stringId: string, data: Partial<NewSession>): Promise<QueryResult<Session>> {
         const result = await lib.db
             .update(this.table)

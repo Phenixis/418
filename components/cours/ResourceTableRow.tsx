@@ -2,6 +2,7 @@
 
 import { CourseStatus } from '@/components/cours/course.types';
 import type { ResourceTableItem } from '@/components/cours/ResourceTable';
+import { Badge } from '@/components/ui/badge';
 import Vignette from '@/components/ui/Vignette';
 import { TableCell, TableRow } from '@/components/ui/table';
 import { formatInTimeZone } from 'date-fns-tz';
@@ -49,6 +50,9 @@ export default function ResourceTableRow({ resourceItem }: Readonly<{ resourceIt
                 {resourceItem.resource.subject.length > 15
                     ? `${resourceItem.resource.subject.slice(0, 15)}...`
                     : resourceItem.resource.subject}
+                {resourceItem.resource.source === 'ADE' && (
+                    <Badge variant="secondary" className="ml-2">ADE</Badge>
+                )}
             </TableCell>
             <TableCell className="hidden sm:table-cell">{resourceItem.totalSessionCount}</TableCell>
             <TableCell className="hidden sm:table-cell">{resourceItem.ongoingSessionCount}</TableCell>
