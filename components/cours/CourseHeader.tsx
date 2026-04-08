@@ -23,9 +23,9 @@ export interface CourseHeaderProps {
 
 export default function CourseHeader({ cours, groups, status, onTerminer, onDemarrer }: Readonly<CourseHeaderProps>) {
     return (
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col items-center gap-3 text-center sm:flex-row sm:items-center sm:justify-between sm:text-left">
             {/* Titre et vignette de statut */}
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col items-center gap-2 sm:flex-row sm:items-center sm:gap-3">
                 <h1 className="h1 uppercase">
                     {/* 
                         Je pensais qu'il était séparé en bdd 
@@ -45,7 +45,7 @@ export default function CourseHeader({ cours, groups, status, onTerminer, onDema
 
             {/* Actions sur le cours */}
             {(status === CourseStatus.A_VENIR || onTerminer || onDemarrer) && (
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center justify-center gap-3 sm:justify-end">
                     {status === CourseStatus.A_VENIR && (
                         <ResourceModal initResource={{
                             resourceId: cours.resourceId,

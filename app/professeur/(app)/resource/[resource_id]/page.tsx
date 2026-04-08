@@ -68,7 +68,7 @@ export default async function ResourcePage({ params }: Readonly<{ params: Promis
 
     return (
         <section className="flex flex-col">
-            <header className="flex justify-between items-center">
+            <header className="sticky top-0 z-20 mb-4 flex flex-col items-center gap-2 bg-background py-2 text-center sm:flex-row sm:items-center sm:justify-between sm:text-left">
                 <h1 className="h1">{resource.subject}</h1>
                 <SessionModal resourceId={resource.resourceId} initSession={undefined} />
             </header>

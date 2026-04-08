@@ -45,15 +45,18 @@ export default function ResourceTableRow({ resourceItem }: Readonly<{ resourceIt
                 router.push(`/professeur/resource/${resourceItem.resource.resourceId}`);
             }}
         >
-            <TableCell className="font-bold text-left">{resourceItem.resource.subject}</TableCell>
-            <TableCell>{resourceItem.totalSessionCount}</TableCell>
-            <TableCell>{resourceItem.ongoingSessionCount}</TableCell>
-            <TableCell>{resourceItem.upcomingSessionCount}</TableCell>
-            <TableCell>{resourceItem.pastSessionCount}</TableCell>
-            <TableCell>{formatNextSessionDate(resourceItem.nextSessionStartAt)}</TableCell>
-            <TableCell>
-                {resourceStatus ? <Vignette status={resourceStatus} /> : <span>Aucune seance</span>}
+            <TableCell className="font-bold text-left">
+                {resourceItem.resource.subject.length > 15
+                    ? `${resourceItem.resource.subject.slice(0, 15)}...`
+                    : resourceItem.resource.subject}
             </TableCell>
+            <TableCell className="hidden sm:table-cell">{resourceItem.totalSessionCount}</TableCell>
+            <TableCell className="hidden sm:table-cell">{resourceItem.ongoingSessionCount}</TableCell>
+            <TableCell className="hidden sm:table-cell">{resourceItem.upcomingSessionCount}</TableCell>
+            <TableCell className="hidden sm:table-cell">{resourceItem.pastSessionCount}</TableCell>
+            <TableCell className="hidden sm:table-cell">{formatNextSessionDate(resourceItem.nextSessionStartAt)}</TableCell>
+            <TableCell className="sm:hidden">{formatInTimeZone(resourceItem.nextSessionStartAt || new Date(), PARIS_TIME_ZONE, 'dd/MM/yyyy', { locale: fr })}</TableCell>
+            <TableCell>{resourceStatus ? <Vignette status={resourceStatus} /> : <span>Aucune seance</span>}</TableCell>
         </TableRow>
     );
 }
