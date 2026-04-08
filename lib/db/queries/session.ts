@@ -3,6 +3,8 @@ import * as lib from './lib';
 import { QueryModel, QueryResult } from './model';
 
 const sessionTable = lib.Schema.SessionTable.table;
+const studentTable = lib.Schema.StudentTable.table;
+const sessionGroupTable = lib.Schema.SessionGroupTable.table;
 
 type NewSession = lib.Schema.SessionTable.Insert;
 type Session = lib.Schema.SessionTable.Select;
@@ -70,6 +72,41 @@ class SessionQueries extends QueryModel<NewSession, Session> {
             .where(lib.and(lib.inArray(this.table.sessionId, sessionIds), lib.isNull(this.table.deletedAt)));
 
         return { success: 'Seances trouvees pour le professeur.', entity: result as Session[] };
+    }
+
+    async getByStudentMail(studentMail: string): Promise<QueryResult<Session[]>> {
+        const studentResult = await lib.db
+            .select({ groupId: studentTable.groupId })
+            .from(studentTable)
+            .where(lib.and(lib.eq(studentTable.userMail, studentMail), lib.isNull(studentTable.deletedAt)));
+
+        if (lib.resultEmpty(studentResult)) {
+            return { error: 'Etudiant introuvable avec cet email.' };
+        }
+
+        const studentGroupId = studentResult[0].groupId;
+
+        if (studentGroupId === null) {
+            return { success: 'Aucune seance trouvee pour cet etudiant.', entity: [] as Session[] };
+        }
+
+        const studentSessionGroups = await lib.db
+            .select({ sessionId: sessionGroupTable.sessionId })
+            .from(sessionGroupTable)
+            .where(lib.and(lib.eq(sessionGroupTable.groupId, studentGroupId), lib.isNull(sessionGroupTable.deletedAt)));
+
+        if (lib.resultEmpty(studentSessionGroups)) {
+            return { success: 'Aucune seance trouvee pour cet etudiant.', entity: [] as Session[] };
+        }
+
+        const sessionIds = [...new Set(studentSessionGroups.map((sessionGroup) => sessionGroup.sessionId))];
+
+        const result = await lib.db
+            .select()
+            .from(this.table)
+            .where(lib.and(lib.inArray(this.table.sessionId, sessionIds), lib.isNull(this.table.deletedAt)));
+
+        return { success: 'Seances trouvees pour cet etudiant.', entity: result as Session[] };
     }
 
     async update(stringId: string, data: Partial<NewSession>): Promise<QueryResult<Session>> {

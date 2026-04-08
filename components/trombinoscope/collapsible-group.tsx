@@ -8,6 +8,7 @@ import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
 import UnfoldLessIcon from '@mui/icons-material/UnfoldLess';
 import EtudiantCard from "../etudiant/etudiant-card";
 import EtudiantCardSkeleton from '../etudiant/etudiant-card-skeleton';
+import Link from 'next/link';
 
 export default function CollapsibleGroup({
     group,
@@ -71,7 +72,9 @@ export default function CollapsibleGroup({
                     )}
                     {studentsError && <p>{studentsError}</p>}
                     {students.slice().sort((a, b) => a.lastName.localeCompare(b.lastName)).map((student) => (
-                        <EtudiantCard key={student.userMail} etudiant={student} />
+                        <Link key={student.userMail} href={`/professeur/etudiant/${student.userMail.split('@')[0]}`} className="no-underline">
+                            <EtudiantCard key={student.userMail} etudiant={student} />
+                        </Link>
                     ))}
                 </div>
             </CollapsibleContent>

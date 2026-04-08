@@ -36,11 +36,11 @@ export default function CourseHeader({ cours, groups, status, onTerminer, onDema
                 </h1>
                 <Vignette status={status} />
                 <Link
-                href={`/professeur/resource/${cours.resourceId}`}
-                className="w-fit text-sm underline underline-offset-4 hover:opacity-70"
-            >
-                Voir le détail de la ressource
-            </Link>
+                    href={`/professeur/resource/${cours.resourceId}`}
+                    className="w-fit text-sm underline underline-offset-4 hover:opacity-70"
+                >
+                    Voir le détail de la ressource
+                </Link>
             </div>
 
             {/* Actions sur le cours */}
