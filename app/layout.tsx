@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Montserrat_Alternates } from "next/font/google";
+import { Inter, Montserrat_Alternates, Archivo } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner"; 
 
@@ -10,6 +10,12 @@ const inter = Inter({
 
 const montserratAlternates = Montserrat_Alternates({
   variable: "--font-montserrat-alternates",
+  subsets: ["latin"],
+  weight: "400",
+});
+
+const archivo = Archivo({
+  variable: "--font-archivo",
   subsets: ["latin"],
   weight: "400",
 });
@@ -26,7 +32,7 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body
-        className={`${inter.variable} ${montserratAlternates.variable} antialiased bg-background text-[18px]`}
+        className={`${inter.variable} ${montserratAlternates.variable} ${archivo.variable} antialiased bg-background text-[18px]`}
       >
         {children}
         

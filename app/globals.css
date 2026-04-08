@@ -20,7 +20,7 @@
 
 @theme inline {
     --font-sans: var(--font-inter, "Inter");
-    --font-display: var(--font-montserrat-alternates, "Montserrat Alternates");
+    --font-display: var(--font-archivo, "Archivo");
 
     --color-background: var(--background);
     --color-background-alternative: var(--background-alternative);
