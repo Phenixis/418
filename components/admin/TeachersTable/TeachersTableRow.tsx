@@ -76,10 +76,10 @@ export default function TeachersTableRow({
                 {/* Bouton de validation et de refus visible seulement si non validé */}
                 <form action={validateTeacherAction}>
                     <input type="hidden" name="teacherEmail" value={teacher.userMail} />
-                    <Button type="submit" hidden={teacher.isValidated} variant="default" className="bg-transparent text-green hover:bg-primary/90" size="icon">
+                    <Button type="submit" hidden={teacher.isValidated} variant="default" className="bg-transparent text-green hover:bg-primary/80" size="icon">
                         <VerifiedUserIcon />
                     </Button>
-                    <Button type="reset" hidden={teacher.isValidated} variant="destructive" className="bg-transparent text-red" size="icon" onClick={(event) => {
+                    <Button type="reset" hidden={teacher.isValidated} variant="destructive" className="bg-transparent text-red hover:bg-primary/80" size="icon" onClick={(event) => {
                         event.preventDefault();
                         setIsRefuseDialogOpen(true);
                     }}>
