@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Montserrat_Alternates } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner"; 
+import { TutorialProvider } from "@/components/tutorial/tutorial-provider";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -28,7 +29,8 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${montserratAlternates.variable} antialiased bg-background text-[18px]`}
       >
-        {children}
+        <TutorialProvider>
+          {children}
         
         <Toaster 
           position="top-center" 
@@ -36,7 +38,7 @@ export default function RootLayout({
           closeButton={true} 
         />
         
+        </TutorialProvider>
       </body>
-    </html>
-  );
+    </html>  );
 }

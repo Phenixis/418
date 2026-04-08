@@ -111,11 +111,11 @@ export default function SessionModal({
                 onOpenChange={setIsSessionDialogOpen}
             >
                 <DialogTrigger asChild>
-                    <Button variant="default">
+                    <Button variant="default" id={initSession === undefined ? "btn-creer-seance" : undefined}>
                         {initSession === undefined ? "Créer une séance" : "Modifier la séance"}
                     </Button>
                 </DialogTrigger>
-                <DialogContent className="z-50">
+                <DialogContent className="z-50" onInteractOutside={(e) => e.preventDefault()}>
                     <DialogHeader>
                         <DialogTitle className="h2 font-normal">
                             {initSession === undefined ? "Créer une séance" : "Modifier la séance"}
@@ -132,9 +132,9 @@ export default function SessionModal({
                         <input type="hidden" name="teacherEmail" value={teacher.userMail} className="hidden" readOnly />
 
                         <div className="w-full flex flex-col gap-2 mb-2">
-                            <Label htmlFor="label">Nom de la séance</Label>
+                            <Label htmlFor="session-input-label">Nom de la séance</Label>
                             <Input
-                                id="label"
+                                id="session-input-label"
                                 name="label"
                                 type="text"
                                 placeholder="Nom de la séance"
@@ -144,7 +144,7 @@ export default function SessionModal({
                             />
                         </div>
 
-                        <div className="flex items-center justify-between gap-4 mb-2">
+                        <div id="session-input-date" className="flex items-center justify-between gap-4 mb-2">
                             <DateTimePicker
                                 id="start-date"
                                 value={date}
@@ -173,13 +173,15 @@ export default function SessionModal({
                             </div>
                         </div>
 
-                        <SelectGroupComponent groupsSelected={groupsSelected} setGroupsSelected={setGroupsSelected} />
+                        <div id="session-input-groups">
+                            <SelectGroupComponent groupsSelected={groupsSelected} setGroupsSelected={setGroupsSelected} />
+                        </div>
 
                         <DialogFooter className="flex-col sm:flex-col">
                             {"error" in state && (
                                 <p className="text-sm text-red-500">{state.message}</p>
                             )}
-                            <Button type="submit" variant="big" className="w-full" disabled={pending || !isFormValid}>
+                            <Button type="submit" id="session-submit-btn" variant="big" className="w-full" disabled={pending || !isFormValid}>
                                 {initSession === undefined ? "Créer la séance" : "Modifier la séance"}
                             </Button>
                         </DialogFooter>

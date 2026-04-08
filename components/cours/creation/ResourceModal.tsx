@@ -70,13 +70,13 @@ export default function ResourceModal({
                 onOpenChange={setIsResourceDialogOpen}
             >
                 <DialogTrigger asChild>
-                    <Button variant="default">
+                    <Button variant="default" id={initResource === undefined ? "btn-creer-ressource" : undefined}>
                         {
                             initResource === undefined ? "Créer une ressource" : "Modifier la ressource"
                         }
                     </Button>
                 </DialogTrigger>
-                <DialogContent className="z-50">
+                <DialogContent className="z-50" onInteractOutside={(e) => e.preventDefault()}>
                     <DialogHeader>
                         <DialogTitle className="h2 font-normal">
                             {
@@ -97,7 +97,7 @@ export default function ResourceModal({
                         <div className="w-full flex flex-col gap-2 mb-2">
                             <Label htmlFor="label">Nom de la ressource</Label>
                             <Input
-                                id="label"
+                                id="resource-input-label"
                                 name="label"
                                 type="text"
                                 placeholder="Nom de la ressource"
@@ -115,7 +115,7 @@ export default function ResourceModal({
                                     </p>
                                 )
                             }
-                            <Button type="submit" variant="big" className="w-full" disabled={pending || !isFormValid}>
+                            <Button type="submit" id="resource-submit-btn" variant="big" className="w-full" disabled={pending || !isFormValid}>
                                 {
                                     initResource === undefined ? "Créer la ressource" : "Modifier la ressource"
                                 }

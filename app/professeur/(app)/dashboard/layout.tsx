@@ -1,5 +1,6 @@
 import ResourceModal from '@/components/cours/creation/ResourceModal';
 import { BreadcrumbProvider, BreadcrumbSlot } from './breadcrumb-context';
+import { TutorialTrigger } from '@/components/tutorial/tutorial-trigger';
 
 export default function DashboardLayout({
     children
@@ -12,7 +13,8 @@ export default function DashboardLayout({
                 <div className="flex flex-col items-center gap-2 sm:min-w-max sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                     <h1 className="h1 min-w-0 text-2xl text-center sm:text-4xl sm:text-left">Dashboard</h1>
 
-                    <div className="sm:hidden">
+                    <div className="sm:hidden flex gap-2">
+                        <TutorialTrigger />
                         <ResourceModal />
                     </div>
                 </div>
@@ -21,7 +23,8 @@ export default function DashboardLayout({
                     <BreadcrumbSlot />
                 </div>
 
-                <div className="hidden sm:block sm:min-w-max">
+                <div className="hidden sm:flex sm:min-w-max gap-2 items-center">
+                    <TutorialTrigger />
                     <ResourceModal />
                 </div>
             </div>

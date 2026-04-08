@@ -4,6 +4,7 @@ import { sessionQueries } from '@/lib/db/queries/session';
 import { teacherQueries } from '@/lib/db/queries/teacher';
 import type { Select as Resource } from '@/lib/db/schema/resource';
 import type { Select as Session } from '@/lib/db/schema/session';
+import { Button } from '@/components/ui/button';
 
 function getResourceStatusPriority(resourceItem: ResourceTableItem): number {
     if (resourceItem.ongoingSessionCount > 0) {
@@ -93,7 +94,9 @@ export default async function DashboardPage() {
 
     return (
         <section className="flex flex-col">
-            <ResourceTable resourceItems={resourceItems} />
+            <div id="dashboard-resource-table">
+                <ResourceTable resourceItems={resourceItems} />
+            </div>
         </section>
     );
 }
