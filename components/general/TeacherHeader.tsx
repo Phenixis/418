@@ -19,26 +19,43 @@ export default function TeacherHeader() {
     const pathname = usePathname();
 
     return (
-        <div className="flex p-4 gap-4 items-center justify-between">
-            <Link href="/professeur/dashboard">
-                <Logo variant={LogoVariants.NAME_RIGHT} size={LogoSizes.LARGE} />
-            </Link>
-            <div className="flex items-center gap-4">
+        <div className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center justify-between gap-3 sm:flex-none">
+                <Link href="/professeur/dashboard">
+                    <Logo variant={LogoVariants.NAME_RIGHT} size={LogoSizes.MEDIUM} />
+                </Link>
+
+                <div className="flex items-center gap-3 sm:hidden">
+                    {
+                        teacher.isAdmin && <SettingsMenu />
+                    }
+                    <ProfilBadge firstName={teacher.firstName} lastName={teacher.lastName} />
+                </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-1 sm:flex-1 justify-center sm:gap-4">
                 {Object.entries(ROUTES).map(([name, route]) => (
-                    <Button key={name} variant="link" className={pathname.startsWith(route) ? 'underline' : ''} asChild>
+                    <Button
+                        key={name}
+                        variant="link"
+                        size="sm"
+                        className={pathname.startsWith(route) ? 'underline' : ''}
+                        asChild
+                    >
                         <Link href={route}>
                             {name}
                         </Link>
                     </Button>
                 ))}
             </div>
-            <div className="flex items-center gap-4 md:flex-row">
-                <div className="hidden bg-white rounded-full mx-4 flex items-center gap-2 pl-4 pr-12 py-2 text-sm">
+
+            <div className="hidden items-center gap-4 sm:flex">
+                <div className="hidden items-center gap-2 rounded-full bg-white mx-4 pl-4 pr-12 py-2 text-sm">
                     <SearchIcon />
                     <p>Rechercher</p>
                 </div>
                 {
-                    teacher.isAdmin && <SettingsMenu />
+                    teacher.isAdmin && <SettingsMenu/>
                 }
                 <ProfilBadge firstName={teacher.firstName} lastName={teacher.lastName} />
             </div>

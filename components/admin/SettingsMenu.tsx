@@ -10,7 +10,7 @@ import Link from "next/link";
 export default function SettingsMenu() {
     return (
         <DropdownMenu>
-            <DropdownMenuTrigger className="cursor-pointer p-2" title="Menu administrateur">
+            <DropdownMenuTrigger className="cursor-pointer p-2 hidden sm:flex" title="Menu administrateur">
                 <SettingsIcon />
             </DropdownMenuTrigger>
             <DropdownMenuContent>

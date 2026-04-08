@@ -15,9 +15,9 @@ export enum LogoSizes {
 }
 
 export const LogoSizesMap: Record<LogoSizes, string> = {
-    [LogoSizes.SMALL]: 'size-10',
-    [LogoSizes.MEDIUM]: 'size-12',
-    [LogoSizes.LARGE]: 'size-14'
+    [LogoSizes.SMALL]: 'size-8 sm:size-10',
+    [LogoSizes.MEDIUM]: 'size-10 sm:size-12',
+    [LogoSizes.LARGE]: 'size-12 sm:size-14'
 };
 
 export const LogoSizesTextMap: Record<LogoSizes, string> = {
