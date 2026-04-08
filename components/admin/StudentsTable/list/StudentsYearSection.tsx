@@ -1,12 +1,11 @@
 'use client';
 
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Badge } from '@/components/ui/badge';
-import { StudentsGroupSection } from './StudentsGroupSection';
-import { StudentCard } from './StudentCard';
-import { UNASSIGNED_GROUP_ID } from '../students-management-utils';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import type { Select as Group } from '@/lib/db/schema/group';
 import type { Select as Student } from '@/lib/db/schema/student';
+import { StudentCard } from './StudentCard';
+import { StudentsGroupSection } from './StudentsGroupSection';
 
 interface StudentsYearSectionProps {
 	year: string;

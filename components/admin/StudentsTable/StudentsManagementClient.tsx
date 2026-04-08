@@ -133,8 +133,13 @@ export default function StudentsManagementClient({ initialStudents, groups }: Re
 		const field = dialogs.isEditDialogOpen ? 'edit' : 'create';
 		const setFormState = field === 'create' ? forms.setCreateFormState : forms.setEditFormState;
 
-		imageUpload.handleImageUpload(file, field, setFormState);
-		resetStatusMessages();
+		resetStatusMessages();  
+
+        try {  
+            await imageUpload.handleImageUpload(file, field, setFormState);  
+        } catch (error) {  
+            setErrorMessage(error instanceof Error ? error.message : 'Téléversement de l\'image impossible.');  
+        }  
 	}
 
 	async function handleCreateStudent(): Promise<void> {

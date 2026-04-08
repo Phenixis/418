@@ -131,8 +131,9 @@ export async function seedFromFile(fileName?: string) {
 
     if (!filePath) {
         if (fileName && fileName.trim().length > 0) {
-            console.log("Fichier de sauvegarde introuvable: " + fileName + " dans [" + SAVES_FOLDER_PATH + "].");
-            return;
+            const errorMessage = "Fichier de sauvegarde introuvable: " + fileName + " dans [" + SAVES_FOLDER_PATH + "].";
+            console.error(errorMessage);
+            throw new Error(errorMessage);
         }
 
         console.log("Aucun fichier de sauvegarde trouvé. Créez une sauvegarde avant de lancer le seed, ou récupérez-en une auprès de votre administrateur et placez la dans [" + SAVES_FOLDER_PATH + "].");

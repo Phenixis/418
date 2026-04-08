@@ -1,21 +1,20 @@
 'use client';
 
-import { useMemo, useState } from 'react';
 import type { Select as Group } from '@/lib/db/schema/group';
 import type { Select as Student } from '@/lib/db/schema/student';
-import {
-	UNASSIGNED_GROUP_ID,
-	ALL_FILTER_VALUE,
-	buildGroupLabel,
-	type StudentFormState,
-	createDefaultFormState,
-	toApiGroupId,
-} from './students-management-utils';
+import { isStudentBlobPath } from '@/lib/utils/blob';
+import { useMemo, useState } from 'react';
 import {
 	deleteTemporaryUploadedPicture,
 	uploadStudentPicture,
 } from './students-management-api-client';
-import { isStudentBlobPath } from '@/lib/utils/blob';
+import {
+	ALL_FILTER_VALUE,
+	buildGroupLabel,
+	createDefaultFormState,
+	UNASSIGNED_GROUP_ID,
+	type StudentFormState
+} from './students-management-utils';
 
 // Hook pour gérer les filtres (recherche, groupes, années)
 export function useStudentFilters() {

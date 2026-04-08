@@ -4,8 +4,6 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import type { Select as Group } from "@/lib/db/schema/group";
 import type { Select as Student } from "@/lib/db/schema/student";
 import { useEffect, useState } from "react";
-import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
-import UnfoldLessIcon from '@mui/icons-material/UnfoldLess';
 import EtudiantCard from "../etudiant/etudiant-card";
 import EtudiantCardSkeleton from '../etudiant/etudiant-card-skeleton';
 
