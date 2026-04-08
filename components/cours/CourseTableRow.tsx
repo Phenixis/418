@@ -1,34 +1,22 @@
 'use client';
 
 import { TableCell, TableRow } from '@/components/ui/table';
-
 import { CourseStatus } from '@/components/cours/course.types';
-import {
-    AlertDialog,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle
-} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuTrigger
+    DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import Vignette from '@/components/ui/Vignette';
-import SessionModal from '@/components/cours/creation/SessionModal';
-import { deleteCourse } from '@/lib/actions/cours';
+import { useDialog } from '@/lib/hooks/use-dialog';
 import { Select as Session } from '@/lib/db/schema/session';
 import { Select as Group } from '@/lib/db/schema/group';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { formatInTimeZone } from 'date-fns-tz';
 import { fr } from 'date-fns/locale/fr';
-import { usePathname, useRouter } from 'next/navigation';
-import { useActionState, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 const PARIS_TIME_ZONE = 'Europe/Paris';
 
@@ -40,7 +28,6 @@ interface CoursProps {
 /**
  * Si la date est de +/- 7 jours, affiche une date relative (ex: "vendredi dernier", "jeudi prochain"),
  * sinon affiche la date au format "dd/MM/yyyy" (ex: "14/09/2023").
- * @param date
  */
 function formatDate(date: Date): string {
     const now = new Date();
@@ -66,23 +53,7 @@ function formatDate(date: Date): string {
 export default function CourseTableRow({ cours, groups }: Readonly<CoursProps>) {
     const now = new Date();
     const router = useRouter();
-    const pathname = usePathname();
-    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-    const isResourceSegment = pathname.startsWith('/professeur/resource/');
-
-    const [deleteState, deleteCourseAction] = useActionState<any, FormData>(
-        async (prevState, formData) => {
-            return await deleteCourse(formData);
-        },
-        { pending: false }
-    );
-
-    useEffect(() => {
-        if ("success" in deleteState) {
-            setIsDeleteDialogOpen(false);
-            router.refresh();
-        }
-    }, [deleteState, router]);
+    const { setEditSessionData, setDeleteSessionData } = useDialog();
 
     let status: CourseStatus = CourseStatus.EN_COURS;
 
@@ -125,68 +96,39 @@ export default function CourseTableRow({ cours, groups }: Readonly<CoursProps>) 
                         <Button
                             variant="ghost"
                             size="icon"
-                            onClick={(event) => {
-                                event.stopPropagation();
-                            }}
+                            onClick={(event) => event.stopPropagation()}
                         >
                             <span className="sr-only">Open actions menu</span>
                             <MoreVertIcon />
                         </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent >
-                        {isResourceSegment && (
-                            <DropdownMenuItem
-                                data-ignore-row-click
-                                onSelect={(event) => {
-                                    event.preventDefault();
-                                    event.stopPropagation();
-                                }}
-                            >
-                                <SessionModal
-                                    resourceId={cours.resourceId}
-                                    initSession={{
-                                        sessionId: cours.sessionId,
-                                        subject: cours.subject,
-                                        startAt: cours.startAt,
-                                        endAt: cours.endAt,
-                                        groups: groups.map((group) => ({ groupId: group.groupId })),
-                                    }}
-                                />
-                            </DropdownMenuItem>
-                        )}
+                    <DropdownMenuContent>
                         <DropdownMenuItem
-                            data-ignore-row-click
+                            onSelect={() => setEditSessionData({
+                                resourceId: cours.resourceId,
+                                session: {
+                                    sessionId: cours.sessionId,
+                                    subject: cours.subject,
+                                    startAt: cours.startAt,
+                                    endAt: cours.endAt,
+                                    groups: groups.map((group) => ({ groupId: group.groupId })),
+                                },
+                            })}
+                        >
+                            Modifier la séance
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
                             variant="destructive"
-                            onSelect={(event) => {
-                                event.preventDefault();
-                                event.stopPropagation();
-                                setIsDeleteDialogOpen(true);
-                            }}
+                            onSelect={() => setDeleteSessionData({
+                                sessionId: cours.sessionId,
+                                subject: cours.subject,
+                                startAt: cours.startAt,
+                            })}
                         >
                             Supprimer le cours
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
-                <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-                    <AlertDialogContent size="sm">
-                        <form action={deleteCourseAction}>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>Supprimer ce cours ?</AlertDialogTitle>
-                            </AlertDialogHeader>
-                            <AlertDialogDescription>
-                                Cette action supprimera le cours <strong>{cours.subject}</strong> programmé pour {formatDate(cours.startAt)}.
-                            </AlertDialogDescription>
-                            <AlertDialogFooter>
-                                <AlertDialogCancel>Annuler</AlertDialogCancel>
-                                <input type="hidden" name="courseId" value={cours.sessionId} />
-                                <Button variant="destructive" type="submit">
-                                    Supprimer
-                                </Button>
-                            </AlertDialogFooter>
-                        </form>
-                    </AlertDialogContent>
-                </AlertDialog>
-
             </TableCell>
         </TableRow>
     );

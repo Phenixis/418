@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { resourceQueries } from "@/lib/db/queries/resource";
 import { resourceTeacherQueries } from "@/lib/db/queries/resource-teacher";
+import { sessionQueries } from "@/lib/db/queries/session";
 import { teacherQueries } from "@/lib/db/queries/teacher";
 import { ActionResult } from "./types";
 
@@ -103,4 +104,31 @@ export async function updateResource(prevState: ActionResult, formData: FormData
             id: resourceId,
         },
     };
+}
+
+export async function deleteResource(prevState: ActionResult, formData: FormData): Promise<ActionResult> {
+    await teacherQueries.getTeacher();
+
+    const resourceId = formData.get("resourceId");
+
+    if (typeof resourceId !== "string" || resourceId.trim().length === 0) {
+        return { error: true, message: "ID de ressource manquant ou invalide." };
+    }
+
+    const trimmedResourceId = resourceId.trim();
+
+    const sessionsResult = await sessionQueries.getByResourceId(trimmedResourceId);
+    const sessions = 'error' in sessionsResult ? [] : sessionsResult.entity;
+
+    await Promise.all(sessions.map((session) => sessionQueries.deleteBySessionId(session.sessionId)));
+
+    const deletionResult = await resourceQueries.deleteByResourceId(trimmedResourceId);
+
+    if ('error' in deletionResult) {
+        return { error: true, message: "Erreur lors de la suppression de la ressource." };
+    }
+
+    revalidatePath("/professeur/dashboard");
+
+    return { success: true };
 }

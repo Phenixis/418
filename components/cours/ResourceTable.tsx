@@ -1,4 +1,4 @@
-import ResourceTableRow from '@/components/cours/ResourceTableRow';
+import CollapsibleResource from '@/components/cours/CollapsibleResource';
 import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import type { Select as Resource } from '@/lib/db/schema/resource';
 
@@ -35,11 +35,12 @@ export default function ResourceTable({
                     <TableHead className="hidden sm:table-cell">Terminees</TableHead>
                     <TableHead>Prochaine seance</TableHead>
                     <TableHead>Statut</TableHead>
+                    <TableHead></TableHead>
                 </TableRow>
             </TableHeader>
             <TableBody className="rounded-lg overflow-hidden">
                 {resourceItems.map((resourceItem) => (
-                    <ResourceTableRow
+                    <CollapsibleResource
                         key={resourceItem.resource.resourceId}
                         resourceItem={resourceItem}
                     />

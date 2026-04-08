@@ -1,5 +1,17 @@
-import ResourceModal from '@/components/cours/creation/ResourceModal';
+'use client';
+
 import { BreadcrumbProvider, BreadcrumbSlot } from './breadcrumb-context';
+import { Button } from '@/components/ui/button';
+import { useDialog } from '@/lib/hooks/use-dialog';
+
+function CreateResourceButton() {
+    const { setIsCreateResourceDialogOpen } = useDialog();
+    return (
+        <Button variant="default" onClick={() => setIsCreateResourceDialogOpen(true)}>
+            Créer une ressource
+        </Button>
+    );
+}
 
 export default function DashboardLayout({
     children
@@ -13,7 +25,7 @@ export default function DashboardLayout({
                     <h1 className="h1 min-w-0 text-2xl text-center sm:text-4xl sm:text-left">Dashboard</h1>
 
                     <div className="sm:hidden">
-                        <ResourceModal />
+                        <CreateResourceButton />
                     </div>
                 </div>
 
@@ -22,7 +34,7 @@ export default function DashboardLayout({
                 </div>
 
                 <div className="hidden sm:block sm:min-w-max">
-                    <ResourceModal />
+                    <CreateResourceButton />
                 </div>
             </div>
             {children}
