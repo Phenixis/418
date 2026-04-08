@@ -28,7 +28,6 @@ export default function CourseLiveSection({
     etudiants
 }: Readonly<CourseLiveSectionProps>) {
     const [students, setStudents] = useState<StudentWithStatus[]>(etudiants);
-    const stickySentinelRef = useRef<HTMLDivElement | null>(null);
 
     // Un étudiant en retard est considéré comme présent dans le décompte
     const presentsCount = useMemo(() => (

@@ -66,7 +66,7 @@ export default function BarreActions({
             </div>
 
             {/* Badges de filtrage */}
-            <div className="flex items-center rounded-md border border-faded">
+            <div className="flex items-center rounded-md border border-faded overflow-hidden">
                 {FILTRES.map(({ valeur, label }) => {
                     const isActif = filtreActif === valeur;
 
@@ -79,7 +79,8 @@ export default function BarreActions({
                             className={cn(
                                 'rounded-none',
                                 isActif && 'border-r border-faded',
-                                !isActif && 'hover:bg-black/5'
+                                !isActif && 'hover:bg-black/5',
+                                valeur !== FILTRES[FILTRES.length - 1].valeur && 'border-r'
                             )}
                         >
                             {label}

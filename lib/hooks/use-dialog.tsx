@@ -3,6 +3,7 @@
 import ResourceModal from '@/components/cours/creation/ResourceModal';
 import SessionModal from '@/components/cours/creation/SessionModal';
 import AnnotationModal, { type AnnotationData } from '@/components/etudiant/AnnotationModal';
+import GlobalSearch from '@/components/search/GlobalSearch';
 import {
     AlertDialog,
     AlertDialogCancel,
@@ -75,6 +76,10 @@ interface DialogContextType {
     // Créer/modifier une annotation (null = fermé)
     annotationData: AnnotationData | null;
     setAnnotationData: (data: AnnotationData | null) => void;
+
+    // Recherche globale
+    isGlobalSearchOpen: boolean;
+    setIsGlobalSearchOpen: (open: boolean) => void;
 }
 
 const DialogContext = createContext<DialogContextType | null>(null);
@@ -97,6 +102,7 @@ export function DialogProvider({ children }: Readonly<{ children: ReactNode }>) 
     const [deleteResourceData, setDeleteResourceData] = useState<DeleteResourceData | null>(null);
     const [deleteSessionData, setDeleteSessionData] = useState<DeleteSessionData | null>(null);
     const [annotationData, setAnnotationData] = useState<AnnotationData | null>(null);
+    const [isGlobalSearchOpen, setIsGlobalSearchOpen] = useState(false);
 
     const [deleteResourceState, deleteResourceAction] = useActionState<ActionResult, FormData>(
         async (prevState, formData) => await deleteResource(prevState, formData),
@@ -138,6 +144,8 @@ export function DialogProvider({ children }: Readonly<{ children: ReactNode }>) 
             setDeleteSessionData,
             annotationData,
             setAnnotationData,
+            isGlobalSearchOpen,
+            setIsGlobalSearchOpen,
         }}>
             {children}
 
@@ -230,6 +238,12 @@ export function DialogProvider({ children }: Readonly<{ children: ReactNode }>) 
                 data={annotationData}
                 open={annotationData !== null}
                 onOpenChange={(open) => { if (!open) setAnnotationData(null); }}
+            />
+
+            {/* Recherche globale */}
+            <GlobalSearch
+                open={isGlobalSearchOpen}
+                onOpenChange={setIsGlobalSearchOpen}
             />
         </DialogContext.Provider>
     );
