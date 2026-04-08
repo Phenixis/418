@@ -57,7 +57,6 @@ export default function CollapsibleGroup({
     return (
         <Collapsible open={open} onOpenChange={setOpen}>
             <CollapsibleTrigger className="cursor-pointer flex w-full items-center gap-2 h3">
-                {open ? <UnfoldLessIcon /> : <UnfoldMoreIcon />}
                 {group.td}{group.tp}
             </CollapsibleTrigger>
             <CollapsibleContent>

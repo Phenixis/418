@@ -57,6 +57,7 @@ class GroupQueries extends QueryModel<NewGroup, Group> {
         const result = await lib.db
             .select()
             .from(this.table)
+            .where(lib.isNull(this.table.deletedAt))
 
         if (lib.resultEmpty(result)) {
             return { error: "Aucun groupe trouvé." }
