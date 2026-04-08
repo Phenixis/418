@@ -55,7 +55,7 @@ export default function TeacherHeader() {
                     <p>Rechercher</p>
                 </div>
                 {
-                    teacher.isAdmin && <SettingsMenu />
+                    teacher.isAdmin && <SettingsMenu/>
                 }
                 <ProfilBadge firstName={teacher.firstName} lastName={teacher.lastName} />
             </div>

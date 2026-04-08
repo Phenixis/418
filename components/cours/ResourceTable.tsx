@@ -29,10 +29,10 @@ export default function ResourceTable({
             <TableHeader>
                 <TableRow>
                     <TableHead className="w-full text-xl text-left">Ressource</TableHead>
-                    <TableHead>Seances</TableHead>
-                    <TableHead>En cours</TableHead>
-                    <TableHead>A venir</TableHead>
-                    <TableHead>Terminees</TableHead>
+                    <TableHead className="hidden sm:table-cell">Seances</TableHead>
+                    <TableHead className="hidden sm:table-cell">En cours</TableHead>
+                    <TableHead className="hidden sm:table-cell">A venir</TableHead>
+                    <TableHead className="hidden sm:table-cell">Terminees</TableHead>
                     <TableHead>Prochaine seance</TableHead>
                     <TableHead>Statut</TableHead>
                 </TableRow>
