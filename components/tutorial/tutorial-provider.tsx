@@ -121,7 +121,6 @@ const COMMON_STEPS: Step[] = [
     content: "Ce bouton vous permet de revenir instantanément à votre tableau de bord, peu importe où vous êtes.",
     data: { image: "/images/TT1.png" },
     placement: "bottom",
-    disableBeacon: true,
   },
   {
     target: "#nav-links",
@@ -129,7 +128,6 @@ const COMMON_STEPS: Step[] = [
     content: "Accédez rapidement à vos cours ou au trombinoscope de vos étudiants ici.",
     data: { image: "/images/TT2.png" },
     placement: "bottom",
-    disableBeacon: true,
   },
   {
     target: "#dashboard-resource-table",
@@ -137,7 +135,6 @@ const COMMON_STEPS: Step[] = [
     content: "C'est ici que sont listés toutes vos ressources. Chaque ligne correspond à une entité pédagogique.",
     data: { image: "/images/TT5.png" },
     placement: "top",
-    disableBeacon: true,
   },
 ];
 
@@ -150,7 +147,6 @@ const SHORT_TOUR_STEPS: Step[] = [
     content: "Utilisez ce bouton pour ajouter une nouvelle ressource. La création est simple et rapide !",
     data: { image: "/images/TT3.png" },
     placement: "bottom",
-    disableBeacon: true,
   },
   {
     target: "body",
@@ -158,7 +154,6 @@ const SHORT_TOUR_STEPS: Step[] = [
     content: "C'est tout pour le tour d'horizon rapide. Vous pouvez maintenant gérer vos cours en toute liberté.",
     data: { image: "/images/TT1.png" },
     placement: "center",
-    disableBeacon: true,
   },
 ];
 
@@ -171,7 +166,6 @@ const LONG_TOUR_STEPS: Step[] = [
     content: "Commençons par créer une ressource. Je vais ouvrir le formulaire pour vous.",
     data: { image: "/images/TT3.png" },
     placement: "bottom",
-    disableBeacon: true,
   },
   {
     target: ".resource-input-label",
@@ -180,7 +174,6 @@ const LONG_TOUR_STEPS: Step[] = [
     data: { image: "/images/TT3.png" },
     placement: "bottom",
     targetWaitTimeout: 20000,
-    disableBeacon: true,
     before: async () => {
       await openResourceDialog();
     },
@@ -191,7 +184,6 @@ const LONG_TOUR_STEPS: Step[] = [
     content: "Quand vous avez terminé, validez pour créer votre ressource.",
     data: { image: "/images/TT3.png" },
     placement: "top",
-    disableBeacon: true,
   },
   {
     target: "#dashboard-resource-table",
@@ -199,7 +191,6 @@ const LONG_TOUR_STEPS: Step[] = [
     content: "Pour gérer les séances d'une ressource, cliquez sur sa ligne dans le tableau. Je vais le faire pour vous pour gagner du temps !",
     data: { image: "/images/TT6.png" },
     placement: "top",
-    disableBeacon: true,
     before: async () => {
       await closeDialog(".resource-input-label");
     },
@@ -210,7 +201,6 @@ const LONG_TOUR_STEPS: Step[] = [
     content: "Sur cette page, je vais ouvrir le formulaire de séance pour vous.",
     data: { image: "/images/TT4.png" },
     placement: "bottom",
-    disableBeacon: true,
     before: async () => {
       await navigateToFirstResource();
     },
@@ -222,7 +212,6 @@ const LONG_TOUR_STEPS: Step[] = [
     data: { image: "/images/TT4.png" },
     placement: "left",
     targetWaitTimeout: 15000,
-    disableBeacon: true,
     before: async () => {
       await openSessionDialog();
     },
@@ -233,7 +222,6 @@ const LONG_TOUR_STEPS: Step[] = [
     content: "Quand tout est prêt, validez pour créer la séance.",
     data: { image: "/images/TT4.png" },
     placement: "top",
-    disableBeacon: true,
     before: async () => {
       await openSessionDialog();
     },
@@ -244,7 +232,6 @@ const LONG_TOUR_STEPS: Step[] = [
     content: "Vous avez terminé l'apprentissage complet. Vous êtes maintenant un expert de Soko !",
     data: { image: "/images/TT1.png" },
     placement: "center",
-    disableBeacon: true,
   },
 ];
 
