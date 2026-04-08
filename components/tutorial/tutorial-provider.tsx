@@ -7,11 +7,19 @@ import { Zap, BookOpen, type LucideIcon } from "lucide-react";
 
 // ─── Helpers : Navigation et Attente ──────────────────────────────────────────
 
+function getVisibleElement(selector: string): HTMLElement | null {
+  const elements = document.querySelectorAll(selector);
+  return Array.from(elements).find((el) => {
+    const style = window.getComputedStyle(el);
+    return style.display !== 'none' && style.visibility !== 'hidden' && (el as HTMLElement).offsetWidth > 0;
+  }) as HTMLElement | null;
+}
+
 function waitForElement(selector: string, timeout = 6000): Promise<boolean> {
-  if (document.querySelector(selector)) return Promise.resolve(true);
+  if (getVisibleElement(selector)) return Promise.resolve(true);
   return new Promise((resolve) => {
     const observer = new MutationObserver(() => {
-      if (document.querySelector(selector)) { observer.disconnect(); resolve(true); }
+      if (getVisibleElement(selector)) { observer.disconnect(); resolve(true); }
     });
     observer.observe(document.body, { childList: true, subtree: true });
     setTimeout(() => { observer.disconnect(); resolve(false); }, timeout);
@@ -19,7 +27,7 @@ function waitForElement(selector: string, timeout = 6000): Promise<boolean> {
 }
 
 function closeDialog(openFieldSelector: string): Promise<void> {
-  if (!document.querySelector(openFieldSelector)) return Promise.resolve();
+  if (!getVisibleElement(openFieldSelector)) return Promise.resolve();
   document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }));
   return new Promise(r => setTimeout(r, 400));
 }
@@ -59,28 +67,48 @@ function CardChoice({ title, desc, icon: Icon, onClick, color }: CardChoiceProps
 }
 
 async function navigateToFirstResource(): Promise<boolean> {
-  await closeDialog("#resource-input-label");
-  if (document.querySelector("#btn-creer-seance")) return true;
-  const firstRow = document.querySelector("#dashboard-resource-table tbody tr.cursor-pointer") as HTMLElement | null;
+  await closeDialog(".resource-input-label");
+  if (getVisibleElement("#btn-creer-seance")) return true;
+  const firstRow = getVisibleElement("#dashboard-resource-table tbody tr.cursor-pointer");
   if (!firstRow) return false;
   firstRow.click();
   return waitForElement("#btn-creer-seance", 7000);
 }
 
 async function openResourceDialog(): Promise<boolean> {
-  if (document.querySelector("#resource-input-label")) return true;
-  const createResourceButton = document.querySelector("#btn-creer-ressource") as HTMLElement | null;
+  if (getVisibleElement(".resource-input-label")) return true;
+  const createResourceButton = getVisibleElement(".btn-creer-ressource");
   if (!createResourceButton) return false;
   createResourceButton.click();
-  return waitForElement("#resource-input-label", 7000);
+  return waitForElement(".resource-input-label", 7000);
 }
 
 async function openSessionDialog(): Promise<boolean> {
-  if (document.querySelector("#session-input-label")) return true;
-  const createSessionButton = document.querySelector("#btn-creer-seance") as HTMLElement | null;
+  if (getVisibleElement("#session-input-label")) return true;
+  const createSessionButton = getVisibleElement("#btn-creer-seance");
   if (!createSessionButton) return false;
   createSessionButton.click();
   return waitForElement("#session-input-label", 7000);
+}
+
+function getDynamicSteps(steps: Step[]): Step[] {
+  const visibleTrigger = getVisibleElement(".btn-creer-ressource");
+  const isDesktop = visibleTrigger?.id?.includes("desktop");
+  const suffix = isDesktop ? "desktop" : "mobile";
+
+  return steps.map(step => {
+    let newTarget = step.target;
+    if (typeof newTarget === "string") {
+      if (newTarget === ".btn-creer-ressource") {
+        newTarget = `#btn-creer-ressource-${suffix}`;
+      } else if (newTarget === ".resource-input-label") {
+        newTarget = `#resource-input-label-${suffix}`;
+      } else if (newTarget === ".resource-submit-btn") {
+        newTarget = `#resource-submit-btn-${suffix}`;
+      }
+    }
+    return { ...step, target: newTarget, disableBeacon: true };
+  });
 }
 
 // ─── Étapes des parcours ──────────────────────────────────────────────────────
@@ -93,6 +121,7 @@ const COMMON_STEPS: Step[] = [
     content: "Ce bouton vous permet de revenir instantanément à votre tableau de bord, peu importe où vous êtes.",
     data: { image: "/images/TT1.png" },
     placement: "bottom",
+    disableBeacon: true,
   },
   {
     target: "#nav-links",
@@ -100,13 +129,15 @@ const COMMON_STEPS: Step[] = [
     content: "Accédez rapidement à vos cours ou au trombinoscope de vos étudiants ici.",
     data: { image: "/images/TT2.png" },
     placement: "bottom",
+    disableBeacon: true,
   },
   {
     target: "#dashboard-resource-table",
     title: "Vos Ressources",
-    content: "C'est ici que sont listés tous vos cours. Chaque ligne correspond à une ressource pédagogique.",
+    content: "C'est ici que sont listés toutes vos ressources. Chaque ligne correspond à une entité pédagogique.",
     data: { image: "/images/TT5.png" },
     placement: "top",
+    disableBeacon: true,
   },
 ];
 
@@ -114,11 +145,12 @@ const COMMON_STEPS: Step[] = [
 const SHORT_TOUR_STEPS: Step[] = [
   ...COMMON_STEPS,
   {
-    target: "#btn-creer-ressource",
+    target: ".btn-creer-ressource",
     title: "Actions rapides",
-    content: "Utilisez ce bouton pour ajouter un nouveau cours. La création est simple et rapide !",
+    content: "Utilisez ce bouton pour ajouter une nouvelle ressource. La création est simple et rapide !",
     data: { image: "/images/TT3.png" },
     placement: "bottom",
+    disableBeacon: true,
   },
   {
     target: "body",
@@ -126,6 +158,7 @@ const SHORT_TOUR_STEPS: Step[] = [
     content: "C'est tout pour le tour d'horizon rapide. Vous pouvez maintenant gérer vos cours en toute liberté.",
     data: { image: "/images/TT1.png" },
     placement: "center",
+    disableBeacon: true,
   },
 ];
 
@@ -133,38 +166,42 @@ const SHORT_TOUR_STEPS: Step[] = [
 const LONG_TOUR_STEPS: Step[] = [
   ...COMMON_STEPS,
   {
-    target: "#btn-creer-ressource",
-    title: "À vous de jouer ! 🎯",
-    content: "Commençons par créer un cours. Je vais ouvrir le formulaire pour vous.",
+    target: ".btn-creer-ressource",
+    title: "À vous de jouer !",
+    content: "Commençons par créer une ressource. Je vais ouvrir le formulaire pour vous.",
     data: { image: "/images/TT3.png" },
     placement: "bottom",
+    disableBeacon: true,
   },
   {
-    target: "#resource-input-label",
-    title: "Nommez votre cours",
+    target: ".resource-input-label",
+    title: "Nommez votre ressource",
     content: "Le formulaire est ouvert : remplissez librement les champs, je vous laisse faire à votre rythme.",
     data: { image: "/images/TT3.png" },
     placement: "bottom",
     targetWaitTimeout: 20000,
+    disableBeacon: true,
     before: async () => {
       await openResourceDialog();
     },
   },
   {
-    target: "#resource-submit-btn",
+    target: ".resource-submit-btn",
     title: "Validation",
-    content: "Quand vous avez terminé, validez pour créer votre cours.",
+    content: "Quand vous avez terminé, validez pour créer votre ressource.",
     data: { image: "/images/TT3.png" },
     placement: "top",
+    disableBeacon: true,
   },
   {
     target: "#dashboard-resource-table",
     title: "Navigation",
-    content: "Pour gérer les séances d'un cours, cliquez sur sa ligne dans le tableau. Je vais le faire pour vous pour gagner du temps !",
+    content: "Pour gérer les séances d'une ressource, cliquez sur sa ligne dans le tableau. Je vais le faire pour vous pour gagner du temps !",
     data: { image: "/images/TT6.png" },
     placement: "top",
+    disableBeacon: true,
     before: async () => {
-      await closeDialog("#resource-input-label");
+      await closeDialog(".resource-input-label");
     },
   },
   {
@@ -173,17 +210,19 @@ const LONG_TOUR_STEPS: Step[] = [
     content: "Sur cette page, je vais ouvrir le formulaire de séance pour vous.",
     data: { image: "/images/TT4.png" },
     placement: "bottom",
+    disableBeacon: true,
     before: async () => {
       await navigateToFirstResource();
     },
   },
   {
-    target: "#session-input-label",
+    target: "[role='dialog']",
     title: "Fenêtre de séance ouverte",
     content: "La fenêtre est maintenant ouverte au complet. Vérifiez vos informations, puis on valide.",
     data: { image: "/images/TT4.png" },
-    placement: "bottom",
+    placement: "left",
     targetWaitTimeout: 15000,
+    disableBeacon: true,
     before: async () => {
       await openSessionDialog();
     },
@@ -194,16 +233,18 @@ const LONG_TOUR_STEPS: Step[] = [
     content: "Quand tout est prêt, validez pour créer la séance.",
     data: { image: "/images/TT4.png" },
     placement: "top",
+    disableBeacon: true,
     before: async () => {
       await openSessionDialog();
     },
   },
   {
     target: "body",
-    title: "🎉 Félicitations !",
+    title: "Félicitations !",
     content: "Vous avez terminé l'apprentissage complet. Vous êtes maintenant un expert de Soko !",
     data: { image: "/images/TT1.png" },
     placement: "center",
+    disableBeacon: true,
   },
 ];
 
@@ -212,6 +253,7 @@ const LONG_TOUR_STEPS: Step[] = [
 interface TutorialContextType {
   startTutorial: () => void;
   nextStep: () => void;
+  stopTutorial: () => void;
 }
 
 const TutorialContext = createContext<TutorialContextType | undefined>(undefined);
@@ -226,13 +268,12 @@ export function useTutorial() {
 
 function CustomTooltip({
   step,
-  closeProps,
   tooltipProps,
   isLastStep,
   index,
   size,
 }: TooltipRenderProps) {
-  const { nextStep } = useTutorial();
+  const { nextStep, stopTutorial } = useTutorial();
   const imageUrl = step.data?.image || "/images/TT1.png";
   const isCentered = step.placement === "center";
 
@@ -246,7 +287,7 @@ function CustomTooltip({
       {step.title && <h3 style={{ fontWeight: 700, fontSize: "16px", color: "#171717", margin: "0 0 8px" }}>{step.title}</h3>}
       <p style={{ fontSize: "13px", color: "#666", lineHeight: 1.6, margin: "0 0 16px" }}>{step.content as string}</p>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px", borderTop: "1px solid #eee", paddingTop: "12px" }}>
-        <button {...closeProps} onClick={(e) => { e.stopPropagation(); closeProps.onClick(e); }} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "12px", color: "#999", padding: "4px 6px" }}>Passer</button>
+        <button onClick={(e) => { e.stopPropagation(); stopTutorial(); }} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "12px", color: "#999", padding: "4px 6px" }}>Passer</button>
         <button
           style={{ background: "#ca9fff", border: "none", cursor: "pointer", fontSize: "14px", fontWeight: 700, color: "#171717", padding: "10px 24px", borderRadius: "999px", boxShadow: "0 4px 8px rgba(202,159,255,0.4)" }}
           onClick={(e) => { e.stopPropagation(); nextStep(); }}
@@ -311,31 +352,37 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
     setStepIndex((prev) => prev + 1);
   };
 
+  const stopTutorial = () => {
+    setRun(false);
+    setStepIndex(0);
+    setShowWelcome(false);
+  };
+
   const handleJoyrideCallback = (data: EventData) => {
     const { status, type } = data;
     if (type === EVENTS.TARGET_NOT_FOUND) {
       setStepIndex((prev) => prev + 1);
     }
     if (([STATUS.FINISHED, STATUS.SKIPPED] as string[]).includes(status)) {
-      setRun(false);
-      setStepIndex(0);
+      stopTutorial();
     }
   };
 
   const handleSelectTour = (type: 'short' | 'long') => {
-    setCurrentSteps(type === 'short' ? SHORT_TOUR_STEPS : LONG_TOUR_STEPS);
+    const baseSteps = type === 'short' ? SHORT_TOUR_STEPS : LONG_TOUR_STEPS;
+    setCurrentSteps(getDynamicSteps(baseSteps));
     setShowWelcome(false);
     setRun(true);
   };
 
   const mounted = useSyncExternalStore(
-    () => () => {},
+    () => () => { },
     () => true,
     () => false,
   );
 
   return (
-    <TutorialContext.Provider value={{ startTutorial, nextStep }}>
+    <TutorialContext.Provider value={{ startTutorial, nextStep, stopTutorial }}>
       {children}
       {mounted && showWelcome && (
         <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -365,7 +412,6 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
                 />
               </div>
 
-              <button onClick={() => setShowWelcome(false)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "13px", color: "#999" }}>Plus tard</button>
             </div>
           </div>
         </div>

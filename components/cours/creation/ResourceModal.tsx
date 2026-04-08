@@ -25,8 +25,12 @@ interface InitialResource {
 
 export default function ResourceModal({
     initResource,
+    triggerId,
+    uniqueId = "default",
 }: Readonly<{
     initResource?: InitialResource;
+    triggerId?: string;
+    uniqueId?: string;
 }>) {
     const { teacher } = useTeacher();
     const router = useRouter();
@@ -70,7 +74,11 @@ export default function ResourceModal({
                 onOpenChange={setIsResourceDialogOpen}
             >
                 <DialogTrigger asChild>
-                    <Button variant="default" id={initResource === undefined ? "btn-creer-ressource" : undefined}>
+                    <Button 
+                        variant="default" 
+                        id={triggerId ?? (initResource === undefined ? "btn-creer-ressource" : undefined)}
+                        className="btn-creer-ressource"
+                    >
                         {
                             initResource === undefined ? "Créer une ressource" : "Modifier la ressource"
                         }
@@ -95,15 +103,16 @@ export default function ResourceModal({
                         }
                         <input type="hidden" name="teacherEmail" value={teacher.userMail} className="hidden" readOnly />
                         <div className="w-full flex flex-col gap-2 mb-2">
-                            <Label htmlFor="label">Nom de la ressource</Label>
+                            <Label htmlFor={`resource-input-label-${uniqueId}`}>Nom de la ressource</Label>
                             <Input
-                                id="resource-input-label"
+                                id={`resource-input-label-${uniqueId}`}
                                 name="label"
                                 type="text"
                                 placeholder="Nom de la ressource"
                                 value={label}
                                 onChange={(e) => setLabel(e.target.value.slice(0, 50))}
                                 maxLength={50}
+                                className="resource-input-label"
                             />
                         </div>
 
@@ -115,7 +124,13 @@ export default function ResourceModal({
                                     </p>
                                 )
                             }
-                            <Button type="submit" id="resource-submit-btn" variant="big" className="w-full" disabled={pending || !isFormValid}>
+                            <Button 
+                                type="submit" 
+                                id={`resource-submit-btn-${uniqueId}`} 
+                                variant="big" 
+                                className="w-full resource-submit-btn" 
+                                disabled={pending || !isFormValid}
+                            >
                                 {
                                     initResource === undefined ? "Créer la ressource" : "Modifier la ressource"
                                 }

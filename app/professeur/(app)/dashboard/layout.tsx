@@ -14,8 +14,7 @@ export default function DashboardLayout({
                     <h1 className="h1 min-w-0 text-2xl text-center sm:text-4xl sm:text-left">Dashboard</h1>
 
                     <div className="sm:hidden flex gap-2">
-                        <TutorialTrigger />
-                        <ResourceModal />
+                        <ResourceModal triggerId="btn-creer-ressource-mobile" uniqueId="mobile" />
                     </div>
                 </div>
 
@@ -24,9 +23,9 @@ export default function DashboardLayout({
                 </div>
 
                 <div className="hidden sm:flex sm:min-w-max gap-2 items-center">
-                    <TutorialTrigger />
-                    <ResourceModal />
+                    <ResourceModal triggerId="btn-creer-ressource-desktop" uniqueId="desktop" />
                 </div>
+                <TutorialTrigger />
             </div>
             {children}
         </BreadcrumbProvider>
