@@ -2,6 +2,7 @@
 
 import ResourceModal from '@/components/cours/creation/ResourceModal';
 import SessionModal from '@/components/cours/creation/SessionModal';
+import AnnotationModal, { type AnnotationData } from '@/components/etudiant/AnnotationModal';
 import {
     AlertDialog,
     AlertDialogCancel,
@@ -70,6 +71,10 @@ interface DialogContextType {
     // Supprimer une session (null = fermé)
     deleteSessionData: DeleteSessionData | null;
     setDeleteSessionData: (data: DeleteSessionData | null) => void;
+
+    // Créer/modifier une annotation (null = fermé)
+    annotationData: AnnotationData | null;
+    setAnnotationData: (data: AnnotationData | null) => void;
 }
 
 const DialogContext = createContext<DialogContextType | null>(null);
@@ -91,6 +96,7 @@ export function DialogProvider({ children }: Readonly<{ children: ReactNode }>) 
     const [editSessionData, setEditSessionData] = useState<EditSessionData | null>(null);
     const [deleteResourceData, setDeleteResourceData] = useState<DeleteResourceData | null>(null);
     const [deleteSessionData, setDeleteSessionData] = useState<DeleteSessionData | null>(null);
+    const [annotationData, setAnnotationData] = useState<AnnotationData | null>(null);
 
     const [deleteResourceState, deleteResourceAction] = useActionState<ActionResult, FormData>(
         async (prevState, formData) => await deleteResource(prevState, formData),
@@ -130,6 +136,8 @@ export function DialogProvider({ children }: Readonly<{ children: ReactNode }>) 
             setDeleteResourceData,
             deleteSessionData,
             setDeleteSessionData,
+            annotationData,
+            setAnnotationData,
         }}>
             {children}
 
@@ -217,6 +225,12 @@ export function DialogProvider({ children }: Readonly<{ children: ReactNode }>) 
                     </form>
                 </AlertDialogContent>
             </AlertDialog>
+            {/* Créer/modifier une annotation */}
+            <AnnotationModal
+                data={annotationData}
+                open={annotationData !== null}
+                onOpenChange={(open) => { if (!open) setAnnotationData(null); }}
+            />
         </DialogContext.Provider>
     );
 }

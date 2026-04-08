@@ -11,3 +11,17 @@ export const table = lib.pgTable('annotation', {
     content: lib.text("content").notNull(),
     ...lib.baseAttributes
 });
+
+export const relations = lib.relations(table, ({ one }) => ({
+    teacher: one(TeacherTable.table, {
+        fields: [table.teacherEmail],
+        references: [TeacherTable.table.userMail],
+    }),
+    student: one(StudentTable.table, {
+        fields: [table.studentEmail],
+        references: [StudentTable.table.userMail],
+    }),
+}));
+
+export type Select = typeof table.$inferSelect;
+export type Insert = typeof table.$inferInsert;
