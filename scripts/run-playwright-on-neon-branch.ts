@@ -35,6 +35,10 @@ function parseScriptOptions(): ScriptOptions {
     for (let argIndex = 0; argIndex < rawArgs.length; argIndex += 1) {
         const currentArg = rawArgs[argIndex];
 
+        if (currentArg === "--") {
+            continue;
+        }
+
         if (currentArg === "--project-id") {
             const nextArg = rawArgs[argIndex + 1];
             if (!nextArg) {
@@ -234,7 +238,18 @@ function createTemporaryBranch(neonProjectId: string, parentBranchId: string, pa
 }
 
 function runPlaywrightWithDedicatedDatabase(postgresUrl: string, playwrightArgs: string[]): number {
-    const commandResult = spawnSync("pnpm", ["test:playwright:raw", ...playwrightArgs], {
+    const isUiMode = playwrightArgs.includes("--ui");
+    const scriptName = isUiMode ? "test:playwright:ui:raw" : "test:playwright:raw";
+    const forwardedPlaywrightArgs = isUiMode
+        ? playwrightArgs.filter((currentArg) => currentArg !== "--ui")
+        : playwrightArgs;
+    const pnpmArgs = ["run", scriptName];
+
+    if (forwardedPlaywrightArgs.length > 0) {
+        pnpmArgs.push("--", ...forwardedPlaywrightArgs);
+    }
+
+    const commandResult = spawnSync("pnpm", pnpmArgs, {
         stdio: "inherit",
         env: {
             ...process.env,

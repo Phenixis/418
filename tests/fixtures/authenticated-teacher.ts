@@ -5,6 +5,11 @@ import {
     ensureTeacherAccountByEmail,
     getTestAccountPassword,
 } from '../helpers/test-account';
+import { db } from '@/lib/db/drizzle';
+import { table as resourceTable } from '@/lib/db/schema/resource';
+import { table as resourceTeacherTable } from '@/lib/db/schema/resource-teacher';
+import { table as sessionTable } from '@/lib/db/schema/session';
+import { eq } from 'drizzle-orm';
 
 const SESSION_COOKIE_NAME = 'teacher_session';
 const ONE_DAY_IN_MILLISECONDS = 24 * 60 * 60 * 1000;
@@ -78,6 +83,52 @@ async function setAuthenticatedTeacherCookie(page: Page, teacherEmail: string, b
     ]);
 }
 
+async function createTeacherTestResources(teacherEmail: string): Promise<string> {
+    const timestamp = Date.now();
+    const resourceId = `e2e-res-${timestamp.toString(36)}`;
+    const ONE_HOUR = 3_600_000;
+
+    await db.insert(resourceTable).values({
+        resourceId,
+        subject: 'Ressource Test E2E',
+    });
+
+    await db.insert(resourceTeacherTable).values({
+        resourceId,
+        teacherMail: teacherEmail,
+    });
+
+    await db.insert(sessionTable).values([
+        {
+            sessionId: `${resourceId}-past`,
+            resourceId,
+            subject: 'Séance passée E2E',
+            startAt: new Date(timestamp - 3 * ONE_HOUR),
+            endAt: new Date(timestamp - 2 * ONE_HOUR),
+        },
+        {
+            sessionId: `${resourceId}-now`,
+            resourceId,
+            subject: 'Séance en cours E2E',
+            startAt: new Date(timestamp - ONE_HOUR),
+            endAt: new Date(timestamp + ONE_HOUR),
+        },
+        {
+            sessionId: `${resourceId}-fut`,
+            resourceId,
+            subject: 'Séance future E2E',
+            startAt: new Date(timestamp + 2 * ONE_HOUR),
+            endAt: new Date(timestamp + 3 * ONE_HOUR),
+        },
+    ]);
+
+    return resourceId;
+}
+
+async function deleteTeacherTestResources(resourceId: string): Promise<void> {
+    await db.delete(resourceTable).where(eq(resourceTable.resourceId, resourceId));
+}
+
 export const test = base.extend<AuthenticatedTeacherFixtures>({
     testTeacherEmail: async ({}, use, testInfo) => {
         const testTeacherEmail = buildTestTeacherEmail(testInfo);
@@ -89,9 +140,13 @@ export const test = base.extend<AuthenticatedTeacherFixtures>({
         await ensureTeacherAccountByEmail(testTeacherEmail, getTestAccountPassword());
         await setAuthenticatedTeacherCookie(page, testTeacherEmail, baseURL);
 
+        const testResourceId = await createTeacherTestResources(testTeacherEmail);
+
         try {
             await use(page);
         } finally {
+            await deleteTeacherTestResources(testResourceId);
+
             if (shouldCleanupTeacherAccount) {
                 await deleteTeacherAccountByEmail(testTeacherEmail);
             }
