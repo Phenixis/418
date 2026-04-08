@@ -3,131 +3,111 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { Joyride, EventData, STATUS, Step, TooltipRenderProps, ACTIONS, EVENTS } from "react-joyride";
 import Image from "next/image";
-import { X } from "lucide-react";
+import { X, Layout, PenTool, Zap, BookOpen } from "lucide-react";
 
-// ─── Helpers : simulation des actions utilisateur ─────────────────────────────
+// ─── Helpers : Navigation et Attente ──────────────────────────────────────────
 
 function waitForElement(selector: string, timeout = 6000): Promise<boolean> {
   if (document.querySelector(selector)) return Promise.resolve(true);
   return new Promise((resolve) => {
     const observer = new MutationObserver(() => {
-      if (document.querySelector(selector)) {
-        observer.disconnect();
-        resolve(true);
-      }
+      if (document.querySelector(selector)) { observer.disconnect(); resolve(true); }
     });
     observer.observe(document.body, { childList: true, subtree: true });
     setTimeout(() => { observer.disconnect(); resolve(false); }, timeout);
   });
 }
 
-async function typeInReactInput(selector: string, text: string): Promise<void> {
-  const input = document.querySelector(selector) as HTMLInputElement | null;
-  if (!input) return;
-
-  const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-    window.HTMLInputElement.prototype,
-    "value"
-  )?.set;
-
-  if (!nativeInputValueSetter) return;
-
-  input.focus();
-  let currentText = "";
-  for (const char of text) {
-    currentText += char;
-    nativeInputValueSetter.call(input, currentText);
-    input.dispatchEvent(new Event("input", { bubbles: true }));
-    await new Promise(r => setTimeout(r, 50));
-  }
-}
-
-function clickEl(selector: string): boolean {
-  const el = document.querySelector(selector) as HTMLElement | null;
-  if (el) { el.click(); return true; }
-  return false;
-}
-
-async function openDialog(triggerSelector: string, dialogFieldSelector: string): Promise<void> {
-  if (document.querySelector(dialogFieldSelector)) return; 
-  clickEl(triggerSelector);
-  await waitForElement(dialogFieldSelector, 4000);
-  await new Promise(r => setTimeout(r, 400));
-}
-
-async function closeDialog(openFieldSelector: string): Promise<void> {
-  if (!document.querySelector(openFieldSelector)) return;
+function closeDialog(openFieldSelector: string): Promise<void> {
+  if (!document.querySelector(openFieldSelector)) return Promise.resolve();
   document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }));
-  await new Promise(r => setTimeout(r, 400));
+  return new Promise(r => setTimeout(r, 400));
 }
 
 async function navigateToFirstResource(): Promise<boolean> {
   await closeDialog("#resource-input-label");
   if (document.querySelector("#btn-creer-seance")) return true;
-
-  const firstRow = document.querySelector(
-    "#dashboard-resource-table tbody tr.cursor-pointer"
-  ) as HTMLElement | null;
-
+  const firstRow = document.querySelector("#dashboard-resource-table tbody tr.cursor-pointer") as HTMLElement | null;
   if (!firstRow) return false;
   firstRow.click();
   return waitForElement("#btn-creer-seance", 7000);
 }
 
-// ─── Étapes du tutoriel ────────────────────────────────────────────────────────
+// ─── Étapes des parcours ──────────────────────────────────────────────────────
 
-const TUTORIAL_STEPS: Step[] = [
-  {
-    target: "body",
-    title: "On s'occupe de tout ! 👋",
-    content: "Je vais simuler les clics et la saisie pour vous montrer exactement comment utiliser l'application. Regardez bien !",
-    data: { image: "/images/TT1.png" },
-    placement: "center",
-  },
+// BASE : Étapes communes (Navigation et Dashboard)
+const COMMON_STEPS: Step[] = [
   {
     target: "#nav-logo",
-    title: "Le logo",
-    content: "Pour revenir à l'accueil à tout moment.",
+    title: "Le logo Soko",
+    content: "Ce bouton vous permet de revenir instantanément à votre tableau de bord, peu importe où vous êtes.",
     data: { image: "/images/TT1.png" },
+    placement: "bottom",
+  },
+  {
+    target: "#nav-links",
+    title: "La navigation",
+    content: "Accédez rapidement à vos cours ou au trombinoscope de vos étudiants ici.",
+    data: { image: "/images/TT2.png" },
     placement: "bottom",
   },
   {
     target: "#dashboard-resource-table",
     title: "Vos Ressources",
-    content: "Voici les cours dont vous êtes responsable.",
+    content: "C'est ici que sont listés tous vos cours. Chaque ligne correspond à une ressource pédagogique.",
     data: { image: "/images/TT5.png" },
     placement: "top",
   },
+];
+
+// 1. PARCOURS COURT : Survol rapide
+const SHORT_TOUR_STEPS: Step[] = [
+  ...COMMON_STEPS,
   {
     target: "#btn-creer-ressource",
-    title: "Simulation : Création",
-    content: "Je vais cliquer sur Créer pour vous et remplir le formulaire !",
+    title: "Actions rapides",
+    content: "Utilisez ce bouton pour ajouter un nouveau cours. La création est simple et rapide !",
+    data: { image: "/images/TT3.png" },
+    placement: "bottom",
+  },
+  {
+    target: "body",
+    title: "🎉 Prêt à explorer !",
+    content: "C'est tout pour le tour d'horizon rapide. Vous pouvez maintenant gérer vos cours en toute liberté.",
+    data: { image: "/images/TT1.png" },
+    placement: "center",
+  },
+];
+
+// 2. PARCOURS LONG : Guide pratique pas-à-pas (Manuel)
+const LONG_TOUR_STEPS: Step[] = [
+  ...COMMON_STEPS,
+  {
+    target: "#btn-creer-ressource",
+    title: "À vous de jouer ! 🎯",
+    content: "Commençons par créer un cours. Cliquez sur ce bouton pour ouvrir le formulaire.",
     data: { image: "/images/TT3.png" },
     placement: "bottom",
   },
   {
     target: "#resource-input-label",
-    title: "Saisie automatique",
-    content: "Regardez, je saisis le nom de la ressource...",
+    title: "Nommez votre cours",
+    content: "Saisissez ici le nom de votre ressource. Ne vous inquiétez pas, je vous attends !",
     data: { image: "/images/TT3.png" },
     placement: "bottom",
-    before: async () => {
-      await openDialog("#btn-creer-ressource", "#resource-input-label");
-      await new Promise(r => setTimeout(r, 300));
-      await typeInReactInput("#resource-input-label", "TEST_tutoro");
-    },
+    targetWaitTimeout: 20000,
   },
   {
     target: "#resource-submit-btn",
     title: "Validation",
-    content: "Appuyez sur Suivant et je validerai le formulaire pour vous !",
-    data: { image: "/images/TT3.png", isSubmitStep: true },
+    content: "Une fois le nom saisi, cliquez sur Créer. Vous verrez votre cours apparaître dans le tableau.",
+    data: { image: "/images/TT3.png" },
     placement: "top",
   },
   {
     target: "#dashboard-resource-table",
-    title: "Navigation automatique",
-    content: "Maintenant, je vais entrer dans une ressource pour gérer les séances.",
+    title: "Navigation",
+    content: "Pour gérer les séances d'un cours, cliquez sur sa ligne dans le tableau. Je vais le faire pour vous pour gagner du temps !",
     data: { image: "/images/TT6.png" },
     placement: "top",
     before: async () => {
@@ -136,8 +116,8 @@ const TUTORIAL_STEPS: Step[] = [
   },
   {
     target: "#btn-creer-seance",
-    title: "Gestion des séances",
-    content: "Nous sommes sur la page ressource. Je vais ouvrir la création de séance.",
+    title: "Créer une séance",
+    content: "Sur cette page, vous gérez les séances du cours. Cliquez ici pour en créer une nouvelle.",
     data: { image: "/images/TT4.png" },
     placement: "bottom",
     before: async () => {
@@ -146,32 +126,25 @@ const TUTORIAL_STEPS: Step[] = [
   },
   {
     target: "#session-input-label",
-    title: "Simulation : Séance",
-    content: "Je remplis les détails de la séance...",
+    title: "Détails de la séance",
+    content: "Remplissez le nom de la séance, choisissez la date, la durée et les groupes d'étudiants concernés.",
     data: { image: "/images/TT4.png" },
     placement: "bottom",
-    before: async () => {
-      await openDialog("#btn-creer-seance", "#session-input-label");
-      await new Promise(r => setTimeout(r, 300));
-      await typeInReactInput("#session-input-label", "Introduction aux tableaux");
-    },
+    targetWaitTimeout: 15000,
   },
   {
     target: "#session-submit-btn",
-    title: "Dernière étape",
-    content: "Il suffit de choisir les groupes et de valider. Cliquez sur Suivant pour finir la démonstration !",
-    data: { image: "/images/TT4.png", isSubmitStep: true },
+    title: "C'est fini !",
+    content: "Validez le formulaire, et voilà ! Votre séance est prête. Les étudiants pourront bientôt scanner leur présence.",
+    data: { image: "/images/TT4.png" },
     placement: "top",
   },
   {
     target: "body",
-    title: "🎉 Démo terminée !",
-    content: "Vous savez tout ! Vous pouvez maintenant gérer vos ressources en toute autonomie.",
+    title: "🎉 Félicitations !",
+    content: "Vous avez terminé l'apprentissage complet. Vous êtes maintenant un expert de Soko !",
     data: { image: "/images/TT1.png" },
     placement: "center",
-    before: async () => {
-      await closeDialog("#session-input-label");
-    }
   },
 ];
 
@@ -205,18 +178,6 @@ function CustomTooltip({
   const imageUrl = step.data?.image || "/images/TT1.png";
   const isCentered = step.placement === "center";
 
-  const handleNext = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (step.data?.isSubmitStep) {
-        const submitBtn = document.querySelector(step.target as string) as HTMLElement;
-        if (submitBtn) {
-            submitBtn.click();
-            await new Promise(r => setTimeout(r, 200));
-        }
-    }
-    nextStep();
-  };
-
   const contentUI = (
     <div style={{ position: "relative", zIndex: 1 }}>
         <div style={{ display: "flex", gap: "5px", marginBottom: "12px" }}>
@@ -230,7 +191,7 @@ function CustomTooltip({
         <button {...closeProps} onClick={(e) => { e.stopPropagation(); closeProps.onClick(e); }} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "12px", color: "#999", padding: "4px 6px" }}>Passer</button>
         <button 
             style={{ background: "#ca9fff", border: "none", cursor: "pointer", fontSize: "14px", fontWeight: 700, color: "#171717", padding: "10px 24px", borderRadius: "999px", boxShadow: "0 4px 8px rgba(202,159,255,0.4)" }}
-            onClick={handleNext}
+            onClick={(e) => { e.stopPropagation(); nextStep(); }}
         >
             {isLastStep ? "Compris ! ✨" : "Suivant →"}
         </button>
@@ -240,32 +201,22 @@ function CustomTooltip({
 
   return (
     <div {...tooltipProps} style={{ 
-        display: "flex", 
-        flexDirection: isCentered ? "column" : "row",
-        alignItems: isCentered ? "center" : "flex-end", 
-        gap: "12px", 
-        maxWidth: isCentered ? "360px" : "420px", 
-        width: "90vw" 
+        display: "flex", flexDirection: isCentered ? "column" : "row",
+        alignItems: isCentered ? "center" : "flex-end", gap: "12px", 
+        maxWidth: isCentered ? "360px" : "420px", width: "90vw" 
     }}>
       <div style={{ 
-          position: "relative", 
-          width: isCentered ? "130px" : "110px", 
-          height: isCentered ? "130px" : "110px", 
-          flexShrink: 0, 
-          filter: "drop-shadow(0 8px 16px rgba(0,0,0,0.4))", 
-          zIndex: 2,
+          position: "relative", width: isCentered ? "130px" : "110px", height: isCentered ? "130px" : "110px", 
+          flexShrink: 0, filter: "drop-shadow(0 8px 16px rgba(0,0,0,0.4))", zIndex: 2,
           marginBottom: isCentered ? "-24px" : "0"
       }}>
         <Image src={imageUrl} alt="Totoro Guide" fill style={{ objectFit: "contain" }} />
       </div>
       <div style={{ 
-          position: "relative", 
-          flex: 1, 
-          background: "#ffffff", 
+          position: "relative", flex: 1, background: "#ffffff", 
           borderRadius: isCentered ? "20px" : "20px 20px 20px 4px", 
           padding: isCentered ? "32px 28px 24px" : "20px 22px", 
-          boxShadow: "0 8px 32px rgba(0,0,0,0.25)", 
-          border: "2px solid #e8e4de",
+          boxShadow: "0 8px 32px rgba(0,0,0,0.25)", border: "2px solid #e8e4de",
           textAlign: isCentered ? "center" : "left"
       }}>
         <div style={{ 
@@ -273,9 +224,7 @@ function CustomTooltip({
             [isCentered ? "top" : "left"]: "-9px", 
             [isCentered ? "left" : "bottom"]: isCentered ? "50%" : "22px",
             transform: isCentered ? "translateX(-50%) rotate(45deg)" : "rotate(45deg)", 
-            width: "16px", 
-            height: "16px", 
-            background: "#ffffff", 
+            width: "16px", height: "16px", background: "#ffffff", 
             borderLeft: "2px solid #e8e4de", 
             borderTop: isCentered ? "2px solid #e8e4de" : "none",
             borderBottom: isCentered ? "none" : "2px solid #e8e4de",
@@ -293,6 +242,7 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
   const [showWelcome, setShowWelcome] = useState(false);
   const [run, setRun] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
+  const [currentSteps, setCurrentSteps] = useState<Step[]>(SHORT_TOUR_STEPS);
 
   const startTutorial = () => {
     setStepIndex(0);
@@ -304,62 +254,101 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
   };
 
   const handleJoyrideCallback = (data: EventData) => {
-    const { status, type, action } = data;
-    
-    // CAS CRITIQUE : Si la cible disparaît car la fenêtre s'est fermée via l'interface
+    const { status, type } = data;
     if (type === EVENTS.TARGET_NOT_FOUND) {
         setStepIndex((prev) => prev + 1);
     }
-
     if (([STATUS.FINISHED, STATUS.SKIPPED] as string[]).includes(status)) {
       setRun(false);
       setStepIndex(0);
     }
-
-    if (type === EVENTS.STEP_AFTER || type === EVENTS.TARGET_NOT_FOUND) {
-        if (action === ACTIONS.NEXT) {
-            // Dans le mode contrôlé, react-joyride s'appuie sur stepIndex
-        }
-    }
   };
 
-  const handleStart = () => { setShowWelcome(false); setRun(true); };
-  const handleSkip  = () => setShowWelcome(false);
+  const handleSelectTour = (type: 'short' | 'long') => {
+    setCurrentSteps(type === 'short' ? SHORT_TOUR_STEPS : LONG_TOUR_STEPS);
+    setShowWelcome(false);
+    setRun(true);
+  };
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
+
+  const CardChoice = ({ title, desc, icon: Icon, onClick, color }: any) => (
+    <button 
+      onClick={onClick}
+      style={{
+        flex: 1, padding: "20px", borderRadius: "16px", border: "2px solid #e8e4de",
+        background: "#ffffff", textAlign: "left", cursor: "pointer", transition: "all 0.2s ease",
+        display: "flex", flexDirection: "column", gap: "10px", position: "relative", overflow: "hidden"
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.borderColor = color; e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,0,0,0.1)"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#e8e4de"; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}
+    >
+        <div style={{ background: color + "20", width: "40px", height: "40px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", color: color }}>
+            <Icon size={24} />
+        </div>
+        <div>
+            <h3 style={{ fontWeight: 800, fontSize: "16px", margin: "0 0 4px", color: "#171717" }}>{title}</h3>
+            <p style={{ fontSize: "12px", color: "#666", lineHeight: 1.5, margin: 0 }}>{desc}</p>
+        </div>
+        <div style={{ position: "absolute", right: "-10px", bottom: "-10px", opacity: 0.1, color: color }}>
+            <Icon size={64} />
+        </div>
+    </button>
+  );
 
   return (
     <TutorialContext.Provider value={{ startTutorial, nextStep }}>
       {children}
       {mounted && showWelcome && (
         <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <div onClick={handleSkip} style={{ position: "absolute", inset: 0, background: "rgba(23, 23, 23, 0.82)", backdropFilter: "blur(6px)" }} />
-            <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", maxWidth: "380px", width: "90vw" }}>
+            <div onClick={() => setShowWelcome(false)} style={{ position: "absolute", inset: 0, background: "rgba(23, 23, 23, 0.82)", backdropFilter: "blur(6px)" }} />
+            <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", maxWidth: "460px", width: "94vw" }}>
                 <Image src="/images/TT3.png" alt="Totoro" width={160} height={160} style={{ filter: "drop-shadow(0 12px 24px rgba(0,0,0,0.5))", zIndex: 2, marginBottom: "-28px" }} />
-                <div style={{ background: "#ffffff", borderRadius: "24px", padding: "42px 32px 30px", border: "2px solid #e8e4de", textAlign: "center", width: "100%" }}>
-                    <h2 style={{ fontWeight: 800, fontSize: "22px", margin: "0 0 10px" }}>Démo Interactive ! 👋</h2>
+                <div style={{ background: "#ffffff", borderRadius: "24px", padding: "42px 24px 24px", border: "2px solid #e8e4de", textAlign: "center", width: "100%", boxShadow: "0 24px 64px rgba(0,0,0,0.4)" }}>
+                    <h2 style={{ fontWeight: 800, fontSize: "24px", margin: "0 0 8px", color: "#171717" }}>Bienvenue sur Soko !</h2>
                     <p style={{ fontSize: "14px", color: "#666", lineHeight: 1.6, margin: "0 0 24px" }}>
-                        Laissez-moi vous montrer le fonctionnement de **Soko** en simulant les actions réelles d&apos;un professeur.
+                        Quel type de visite souhaitez-vous effectuer aujourd'hui ?
                     </p>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px" }}>
-                        <button onClick={handleSkip} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "13px", color: "#999" }}>Plus tard</button>
-                        <button onClick={handleStart} style={{ background: "#ca9fff", border: "none", cursor: "pointer", fontSize: "15px", fontWeight: 700, color: "#171717", padding: "11px 28px", borderRadius: "999px", boxShadow: "0 4px 16px rgba(202,159,255,0.5)" }}>Lancer la démo ✨</button>
+                    
+                    <div style={{ display: "flex", gap: "16px", marginBottom: "20px" }}>
+                        <CardChoice 
+                            title="Découverte" 
+                            desc="Tour rapide des fonctionnalités clés (1 min)." 
+                            icon={Zap} 
+                            color="#3b82f6" 
+                            onClick={() => handleSelectTour('short')}
+                        />
+                        <CardChoice 
+                            title="Pratique" 
+                            desc="Créez vos premiers contenus pas-à-pas (5 min)." 
+                            icon={BookOpen} 
+                            color="#ca9fff" 
+                            onClick={() => handleSelectTour('long')}
+                        />
                     </div>
+
+                    <button onClick={() => setShowWelcome(false)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "13px", color: "#999" }}>Plus tard</button>
                 </div>
             </div>
         </div>
       )}
       {mounted && (
         <Joyride
-          steps={TUTORIAL_STEPS}
+          steps={currentSteps}
           run={run}
           stepIndex={stepIndex}
           continuous={true}
           scrollToFirstStep={true}
+          overlayClickAction={false}
+          dismissKeyAction={false}
+          blockTargetInteraction={false}
           onEvent={handleJoyrideCallback}
           tooltipComponent={CustomTooltip}
-          styles={{ overlay: { backgroundColor: "rgba(23, 23, 23, 0.82)" } }}
+          styles={{ 
+            overlay: { backgroundColor: "rgba(23, 23, 23, 0.82)" },
+            spotlight: { borderRadius: 12 }
+          }}
           options={{ zIndex: 10000 }}
         />
       )}
