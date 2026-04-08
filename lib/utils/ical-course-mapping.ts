@@ -46,6 +46,37 @@ const KNOWN_COURSES = [
     "Présentation de l'alternance",
 ].sort((firstCourse, secondCourse) => secondCourse.length - firstCourse.length);
 
+export interface ParsedGroup {
+    promo: string;
+    td: string;
+    tp: string;
+}
+
+/**
+ * Parse un code groupe ADE (ex: "2D2", "2A") en une liste de groupes DB.
+ * Si le TP est absent, on retourne les deux groupes TP1 et TP2 (cours en TD complet).
+ */
+export function parseGroupCode(code: string): ParsedGroup[] {
+    const match = code.match(/^(\d)([A-Za-z])(\d)?$/);
+
+    if (!match) {
+        return [];
+    }
+
+    const promo = match[1];
+    const td = match[2].toUpperCase();
+    const tp = match[3];
+
+    if (tp) {
+        return [{ promo, td, tp }];
+    }
+
+    return [
+        { promo, td, tp: '1' },
+        { promo, td, tp: '2' },
+    ];
+}
+
 export interface CourseMappingResult {
     courseName: string;
     sessionName: string;

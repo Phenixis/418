@@ -1,3 +1,4 @@
+import { sessionGroupQueries } from './session-group';
 import { sessionTeacherQueries } from './session-teacher';
 import * as lib from './lib';
 import { QueryModel, QueryResult } from './model';
@@ -130,16 +131,35 @@ class SessionQueries extends QueryModel<NewSession, Session> {
         startAt: Date;
         endAt: Date;
         teacherMail: string;
+        groupIds: number[];
     }): Promise<QueryResult<Session>> {
         const existing = await this.findByAdeUid(data.adeUid);
 
         if ('entity' in existing) {
-            return this.update(existing.entity.sessionId, {
+            const sessionId = existing.entity.sessionId;
+
+            const updateResult = await this.update(sessionId, {
                 resourceId: data.resourceId,
                 subject: data.subject,
                 startAt: data.startAt,
                 endAt: data.endAt,
             });
+
+            if ('error' in updateResult) {
+                return updateResult;
+            }
+
+            if (data.groupIds.length > 0) {
+                await sessionGroupQueries.deleteBySessionId(sessionId);
+
+                await Promise.all(
+                    data.groupIds.map((groupId) =>
+                        sessionGroupQueries.create({ sessionId, groupId })
+                    )
+                );
+            }
+
+            return updateResult;
         }
 
         const sessionId = crypto.randomUUID();
@@ -158,14 +178,13 @@ class SessionQueries extends QueryModel<NewSession, Session> {
             return createResult;
         }
 
-        const linkResult = await sessionTeacherQueries.create({
-            sessionId,
-            teacherMail: data.teacherMail,
-        });
+        await sessionTeacherQueries.create({ sessionId, teacherMail: data.teacherMail });
 
-        if ('error' in linkResult) {
-            return { error: 'Séance créée, mais liaison enseignant échouée.' };
-        }
+        await Promise.all(
+            data.groupIds.map((groupId) =>
+                sessionGroupQueries.create({ sessionId, groupId })
+            )
+        );
 
         return createResult;
     }

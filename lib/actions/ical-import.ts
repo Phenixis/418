@@ -1,10 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { groupQueries } from "@/lib/db/queries/group";
 import { resourceQueries } from "@/lib/db/queries/resource";
 import { sessionQueries } from "@/lib/db/queries/session";
 import { teacherQueries } from "@/lib/db/queries/teacher";
-import { mapSummaryToCourse } from "@/lib/utils/ical-course-mapping";
+import { mapSummaryToCourse, parseGroupCode } from "@/lib/utils/ical-course-mapping";
 import { fetchAndParseIcalFeed } from "@/lib/utils/ical-parser";
 import { ActionResult } from "./types";
 
@@ -52,6 +53,24 @@ async function runIcalImport(
             resourceCount++;
         }
 
+        const groupIds: number[] = [];
+
+        if (event.groupCode) {
+            const parsedGroups = parseGroupCode(event.groupCode);
+
+            for (const parsedGroup of parsedGroups) {
+                const groupResult = await groupQueries.getByPromoTdTp(
+                    parsedGroup.promo,
+                    parsedGroup.td,
+                    parsedGroup.tp
+                );
+
+                if ('entity' in groupResult) {
+                    groupIds.push(groupResult.entity.groupId);
+                }
+            }
+        }
+
         const sessionResult = await sessionQueries.upsertAde({
             adeUid: event.uid,
             resourceId,
@@ -59,6 +78,7 @@ async function runIcalImport(
             startAt: event.startAt,
             endAt: event.endAt,
             teacherMail,
+            groupIds,
         });
 
         if ("error" in sessionResult) {

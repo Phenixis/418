@@ -5,6 +5,39 @@ export interface ParsedIcalEvent {
     summary: string;
     startAt: Date;
     endAt: Date;
+    groupCode: string | null;
+}
+
+function extractGroupCodeFromDescription(description: unknown): string | null {
+    if (typeof description !== 'string') {
+        return null;
+    }
+
+    const firstLine = description
+        .split('\n')
+        .map((line) => line.trim())
+        .find((line) => line.length > 0);
+
+    if (!firstLine) {
+        return null;
+    }
+
+    // Le code groupe est de la forme "2D2 I", "2A I", etc.
+    // On extrait la partie avant l'espace (ex: "2D2", "2A")
+    const code = firstLine.split(' ')[0] ?? null;
+
+    // Vérifie que c'est bien un code groupe valide (chiffre + lettre + chiffre optionnel)
+    if (code && /^\d[A-Za-z]\d?$/.test(code)) {
+        return code;
+    }
+
+    return null;
+}
+
+function extractGroupCodeFromSummary(summary: string): string | null {
+    // Le groupe apparaît avant " I" en fin de summary, ex: "TP 2C2 I", "TD 2A I"
+    const match = summary.match(/(\d[A-Za-z]\d?)\s+I\s*$/);
+    return match ? match[1] : null;
 }
 
 export async function fetchAndParseIcalFeed(url: string): Promise<ParsedIcalEvent[]> {
@@ -37,11 +70,16 @@ export async function fetchAndParseIcalFeed(url: string): Promise<ParsedIcalEven
             continue;
         }
 
+        const groupCode =
+            extractGroupCodeFromDescription(event.description) ??
+            extractGroupCodeFromSummary(String(summary));
+
         events.push({
             uid: String(uid),
             summary: String(summary).trim().slice(0, 50),
             startAt: new Date(startAt),
             endAt: new Date(endAt),
+            groupCode,
         });
     }
 
