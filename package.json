@@ -10,6 +10,8 @@
     "db:migrate": "npx tsx lib/db/migrate.ts",
     "db:migrate:main": "npx tsx lib/db/migrate-main.ts",
     "db:save": "npx tsx lib/db/save.ts",
+    "db:test:save": "npx tsx lib/db/playwright-save.ts",
+    "db:test:restore": "npx tsx lib/db/playwright-restore.ts",
     "db:seed": "npx tsx lib/db/seed.ts",
     "db:seed:main": "npx tsx lib/db/seed-main.ts",
     "lint": "eslint",

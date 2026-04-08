@@ -2,7 +2,7 @@
  * 1. Ajouter les groupes
  * 2. Ajouter les étudiants
  */
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { normalize } from "node:path";
 import { Data } from "./save.types";
 import { attendanceQueries } from "./queries/attendance";
@@ -15,6 +15,7 @@ import { groupQueries } from "./queries/group";
 import { studentQueries } from "./queries/student";
 import { teacherQueries } from "./queries/teacher";
 import { QueryModel } from "./queries/model";
+import { pathToFileURL } from "node:url";
 
 export const SAVES_FOLDER_PATH = normalize(__dirname + "/saves/")
 
@@ -29,6 +30,18 @@ const SEED_ORDER = [
     "sessionTeachers",
     "attendances",
 ]
+
+const queriesByKey: Record<string, QueryModel<any, any>> = {
+    students: studentQueries,
+    teachers: teacherQueries,
+    groups: groupQueries,
+    resources: resourceQueries,
+    sessions: sessionQueries,
+    sessionGroups: sessionGroupQueries,
+    resourceTeachers: resourceTeacherQueries,
+    sessionTeachers: sessionTeacherQueries,
+    attendances: attendanceQueries,
+};
 
 function isIsoDateTimeValue(value: unknown): value is string {
     if (typeof value !== "string") {
@@ -71,6 +84,19 @@ function getLatestSaveFilePath(): string | null {
 
 }
 
+function getSaveFilePath(fileName?: string): string | null {
+    if (fileName && fileName.trim().length > 0) {
+        const requestedFilePath = normalize(SAVES_FOLDER_PATH + "/" + fileName);
+        if (!existsSync(requestedFilePath)) {
+            return null;
+        }
+
+        return requestedFilePath;
+    }
+
+    return getLatestSaveFilePath();
+}
+
 async function deleteAndCreateForTable(queries: QueryModel<any, any>, data: any[]) {
     const softDeleteResult = await queries.deleteAll(true);
 
@@ -100,10 +126,15 @@ async function deleteAndCreateForTable(queries: QueryModel<any, any>, data: any[
     }
 }
 
-async function seed() {
-    const filePath = getLatestSaveFilePath();
+export async function seedFromFile(fileName?: string) {
+    const filePath = getSaveFilePath(fileName);
 
     if (!filePath) {
+        if (fileName && fileName.trim().length > 0) {
+            console.log("Fichier de sauvegarde introuvable: " + fileName + " dans [" + SAVES_FOLDER_PATH + "].");
+            return;
+        }
+
         console.log("Aucun fichier de sauvegarde trouvé. Créez une sauvegarde avant de lancer le seed, ou récupérez-en une auprès de votre administrateur et placez la dans [" + SAVES_FOLDER_PATH + "].");
         return;
     }
@@ -117,11 +148,6 @@ async function seed() {
 
     const fileContentParsed = parseSaveContent(fileContent);  
 
-    if (!fileContentParsed.students || fileContentParsed.students.length === 0) {  
-        console.log("Aucun étudiant à ajouter");  
-        return;  
-    }  
-
     for (const [key, value] of Object.entries(fileContentParsed).sort(([a], [b]) => {
         const indexA = SEED_ORDER.indexOf(a);
         const indexB = SEED_ORDER.indexOf(b);
@@ -133,35 +159,18 @@ async function seed() {
         return indexA - indexB;
     })) {
         console.log(key);
-        if (key === "students") {
-            await deleteAndCreateForTable(studentQueries, value);
-        }
-        else if (key === "teachers") {
-            await deleteAndCreateForTable(teacherQueries, value);
-        }
-        else if (key === "groups") {
-            await deleteAndCreateForTable(groupQueries, value);
-        }
-        else if (key === "resources") {
-            await deleteAndCreateForTable(resourceQueries, value);
-        }
-        else if (key === "sessions") {
-            await deleteAndCreateForTable(sessionQueries, value);
-        }
-        else if (key === "sessionGroups") {
-            await deleteAndCreateForTable(sessionGroupQueries, value);
-        }
-        else if (key === "resourceTeachers") {
-            await deleteAndCreateForTable(resourceTeacherQueries, value);
-        }
-        else if (key === "sessionTeachers") {
-            await deleteAndCreateForTable(sessionTeacherQueries, value);
-        }
-        else if (key === "attendances") {
-            await deleteAndCreateForTable(attendanceQueries, value);
+        const queryModel = queriesByKey[key];
+        if (queryModel) {
+            await deleteAndCreateForTable(queryModel, value);
         }
         console.log("Data inserted for table:", key);
     }
 }
 
-seed();
+const isMainModule = process.argv[1]
+    ? import.meta.url === pathToFileURL(process.argv[1]).href
+    : false;
+
+if (isMainModule) {
+    seedFromFile();
+}
