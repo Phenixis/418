@@ -1,26 +1,32 @@
+"use client";
+
 import IcalImportModal from '@/components/cours/IcalImportModal';
-import ResourceModal from '@/components/cours/creation/ResourceModal';
-import { teacherQueries } from '@/lib/db/queries/teacher';
-import { BreadcrumbProvider, BreadcrumbSlot } from './breadcrumb-context';
+import { TutorialAutoLauncher } from '@/components/tutorial/TutorialAutoLauncher';
 import { Button } from '@/components/ui/button';
 import { useDialog } from '@/lib/hooks/use-dialog';
-import { TutorialAutoLauncher } from '@/components/tutorial/TutorialAutoLauncher';
+import { useTeacher } from '@/lib/hooks/useTeacher';
+import { BreadcrumbProvider, BreadcrumbSlot } from './breadcrumb-context';
 
 function CreateResourceButton({ id }: Readonly<{ id?: string }>) {
     const { setIsCreateResourceDialogOpen } = useDialog();
     return (
-        <Button variant="default" id={id} className="btn-creer-ressource" onClick={() => setIsCreateResourceDialogOpen(true)}>
+        <Button
+            variant="default"
+            id={id}
+            className="btn-creer-ressource"
+            onClick={() => setIsCreateResourceDialogOpen(true)}
+        >
             Créer une ressource
         </Button>
     );
 }
 
-export default async function DashboardLayout({
+export default function DashboardLayout({
     children
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    const teacher = await teacherQueries.getTeacher();
+    const { teacher } = useTeacher();
 
     return (
         <BreadcrumbProvider>
