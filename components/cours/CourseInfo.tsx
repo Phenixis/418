@@ -57,7 +57,8 @@ export default function CourseInfo({
     nonScannes,
 }: Readonly<CourseInfoProps>) {
     const dateFormatee = formatDate(date);
-    const horaireFormate = `${heureDebut} — ${heureFin}`;
+    const toIso = (h: string) => h.replace('h', ':');
+    const horaireFormate = `${new Date(`2000-01-01T${toIso(heureDebut)}`).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })} — ${new Date(`2000-01-01T${toIso(heureFin)}`).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
 
     return (
         <div className="w-full flex-1 flex flex-col gap-4 sm:flex-row sm:items-stretch">

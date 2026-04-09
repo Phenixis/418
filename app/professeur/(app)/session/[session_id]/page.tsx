@@ -69,6 +69,7 @@ export default async function SessionPage({ params }: Readonly<{ params: Promise
             <SessionActionsClient
                 cours={cours}
                 groups={groups}
+                tags={tags}
                 status={status}
                 onDemarrerAppel={demarrer}
                 onTerminerAppel={terminer}

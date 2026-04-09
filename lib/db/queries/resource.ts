@@ -41,6 +41,58 @@ class ResourceQueries extends QueryModel<NewResource, Resource> {
         return { success: 'Ressources trouvees pour le professeur.', entity: result as Resource[] };
     }
 
+    async findBySubjectAndTeacher(subject: string, teacherMail: string): Promise<QueryResult<Resource>> {
+        const resourceTeacherResult = await resourceTeacherQueries.getByTeacherEmail(teacherMail);
+
+        if ('error' in resourceTeacherResult) {
+            return { error: 'Aucune ressource trouvee pour cet enseignant.' };
+        }
+
+        const resourceIds = resourceTeacherResult.entity.map((resourceTeacher) => resourceTeacher.resourceId);
+
+        const result = await lib.db
+            .select()
+            .from(this.table)
+            .where(
+                lib.and(
+                    lib.inArray(this.table.resourceId, resourceIds),
+                    lib.eq(this.table.subject, subject),
+                    lib.isNull(this.table.deletedAt)
+                )
+            )
+            .limit(1);
+
+        if (lib.resultEmpty(result)) {
+            return { error: 'Ressource introuvable.' };
+        }
+
+        return { success: 'Ressource trouvee.', entity: result[0] as Resource };
+    }
+
+    async upsertAde(subject: string, teacherMail: string): Promise<QueryResult<Resource>> {
+        const existing = await this.findBySubjectAndTeacher(subject, teacherMail);
+
+        if ('entity' in existing) {
+            return existing;
+        }
+
+        const resourceId = crypto.randomUUID();
+
+        const createResult = await this.create({ resourceId, subject, source: 'ADE' });
+
+        if ('error' in createResult) {
+            return createResult;
+        }
+
+        const linkResult = await resourceTeacherQueries.create({ resourceId, teacherMail });
+
+        if ('error' in linkResult) {
+            return { error: 'Ressource créée, mais liaison enseignant échouée.' };
+        }
+
+        return createResult;
+    }
+
     async update(stringId: string, data: Partial<NewResource>): Promise<QueryResult<Resource>> {
         const result = await lib.db
             .update(this.table)

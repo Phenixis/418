@@ -28,7 +28,7 @@ import { EditStudentDialog } from './dialogs/EditStudentDialog';
 import { MoveStudentDialog } from './dialogs/MoveStudentDialog';
 import { DeleteStudentConfirmDialog } from './dialogs/DeleteStudentConfirmDialog';
 import { StudentsListHeader } from './list/StudentsListHeader';
-import { StudentsYearSection, UnassignedGroupSection } from './list/StudentsYearSection';
+import { StudentsYearSection } from './list/StudentsYearSection';
 import type { Select as Group } from '@/lib/db/schema/group';
 import type { Select as Student } from '@/lib/db/schema/student';
 
@@ -347,17 +347,6 @@ export default function StudentsManagementClient({ initialStudents, groups }: Re
 						/>
 					);
 				})}
-
-				{listData.shouldShowUnassignedGroup && (
-					<UnassignedGroupSection
-						students={listData.groupedStudents.get(UNASSIGNED_GROUP_ID) ?? []}
-						isOpen={collapsible.openGroupKeys[UNASSIGNED_GROUP_ID] ?? true}
-						onOpenChange={(isOpen) => collapsible.updateGroupOpenState(UNASSIGNED_GROUP_ID, isOpen)}
-						onEdit={openEditDialog}
-						onMove={openMoveDialog}
-						onDelete={openDeleteDialog}
-					/>
-				)}
 			</div>
 
 			<CreateStudentDialog

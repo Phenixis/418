@@ -37,7 +37,7 @@ export default function QrCodePage() {
 
     return (
         <main className="flex min-h-screen w-full flex-col items-center justify-center gap-6 bg-white p-4">
-            <QRCodeCanvas ref={canvasRef} value={codePin} size={1200} className="h-[80vh] w-auto" />
+            <QRCodeCanvas ref={canvasRef} value={codePin} size={900} className="h-80vh] w-auto" />
             <div className="flex gap-4">
                 <button
                     type="button"

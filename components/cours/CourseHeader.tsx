@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import Vignette from '@/components/ui/Vignette';
 import type { Select as Session } from '@/lib/db/schema/session';
 import type { Select as Group } from '@/lib/db/schema/group';
+import type { Select as Tag } from '@/lib/db/schema/tag';
 import { useDialog } from '@/lib/hooks/use-dialog';
 import Link from 'next/link';
 
@@ -13,6 +14,7 @@ export { CourseStatus } from '@/components/cours/course.types';
 export interface CourseHeaderProps {
     cours: Session
     groups: Group[]
+    tags?: Tag[]
     /** Statut actuel du cours */
     status: CourseStatus;
     /** Callback déclenché au clic sur "Terminer" */
@@ -21,8 +23,8 @@ export interface CourseHeaderProps {
     onDemarrer?: () => void;
 }
 
-export default function CourseHeader({ cours, groups, status, onTerminer, onDemarrer }: Readonly<CourseHeaderProps>) {
-    const { setEditResourceData } = useDialog();
+export default function CourseHeader({ cours, groups, tags, status, onTerminer, onDemarrer }: Readonly<CourseHeaderProps>) {
+    const { setEditResourceData, setEditSessionData } = useDialog();
 
     return (
         <div className="flex flex-col items-center gap-3 text-center sm:flex-row sm:items-center sm:justify-between sm:text-left">
@@ -41,28 +43,42 @@ export default function CourseHeader({ cours, groups, status, onTerminer, onDema
             </div>
 
             {/* Actions sur le cours */}
-            {(status === CourseStatus.A_VENIR || onTerminer || onDemarrer) && (
-                <div className="flex flex-wrap items-center justify-center gap-3 sm:justify-end">
-                    {status === CourseStatus.A_VENIR && (
-                        <Button
-                            variant="default"
-                            onClick={() => setEditResourceData({ resourceId: cours.resourceId, subject: cours.subject })}
-                        >
-                            Modifier la ressource
-                        </Button>
-                    )}
-                    {onTerminer && (
-                        <Button variant="default" onClick={onTerminer}>
-                            Terminer l'appel
-                        </Button>
-                    )}
-                    {onDemarrer && (
-                        <Button variant="default" onClick={onDemarrer}>
-                            Démarrer l'appel
-                        </Button>
-                    )}
-                </div>
-            )}
+            <div className="flex flex-wrap items-center justify-center gap-3 sm:justify-end">
+                <Button
+                    variant="outline"
+                    onClick={() => setEditSessionData({
+                        resourceId: cours.resourceId,
+                        session: {
+                            sessionId: cours.sessionId,
+                            subject: cours.subject,
+                            startAt: cours.startAt,
+                            endAt: cours.endAt,
+                            groups: groups.map((group) => ({ groupId: group.groupId })),
+                            tags: tags?.map((tag) => ({ tagId: tag.tagId })),
+                        },
+                    })}
+                >
+                    Modifier la séance
+                </Button>
+                {status === CourseStatus.A_VENIR && (
+                    <Button
+                        variant="default"
+                        onClick={() => setEditResourceData({ resourceId: cours.resourceId, subject: cours.subject })}
+                    >
+                        Modifier la ressource
+                    </Button>
+                )}
+                {onTerminer && (
+                    <Button variant="default" onClick={onTerminer}>
+                        Terminer l'appel
+                    </Button>
+                )}
+                {onDemarrer && (
+                    <Button variant="default" onClick={onDemarrer}>
+                        Démarrer l'appel
+                    </Button>
+                )}
+            </div>
         </div>
     );
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { TableCell, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
 import { CourseStatus } from '@/components/cours/course.types';
 import { Button } from "@/components/ui/button";
 import {
@@ -79,7 +80,12 @@ export default function CourseTableRow({ cours, groups }: Readonly<CoursProps>) 
             <TableCell className="w-px text-left pl-5">{formatDate(cours.startAt)}</TableCell>
             <TableCell className="w-px text-lg">{formatInTimeZone(cours.startAt, PARIS_TIME_ZONE, 'HH:mm', { locale: fr })}</TableCell>
             <TableCell className="w-px text-lg">{formatInTimeZone(cours.endAt, PARIS_TIME_ZONE, 'HH:mm', { locale: fr })}</TableCell>
-            <TableCell className="font-bold text-left">{cours.subject}</TableCell>
+            <TableCell className="font-bold text-left">
+                {cours.subject}
+                {cours.source === 'ADE' && (
+                    <Badge variant="secondary" className="ml-2">ADE</Badge>
+                )}
+            </TableCell>
             <TableCell className="text-center justify-center gap-1">
                 {groups.map((group, index) => (
                     <span key={group.groupId}>

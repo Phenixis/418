@@ -1,0 +1,1 @@
+ALTER TABLE "student" ALTER COLUMN "group_id" SET NOT NULL;--> statement-breakpoint

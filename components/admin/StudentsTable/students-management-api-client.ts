@@ -1,4 +1,5 @@
 import type { Select as Student } from '@/lib/db/schema/student';
+import type { Select as Group } from '@/lib/db/schema/group';
 
 type JsonErrorPayload = {
     error?: string;
@@ -14,6 +15,29 @@ type StudentResponse = {
     student: Student;
 };
 
+type StudentImportError = {
+    line: number;
+    reason: string;
+};
+
+type StudentImportSummary = {
+    totalRows: number;
+    processedRows: number;
+    createdCount: number;
+    updatedCount: number;
+    restoredCount: number;
+    skippedCount: number;
+    groupsCreatedCount: number;
+    errors: StudentImportError[];
+};
+
+type StudentImportResponse = {
+    summary: StudentImportSummary;
+    students: Student[];
+    groups: Group[];
+    initializationStudents: Student[];
+};
+
 type StudentWritePayload = {
     currentEmail?: string;
     email?: string;
@@ -22,6 +46,7 @@ type StudentWritePayload = {
     groupId?: number | null;
     picture?: string | null;
 };
+
 
 async function parseJsonResponse<T>(response: Response): Promise<T> {
     const responseBody = await response.json() as T & JsonErrorPayload;
@@ -94,4 +119,53 @@ export async function deleteStudentByEmail(email: string): Promise<Student> {
 
     const responseBody = await parseJsonResponse<StudentResponse>(response);
     return responseBody.student;
+}
+
+export async function importStudentsFromSpreadsheet(file: File, previewOnly: boolean = false): Promise<StudentImportResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (previewOnly) {
+        formData.append('preview', 'true');
+    }
+
+    const response = await fetch('/api/admin/students/import', {
+        method: 'POST',
+        body: formData,
+    });
+
+    return parseJsonResponse<StudentImportResponse>(response);
+}
+
+type DeleteByGroupResponse = {
+    message: string;
+    studentsDeleted: number;
+};
+
+export async function deleteStudentsByGroup(groupId: number): Promise<{ message: string; studentsDeleted: number }> {
+    const response = await fetch('/api/admin/students/delete-by-group', {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ groupId }),
+    });
+
+    return parseJsonResponse<DeleteByGroupResponse>(response);
+}
+
+type DeleteByPromoResponse = {
+    message: string;
+    studentsDeleted: number;
+};
+
+export async function deleteStudentsByPromo(promo: string): Promise<{ message: string; studentsDeleted: number }> {
+    const response = await fetch('/api/admin/students/delete-by-promo', {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ promo }),
+    });
+
+    return parseJsonResponse<DeleteByPromoResponse>(response);
 }

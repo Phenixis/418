@@ -2,8 +2,16 @@ export const STUDENT_EMAIL_DOMAIN = 'etudiant.univ-rennes.fr';
 
 const STUDENT_EMAIL_LOCAL_PART_PATTERN = /^[a-z0-9._-]+$/;
 
+function normalizeEmailInput(inputEmail: string): string {
+    return inputEmail
+        .trim()
+        .toLowerCase()
+        .normalize('NFD')
+        .replaceAll(/[\u0300-\u036f]/g, '');
+}
+
 export function extractEmailLocalPart(inputEmail: string): string | null {
-    const normalizedEmail = inputEmail.trim().toLowerCase();
+    const normalizedEmail = normalizeEmailInput(inputEmail);
 
     if (!normalizedEmail) {
         return null;
@@ -49,5 +57,5 @@ export function stripStudentEmailDomain(inputEmail: string): string {
         return localPart;
     }
 
-    return inputEmail.trim().toLowerCase();
+    return normalizeEmailInput(inputEmail);
 }

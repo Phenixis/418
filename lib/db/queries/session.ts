@@ -1,3 +1,4 @@
+import { sessionGroupQueries } from './session-group';
 import { sessionTeacherQueries } from './session-teacher';
 import * as lib from './lib';
 import { QueryModel, QueryResult } from './model';
@@ -107,6 +108,97 @@ class SessionQueries extends QueryModel<NewSession, Session> {
             .where(lib.and(lib.inArray(this.table.sessionId, sessionIds), lib.isNull(this.table.deletedAt)));
 
         return { success: 'Seances trouvees pour cet etudiant.', entity: result as Session[] };
+    }
+
+    async findByAdeUid(adeUid: string): Promise<QueryResult<Session>> {
+        const result = await lib.db
+            .select()
+            .from(this.table)
+            .where(lib.and(lib.eq(this.table.adeUid, adeUid), lib.isNull(this.table.deletedAt)))
+            .limit(1);
+
+        if (lib.resultEmpty(result)) {
+            return { error: 'Séance introuvable avec cet UID ADE.' };
+        }
+
+        return { success: 'Séance trouvée.', entity: result[0] as Session };
+    }
+
+    async findAllAde(): Promise<QueryResult<Session[]>> {
+        const result = await lib.db
+            .select()
+            .from(this.table)
+            .where(lib.and(lib.isNotNull(this.table.adeUid), lib.isNull(this.table.deletedAt)));
+
+        return { success: 'Séances ADE trouvées.', entity: result as Session[] };
+    }
+
+    async upsertAde(data: {
+        adeUid: string;
+        resourceId: string;
+        subject: string;
+        startAt: Date;
+        endAt: Date;
+        teacherMail: string;
+        groupIds: number[];
+        existingSessionId?: string;
+    }): Promise<QueryResult<Session>> {
+        const existing = data.existingSessionId
+            ? { entity: { sessionId: data.existingSessionId } }
+            : await this.findByAdeUid(data.adeUid);
+
+        if ('entity' in existing) {
+            const sessionId = existing.entity.sessionId;
+
+            const updateResult = await this.update(sessionId, {
+                resourceId: data.resourceId,
+                subject: data.subject,
+                startAt: data.startAt,
+                endAt: data.endAt,
+            });
+
+            if ('error' in updateResult) {
+                return updateResult;
+            }
+
+            if (data.groupIds.length > 0) {
+                await sessionGroupQueries.deleteBySessionId(sessionId);
+
+                await Promise.all(
+                    data.groupIds.map((groupId) =>
+                        sessionGroupQueries.create({ sessionId, groupId })
+                    )
+                );
+            }
+
+            return updateResult;
+        }
+
+        const sessionId = crypto.randomUUID();
+
+        const createResult = await this.create({
+            sessionId,
+            resourceId: data.resourceId,
+            subject: data.subject,
+            startAt: data.startAt,
+            endAt: data.endAt,
+            source: 'ADE',
+            adeUid: data.adeUid,
+        });
+
+        if ('error' in createResult) {
+            return createResult;
+        }
+
+        await sessionTeacherQueries.create({ sessionId, teacherMail: data.teacherMail });
+
+        await Promise.all(
+            data.groupIds.map((groupId) =>
+                sessionGroupQueries.create({ sessionId, groupId })
+            )
+        );
+
+        return createResult;
     }
 
     async update(stringId: string, data: Partial<NewSession>): Promise<QueryResult<Session>> {
