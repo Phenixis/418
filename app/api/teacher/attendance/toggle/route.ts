@@ -4,6 +4,8 @@ import { getServerSession } from "@/lib/actions/authentication";
 import { teacherQueries } from "@/lib/db/queries/teacher";
 import { sessionTeacherQueries } from "@/lib/db/queries/session-teacher";
 import { sessionGroupQueries } from "@/lib/db/queries/session-group";
+import { sessionTagQueries } from "@/lib/db/queries/session-tag";
+import { studentTagQueries } from "@/lib/db/queries/student-tag";
 import { studentQueries } from "@/lib/db/queries/student";
 import { publishAttendanceRealtimeEvent } from "@/lib/realtime/provider-server";
 import { StatutEtudiant } from "@/components/cours/course.types";
@@ -80,17 +82,27 @@ export async function PATCH(request: Request) {
     }
 
     const courseGroupsResult = await sessionGroupQueries.getBySessionId(sessionId);
+    const courseGroups = 'error' in courseGroupsResult ? [] : courseGroupsResult.entity;
 
-    if ("error" in courseGroupsResult) {
-        return NextResponse.json({ error: "Aucun groupe associé à ce cours." }, { status: 403 });
-    }
-
-    const isStudentInCourseGroups = courseGroupsResult.entity.some(
+    const isStudentInCourseGroups = courseGroups.some(
         (courseGroup) => courseGroup.groupId === studentResult.entity.groupId
     );
 
     if (!isStudentInCourseGroups) {
-        return NextResponse.json({ error: "L'étudiant n'appartient pas à ce cours." }, { status: 403 });
+        // Vérifier si l'étudiant est dans un tag lié à cette séance
+        const sessionTagsResult = await sessionTagQueries.getBySessionId(sessionId);
+        const tagIds = sessionTagsResult.entity.map((st) => st.tagId);
+
+        const tagStudentsArrays = await Promise.all(
+            tagIds.map((tagId) => studentTagQueries.getStudentsByTag(tagId))
+        );
+        const tagStudentMails = new Set(
+            tagStudentsArrays.flatMap((r) => r.entity.map((s) => s.userMail))
+        );
+
+        if (!tagStudentMails.has(studentResult.entity.userMail)) {
+            return NextResponse.json({ error: "L'étudiant n'appartient pas à ce cours." }, { status: 403 });
+        }
     }
 
     // ── Nouveau : gestion du cycle complet via nextStatut ──────────────

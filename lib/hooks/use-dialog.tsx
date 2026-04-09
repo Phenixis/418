@@ -30,6 +30,7 @@ interface InitialSession {
     startAt: Date;
     endAt: Date;
     groups: Array<{ groupId: number }>;
+    tags?: Array<{ tagId: number }>;
 }
 
 interface EditSessionData {

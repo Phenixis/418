@@ -42,10 +42,13 @@ export default async function SessionPage({ params }: Readonly<{ params: Promise
         );
     }
 
-    const { cours, groups, students } = result.data;
+    const { cours, groups, tags, students } = result.data;
     const dateDebut = new Date(cours.startAt);
     const dateFin = new Date(cours.endAt);
-    const classe = groups.map((group) => (group.promo || '') + (group.td || '') + (group.tp || '')).join(', ');
+
+    const groupLabels = groups.map((group) => (group.promo || '') + (group.td || '') + (group.tp || ''));
+    const tagLabels = tags.map((tag) => tag.name);
+    const classe = [...groupLabels, ...tagLabels].join(', ');
     const status = resolveCourseStatus(dateDebut, dateFin);
 
     const isCallActive = resolveIsCallActive(

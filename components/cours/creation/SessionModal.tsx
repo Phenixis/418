@@ -20,6 +20,7 @@ import { useTeacher } from "@/lib/hooks/useTeacher";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 import SelectGroupComponent from "./select-group";
+import SelectTag from "./select-tag";
 
 interface InitialSession {
     sessionId: string;
@@ -27,6 +28,7 @@ interface InitialSession {
     startAt: Date;
     endAt: Date;
     groups: Array<{ groupId: number }>;
+    tags?: Array<{ tagId: number }>;
 }
 
 function getPreviousQuarterHour(): Date {
@@ -79,6 +81,7 @@ export default function SessionModal({
     const [label, setLabel] = useState(initSession?.subject || "");
     const [date, setDate] = useState(initSession?.startAt || getPreviousQuarterHour());
     const [groupsSelected, setGroupsSelected] = useState<string[]>(initSession?.groups.map((group) => `${group.groupId}`) || []);
+    const [tagsSelected, setTagsSelected] = useState<string[]>(initSession?.tags?.map((tag) => `${tag.tagId}`) || []);
     const [duration, setDuration] = useState(getInitialDuration(initSession));
     const [isFormValid, setIsFormValid] = useState(false);
 
@@ -97,13 +100,19 @@ export default function SessionModal({
             setDate(initSession?.startAt || getPreviousQuarterHour());
             setDuration(getInitialDuration(initSession));
             setGroupsSelected(initSession?.groups.map((group) => `${group.groupId}`) || []);
+            setTagsSelected(initSession?.tags?.map((tag) => `${tag.tagId}`) || []);
             router.refresh();
         }
     }, [initSession, router, state]);
 
     useEffect(() => {
-        setIsFormValid(label.trim().length > 0 && !!date && !!duration && groupsSelected.length > 0);
-    }, [label, date, duration, groupsSelected]);
+        setIsFormValid(
+            label.trim().length > 0 &&
+            !!date &&
+            !!duration &&
+            (groupsSelected.length > 0 || tagsSelected.length > 0)
+        );
+    }, [label, date, duration, groupsSelected, tagsSelected]);
 
     return (
         <Dialog
@@ -181,6 +190,7 @@ export default function SessionModal({
                     </div>
 
                     <SelectGroupComponent groupsSelected={groupsSelected} setGroupsSelected={setGroupsSelected} />
+                    <SelectTag tagsSelected={tagsSelected} setTagsSelected={setTagsSelected} />
 
                     <DialogFooter className="flex-col sm:flex-col">
                         {"error" in state && (

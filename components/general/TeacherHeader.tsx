@@ -12,7 +12,8 @@ import SettingsMenu from '../admin/SettingsMenu';
 
 const ROUTES = {
     Dashboard: '/professeur/dashboard',
-    Trombinoscope: '/professeur/trombinoscope'
+    Trombinoscope: '/professeur/trombinoscope',
+    Tags: '/professeur/tags'
 };
 
 export default function TeacherHeader() {

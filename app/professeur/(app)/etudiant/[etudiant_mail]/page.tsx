@@ -1,10 +1,13 @@
 import StudentCoursesSection from "@/components/cours/StudentCoursesSection";
 import EtudiantPhoto from "@/components/etudiant/etudiant-photo";
 import EtudiantAnnotation from "@/components/etudiant/EtudiantAnnotation";
+import EtudiantTags from "@/components/etudiant/EtudiantTags";
 import { groupQueries } from "@/lib/db/queries/group";
 import { studentQueries } from "@/lib/db/queries/student";
 import { teacherQueries } from "@/lib/db/queries/teacher";
 import { annotationQueries } from "@/lib/db/queries/annotation";
+import { tagQueries } from "@/lib/db/queries/tag";
+import { studentTagQueries } from "@/lib/db/queries/student-tag";
 import { redirect } from "next/navigation";
 
 
@@ -43,6 +46,11 @@ export default async function EtudiantPage({ params }: Readonly<{ params: Promis
 
     const annotationQueryResult = await annotationQueries.getByStudentAndTeacher(etudiant.userMail, teacher.userMail);
 
+    const [assignedTagsResult, allTagsResult] = await Promise.all([
+        studentTagQueries.getTagsByStudent(etudiant.userMail, teacher.userMail),
+        tagQueries.getByTeacherMail(teacher.userMail),
+    ]);
+
     return (
         <div className="space-y-4">
             <header className="flex items-center justify-start gap-2">
@@ -57,6 +65,11 @@ export default async function EtudiantPage({ params }: Readonly<{ params: Promis
                     teacherEmail={teacher.userMail}
                 />
             </div>
+            <EtudiantTags
+                studentMail={etudiant.userMail}
+                assignedTags={assignedTagsResult.entity}
+                availableTags={allTagsResult.entity}
+            />
             <StudentCoursesSection studentMail={etudiant.userMail} />
         </div>
     );

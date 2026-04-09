@@ -87,7 +87,7 @@ export default function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) 
             title="Recherche globale"
             description="Recherchez des ressources, séances, étudiants ou groupes"
             showCloseButton={false}
-            className="max-w-xl"
+            className="min-w-lg max-w-xl"
         >
             <CommandInput
                 placeholder={page === 'select-resource' ? 'Sélectionner une ressource...' : 'Rechercher...'}
