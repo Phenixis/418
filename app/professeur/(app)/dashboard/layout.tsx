@@ -2,6 +2,18 @@ import IcalImportModal from '@/components/cours/IcalImportModal';
 import ResourceModal from '@/components/cours/creation/ResourceModal';
 import { teacherQueries } from '@/lib/db/queries/teacher';
 import { BreadcrumbProvider, BreadcrumbSlot } from './breadcrumb-context';
+import { Button } from '@/components/ui/button';
+import { useDialog } from '@/lib/hooks/use-dialog';
+import { TutorialAutoLauncher } from '@/components/tutorial/TutorialAutoLauncher';
+
+function CreateResourceButton({ id }: Readonly<{ id?: string }>) {
+    const { setIsCreateResourceDialogOpen } = useDialog();
+    return (
+        <Button variant="default" id={id} className="btn-creer-ressource" onClick={() => setIsCreateResourceDialogOpen(true)}>
+            Créer une ressource
+        </Button>
+    );
+}
 
 export default async function DashboardLayout({
     children
@@ -18,7 +30,7 @@ export default async function DashboardLayout({
 
                     <div className="flex gap-2 sm:hidden">
                         <IcalImportModal initIcalUrl={teacher.icalUrl ?? undefined} />
-                        <ResourceModal />
+                        <CreateResourceButton id="btn-creer-ressource-mobile" />
                     </div>
                 </div>
 
@@ -28,8 +40,9 @@ export default async function DashboardLayout({
 
                 <div className="hidden sm:flex sm:min-w-max gap-2">
                     <IcalImportModal initIcalUrl={teacher.icalUrl ?? undefined} />
-                    <ResourceModal />
+                    <CreateResourceButton id="btn-creer-ressource-desktop" />
                 </div>
+                <TutorialAutoLauncher />
             </div>
             {children}
         </BreadcrumbProvider>

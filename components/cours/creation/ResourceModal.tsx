@@ -105,6 +105,7 @@ export default function ResourceModal({
                             value={label}
                             onChange={(e) => setLabel(e.target.value.slice(0, 50))}
                             maxLength={50}
+                            className="resource-input-label"
                         />
                     </div>
 
@@ -114,7 +115,7 @@ export default function ResourceModal({
                                 {state.message}
                             </p>
                         )}
-                        <Button type="submit" variant="big" className="w-full" disabled={pending || !isFormValid}>
+                        <Button type="submit" variant="big" className="w-full resource-submit-btn" disabled={pending || !isFormValid}>
                             {initResource === undefined ? "Créer la ressource" : "Modifier la ressource"}
                         </Button>
                     </DialogFooter>

@@ -8,6 +8,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import SettingsMenu from '../admin/SettingsMenu';
+import { TutorialTrigger } from '@/components/tutorial/tutorial-trigger';
 
 const ROUTES = {
     "Gestion des professeurs": '/administrateur/gestion-professeurs',
@@ -20,10 +21,10 @@ export default function AdminHeader() {
 
     return (
         <div className="flex p-4 gap-4 items-center justify-between">
-            <Link href="/administrateur/">
+            <Link href="/administrateur/" id="nav-logo">
                 <Logo variant={LogoVariants.NAME_RIGHT} size={LogoSizes.LARGE} />
             </Link>
-            <div className="flex items-center gap-4">
+            <div id="nav-links" className="flex items-center gap-4">
                 {Object.entries(ROUTES).map(([name, route]) => (
                     <Button key={name} variant="link" className={pathname.startsWith(route) ? 'underline' : ''} asChild>
                         <Link href={route}>
@@ -32,7 +33,8 @@ export default function AdminHeader() {
                     </Button>
                 ))}
             </div>
-            <div className="flex items-center gap-4 md:flex-row">
+            <div id="nav-settings" className="flex items-center gap-4 md:flex-row">
+                <TutorialTrigger />
                 <div className="hidden bg-white rounded-full mx-4 flex items-center gap-2 pl-4 pr-12 py-2 text-sm">
                     <SearchIcon />
                     <p>Rechercher</p>

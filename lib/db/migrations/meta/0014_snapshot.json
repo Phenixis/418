@@ -1,6 +1,6 @@
 {
-  "id": "aeb88a0a-696d-486c-97c6-1c1a98f2b8d6",
-  "prevId": "b8596d8f-45de-42af-bae1-867549022607",
+  "id": "2d6f5cbe-1adb-4afe-b613-d46101359a3f",
+  "prevId": "aeb88a0a-696d-486c-97c6-1c1a98f2b8d6",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -769,8 +769,8 @@
           "notNull": true,
           "default": false
         },
-        "is_fist_connection": {
-          "name": "is_fist_connection",
+        "is_first_connection": {
+          "name": "is_first_connection",
           "type": "boolean",
           "primaryKey": false,
           "notNull": true,

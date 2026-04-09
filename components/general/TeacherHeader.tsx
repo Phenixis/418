@@ -24,7 +24,7 @@ export default function TeacherHeader() {
     return (
         <div className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center justify-between gap-3 sm:flex-none">
-                <Link href="/professeur/dashboard">
+                <Link href="/professeur/dashboard" id="nav-logo">
                     <Logo variant={LogoVariants.NAME_RIGHT} size={LogoSizes.MEDIUM} />
                 </Link>
 
@@ -36,7 +36,7 @@ export default function TeacherHeader() {
                 </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-1 sm:flex-1 justify-center sm:gap-4">
+            <div id="nav-links" className="flex flex-wrap items-center gap-1 sm:flex-1 justify-center sm:gap-4">
                 {Object.entries(ROUTES).map(([name, route]) => (
                     <Button
                         key={name}

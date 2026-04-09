@@ -27,6 +27,20 @@ class TeacherQueries extends QueryModel<NewTeacher, Teacher> {
         return { success: "Mot de passe mis à jour.", entity: result[0].userMail }
     }
 
+    async markFirstConnectionAsCompleted(teacherEmail: string): Promise<QueryResult<Teacher>> {
+        const result = await lib.db
+            .update(this.table)
+            .set({ isFirstConnection: true })
+            .where(lib.eq(this.table.userMail, teacherEmail))
+            .returning()
+
+        if (lib.resultEmpty(result)) {
+            return { error: "Enseignant introuvable avec cet email." }
+        }
+
+        return { success: "Première connexion marquée comme terminée.", entity: result[0] as Teacher }
+    }
+
     async getByEmail(email: string): Promise<QueryResult<Teacher>> {
         const result = await lib.db
             .select()

@@ -123,4 +123,35 @@ test.describe('Dashboard page', () => {
             await db.delete(teacherTable).where(eq(teacherTable.userMail, outsiderTeacherEmail));
         }
     });
+
+    test('should persist tutorial completion and show completed badge', async ({ authenticatedPage, testTeacherEmail }) => {
+        await db
+            .update(teacherTable)
+            .set({ isFirstConnection: false })
+            .where(eq(teacherTable.userMail, testTeacherEmail));
+
+        await authenticatedPage.goto('/professeur/dashboard');
+
+        const completionResponse = await authenticatedPage.request.post('/api/teacher/tutorial/complete');
+        expect(completionResponse.ok()).toBeTruthy();
+
+        await expect
+            .poll(async () => {
+                const updatedTeacherRows = await db
+                    .select({ isFirstConnection: teacherTable.isFirstConnection })
+                    .from(teacherTable)
+                    .where(eq(teacherTable.userMail, testTeacherEmail));
+
+                return updatedTeacherRows[0]?.isFirstConnection;
+            })
+            .toBe(true);
+
+    await authenticatedPage.reload();
+
+    const completedTutorialTriggerButton = authenticatedPage.getByRole('button', { name: /Tutoriel déjà effectué/i });
+    const completedBadge = authenticatedPage.getByText('FAIT');
+
+    await expect(completedTutorialTriggerButton).toBeVisible();
+    await expect(completedBadge).toBeVisible();
+    });
 });

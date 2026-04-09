@@ -122,7 +122,7 @@ export default function SessionModal({
         >
             {!isControlled && (
                 <DialogTrigger asChild>
-                    <Button variant="default">
+                    <Button variant="default" id={initSession === undefined ? "btn-creer-seance" : undefined}>
                         {initSession === undefined ? "Créer une séance" : "Modifier la séance"}
                     </Button>
                 </DialogTrigger>
@@ -148,9 +148,9 @@ export default function SessionModal({
                     <input type="hidden" name="teacherEmail" value={teacher.userMail} className="hidden" readOnly />
 
                     <div className="w-full flex flex-col gap-2 mb-2">
-                        <Label htmlFor="label">Nom de la séance</Label>
+                        <Label htmlFor="session-input-label">Nom de la séance</Label>
                         <Input
-                            id="label"
+                            id="session-input-label"
                             name="label"
                             type="text"
                             placeholder="Nom de la séance"
@@ -196,7 +196,7 @@ export default function SessionModal({
                         {"error" in state && (
                             <p className="text-sm text-red-500">{state.message}</p>
                         )}
-                        <Button type="submit" variant="big" className="w-full" disabled={pending || !isFormValid}>
+                        <Button type="submit" id="session-submit-btn" variant="big" className="w-full" disabled={pending || !isFormValid}>
                             {initSession === undefined ? "Créer la séance" : "Modifier la séance"}
                         </Button>
                     </DialogFooter>

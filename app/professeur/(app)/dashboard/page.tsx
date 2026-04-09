@@ -4,6 +4,7 @@ import { sessionQueries } from '@/lib/db/queries/session';
 import { teacherQueries } from '@/lib/db/queries/teacher';
 import type { Select as Resource } from '@/lib/db/schema/resource';
 import type { Select as Session } from '@/lib/db/schema/session';
+import { Button } from '@/components/ui/button';
 
 
 export default async function DashboardPage() {
@@ -70,10 +71,12 @@ export default async function DashboardPage() {
 
     return (
         <section className="flex flex-col">
-            <ResourceTableClient
-                resourceItems={resourceItems}
-                sessionSubjectsByResourceId={sessionSubjectsByResourceId}
-            />
+            <div id="dashboard-resource-table">
+                <ResourceTableClient
+                    resourceItems={resourceItems}
+                    sessionSubjectsByResourceId={sessionSubjectsByResourceId}
+                />
+            </div>
         </section>
     );
 }
