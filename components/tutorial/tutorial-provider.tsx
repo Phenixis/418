@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState, ReactNode, useSyncExternalStore } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState, ReactNode, useSyncExternalStore } from "react";
 import { Joyride, EventData, STATUS, Step, TooltipRenderProps, EVENTS, type BeaconRenderProps } from "react-joyride";
 import Image from "next/image";
 import { Zap, BookOpen, type LucideIcon } from "lucide-react";
@@ -129,13 +129,8 @@ const COMMON_STEPS: Step[] = [
     data: { image: "/images/TT2.png" },
     placement: "bottom",
   },
-  {
-    target: "#dashboard-resource-table",
-    title: "Vos Ressources",
-    content: "C'est ici que sont listés toutes vos ressources. Chaque ligne correspond à une entité pédagogique.",
-    data: { image: "/images/TT5.png" },
-    placement: "top",
-  },
+  
+
 ];
 
 // 1. PARCOURS COURT : Survol rapide
@@ -398,6 +393,7 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
   const [currentSteps, setCurrentSteps] = useState<Step[]>(SHORT_TOUR_STEPS);
   const [hasCompletedTutorial, setHasCompletedTutorial] = useState(false);
   const [shouldStartTour, setShouldStartTour] = useState(false);
+  const stepAdvanceTimeoutRef = useRef<number | null>(null);
 
   const markTutorialAsCompleted = async () => {
     try {
@@ -462,6 +458,74 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
     setRun(true);
     setShouldStartTour(false);
   }, [currentSteps, shouldStartTour]);
+
+  useEffect(() => {
+    if (!run) {
+      return;
+    }
+
+    const scheduleStepAdvance = (delayMs: number) => {
+      const expectedStepIndex = stepIndex;
+
+      if (stepAdvanceTimeoutRef.current !== null) {
+        window.clearTimeout(stepAdvanceTimeoutRef.current);
+      }
+
+      stepAdvanceTimeoutRef.current = window.setTimeout(() => {
+        setStepIndex((previousStepIndex) =>
+          previousStepIndex === expectedStepIndex ? previousStepIndex + 1 : previousStepIndex,
+        );
+        stepAdvanceTimeoutRef.current = null;
+      }, delayMs);
+    };
+
+    const handleDocumentClick = (event: MouseEvent) => {
+      const clickedElement = event.target instanceof Element ? event.target : null;
+      if (!clickedElement) {
+        return;
+      }
+
+      const activeStep = currentSteps[stepIndex];
+      const activeTarget = typeof activeStep?.target === "string" ? activeStep.target : "";
+
+      const hasClickedCreateResourceButton =
+        clickedElement.closest(".btn-creer-ressource, [id^='btn-creer-ressource-']") !== null;
+      const hasClickedCreateSessionButton = clickedElement.closest("#btn-creer-seance") !== null;
+      const hasClickedResourceSubmitButton =
+        clickedElement.closest(".resource-submit-btn, [id^='resource-submit-btn-']") !== null;
+      const hasClickedSessionSubmitButton = clickedElement.closest("#session-submit-btn") !== null;
+
+      const isCreateResourceStep =
+        activeTarget === ".btn-creer-ressource" || activeTarget.startsWith("#btn-creer-ressource-");
+      const isCreateSessionStep = activeTarget === "#btn-creer-seance";
+      const isResourceSubmitStep =
+        activeTarget === ".resource-submit-btn" || activeTarget.startsWith("#resource-submit-btn-");
+      const isSessionSubmitStep = activeTarget === "#session-submit-btn";
+
+      if (isCreateSessionStep && hasClickedCreateSessionButton) {
+        scheduleStepAdvance(3000);
+        return;
+      }
+
+      if (
+        (isCreateResourceStep && hasClickedCreateResourceButton) ||
+        (isResourceSubmitStep && hasClickedResourceSubmitButton) ||
+        (isSessionSubmitStep && hasClickedSessionSubmitButton)
+      ) {
+        scheduleStepAdvance(3000);
+      }
+    };
+
+    document.addEventListener("click", handleDocumentClick, true);
+
+    return () => {
+      document.removeEventListener("click", handleDocumentClick, true);
+      if (stepAdvanceTimeoutRef.current !== null) {
+        window.clearTimeout(stepAdvanceTimeoutRef.current);
+        stepAdvanceTimeoutRef.current = null;
+      }
+    };
+  }, [run, stepIndex, currentSteps]);
 
   const mounted = useSyncExternalStore(
     () => () => { },
@@ -531,7 +595,7 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
           }}
           options={{
             zIndex: 10000,
-            overlayClickAction: "close",
+            overlayClickAction: false,
             dismissKeyAction: "next",
             blockTargetInteraction: false
           }}
