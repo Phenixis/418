@@ -124,7 +124,7 @@ export async function POST(request: Request) {
     const groupId = parseOptionalGroupId(requestBody.groupId);
     const picture = parseOptionalPicture(requestBody.picture);
 
-    if (!firstName || !lastName || !studentEmail || groupId === 'invalid' || picture === INVALID_PICTURE) {
+    if (!firstName || !lastName || !studentEmail || groupId === null || groupId === 'invalid' || picture === INVALID_PICTURE) {
         return NextResponse.json({ error: 'Les données étudiant sont invalides.' }, { status: 400 });
     }
 
@@ -188,7 +188,7 @@ export async function PATCH(request: Request) {
     const groupId = parseOptionalGroupId(requestBody.groupId);
     const picture = parseOptionalPicture(requestBody.picture);
 
-    if (!currentEmail || !nextEmail || !firstName || !lastName || groupId === 'invalid' || picture === INVALID_PICTURE) {
+    if (!currentEmail || !nextEmail || !firstName || !lastName || groupId === null || groupId === 'invalid' || picture === INVALID_PICTURE) {
         return NextResponse.json({ error: 'Les données étudiant sont invalides.' }, { status: 400 });
     }
 

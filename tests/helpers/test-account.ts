@@ -1,8 +1,9 @@
 import bcrypt from 'bcrypt';
-import { eq, or } from 'drizzle-orm';
+import { and, eq, or } from 'drizzle-orm';
 import { db } from '@/lib/db/drizzle';
 import { table as teacherTable } from '@/lib/db/schema/teacher';
 import { table as studentTable } from '@/lib/db/schema/student';
+import { table as groupTable } from '@/lib/db/schema/group';
 import { table as resetPasswordSessionTable } from '@/lib/db/schema/reset-password-session';
 
 export function getTestAccountEmail(): string {
@@ -73,6 +74,31 @@ type StudentAccountOptions = {
     groupId?: number | null;
 };
 
+async function getOrCreateDefaultTestGroup(): Promise<number> {
+    const existing = await db.select({ groupId: groupTable.groupId })
+        .from(groupTable)
+        .where(and(
+            eq(groupTable.promo, '1'),
+            eq(groupTable.td, 'A'),
+            eq(groupTable.tp, '1'),
+            eq(groupTable.department, 'TEST'),
+        ))
+        .limit(1);
+
+    if (existing.length > 0) {
+        return existing[0].groupId;
+    }
+
+    const [created] = await db.insert(groupTable).values({
+        promo: '1',
+        td: 'A',
+        tp: '1',
+        department: 'TEST',
+    }).returning({ groupId: groupTable.groupId });
+
+    return created.groupId;
+}
+
 export async function ensureStudentAccountByEmail(
     studentEmail: string,
     plainPassword: string,
@@ -81,6 +107,7 @@ export async function ensureStudentAccountByEmail(
     const studentFirstName = options.firstName ?? 'Test';
     const studentLastName = options.lastName ?? 'Student';
     const studentPasswordHash = await bcrypt.hash(plainPassword, 12);
+    const groupId = options.groupId ?? await getOrCreateDefaultTestGroup();
 
     await db.insert(studentTable).values({
         userMail: studentEmail,
@@ -88,7 +115,7 @@ export async function ensureStudentAccountByEmail(
         lastName: studentLastName,
         password: studentPasswordHash,
         isTeacher: false,
-        groupId: options.groupId ?? null,
+        groupId,
     }).onConflictDoUpdate({
         target: studentTable.userMail,
         set: {
@@ -96,7 +123,7 @@ export async function ensureStudentAccountByEmail(
             lastName: studentLastName,
             password: studentPasswordHash,
             isTeacher: false,
-            groupId: options.groupId ?? null,
+            groupId,
         },
     });
 }
