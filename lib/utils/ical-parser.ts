@@ -52,7 +52,7 @@ export async function fetchAndParseIcalFeed(url: string): Promise<ParsedIcalEven
     const events: ParsedIcalEvent[] = [];
 
     for (const event of Object.values(rawEvents)) {
-        if (event.type !== 'VEVENT') {
+        if (!event || event.type !== 'VEVENT') {
             continue;
         }
 
