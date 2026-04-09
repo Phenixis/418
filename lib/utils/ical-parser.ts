@@ -44,12 +44,7 @@ export async function fetchAndParseIcalFeed(url: string): Promise<ParsedIcalEven
     let rawEvents: nodeIcal.CalendarResponse;
 
     try {
-        rawEvents = await nodeIcal.async.fromURL(url, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (compatible; CalendarSync/1.0)',
-                'Accept': 'text/calendar, */*',
-            },
-        });
+        rawEvents = await nodeIcal.async.fromURL(url);
     } catch {
         throw new Error("Impossible d'accéder au flux iCal. Vérifiez l'URL.");
     }
