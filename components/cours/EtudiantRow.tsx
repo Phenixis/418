@@ -12,6 +12,7 @@ interface EtudiantRowProps {
     etudiant: StudentWithStatus
     onClick?: (student: StudentWithStatus) => void
     isDisabled?: boolean
+    isEditable?: boolean
 }
 
 /** Couleurs de bordure et fond selon le statut */
@@ -64,6 +65,7 @@ export default function EtudiantRow({
     etudiant,
     onClick,
     isDisabled = false,
+    isEditable = false,
 }: Readonly<EtudiantRowProps>) {
     const { firstName, lastName, picture, statut, groupName } = etudiant
     const isPresent = isEtudiantPresent(statut)
@@ -72,17 +74,19 @@ export default function EtudiantRow({
     const isEnRetard = statut === StatutEtudiant["RETARD+5"]
         || statut === StatutEtudiant["RETARD+10"]
         || statut === StatutEtudiant["RETARD+15"]
+    const isClickable = isEditable && !isDisabled
 
     return (
         <button
             type="button"
             disabled={isDisabled}
-            onClick={() => onClick?.(etudiant)}
+            onClick={() => isEditable && onClick?.(etudiant)}
             className={cn(
                 "flex w-full items-center gap-4 rounded-lg border border-faded bg-white px-4 py-2 text-left transition-colors",
                 rowStyle,
                 isDisabled && "opacity-70 cursor-not-allowed",
-                onClick && !isDisabled && "cursor-pointer hover:bg-black/5 active:bg-black/10"
+                isClickable && "cursor-pointer hover:bg-black/5 active:bg-black/10",
+                !isEditable && "cursor-default"
             )}
         >
             {/* Photo miniature */}

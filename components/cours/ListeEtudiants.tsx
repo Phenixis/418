@@ -82,6 +82,7 @@ export default function ListeEtudiants({ sessionId, etudiants, onStudentsChange 
     const [recherche, setRecherche] = useState('');
     const [filtreActif, setFiltreActif] = useState<FiltrePresence>('tous');
     const [modeAffichage, setModeAffichage] = useState<ModeAffichage>('grille');
+    const [isModeEdition, setIsModeEdition] = useState(false);
 
     useEffect(() => {
         setStudents(etudiants);
@@ -175,7 +176,7 @@ export default function ListeEtudiants({ sessionId, etudiants, onStudentsChange 
     }, [connectionState, sessionId, pendingStudentMails]);
 
     async function handleStudentClick(student: StudentWithStatus) {
-        if (pendingStudentMails.has(student.userMail)) {
+        if (!isModeEdition || pendingStudentMails.has(student.userMail)) {
             return;
         }
 
@@ -263,6 +264,8 @@ export default function ListeEtudiants({ sessionId, etudiants, onStudentsChange 
                 onFiltreChange={setFiltreActif}
                 modeAffichage={modeAffichage}
                 onModeAffichageChange={setModeAffichage}
+                isModeEdition={isModeEdition}
+                onModeEditionChange={setIsModeEdition}
             />
 
             {modeAffichage === "grille" ? (
@@ -272,6 +275,7 @@ export default function ListeEtudiants({ sessionId, etudiants, onStudentsChange 
                             key={etudiant.userMail}
                             etudiant={etudiant}
                             isDisabled={pendingStudentMails.has(etudiant.userMail)}
+                            isEditable={isModeEdition}
                             onClick={handleStudentClick}
                         />
                     ))}
@@ -283,6 +287,7 @@ export default function ListeEtudiants({ sessionId, etudiants, onStudentsChange 
                             key={etudiant.userMail}
                             etudiant={etudiant}
                             isDisabled={pendingStudentMails.has(etudiant.userMail)}
+                            isEditable={isModeEdition}
                             onClick={handleStudentClick}
                         />
                     ))}
