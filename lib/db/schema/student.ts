@@ -5,7 +5,7 @@ import * as AttendanceTable from './attendance';
 export const table = lib.pgTable('student', {
     ...lib.userAttributes,
     picture: lib.text("picture"),
-    groupId: lib.integer("group_id").references(() => GroupTable.table.groupId, { onDelete: 'cascade', onUpdate: 'cascade' })
+    groupId: lib.integer("group_id").references(() => GroupTable.table.groupId, { onDelete: 'cascade', onUpdate: 'cascade' }).notNull()
 })
 
 export const relations = lib.relations(table, ({one, many}) => ({

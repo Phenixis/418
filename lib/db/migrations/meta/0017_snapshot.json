@@ -1,9 +1,93 @@
 {
-  "id": "aeb88a0a-696d-486c-97c6-1c1a98f2b8d6",
-  "prevId": "b8596d8f-45de-42af-bae1-867549022607",
+  "id": "48939449-c529-43ab-b7d0-18b204ec81ef",
+  "prevId": "c1341f77-432d-49f3-9a14-8c0bf0b1eec1",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
+    "public.annotation": {
+      "name": "annotation",
+      "schema": "",
+      "columns": {
+        "annotation_id": {
+          "name": "annotation_id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "teacher_email": {
+          "name": "teacher_email",
+          "type": "varchar(60)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "student_email": {
+          "name": "student_email",
+          "type": "varchar(60)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "content": {
+          "name": "content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "annotation_teacher_email_teacher_user_mail_fk": {
+          "name": "annotation_teacher_email_teacher_user_mail_fk",
+          "tableFrom": "annotation",
+          "tableTo": "teacher",
+          "columnsFrom": [
+            "teacher_email"
+          ],
+          "columnsTo": [
+            "user_mail"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        },
+        "annotation_student_email_student_user_mail_fk": {
+          "name": "annotation_student_email_student_user_mail_fk",
+          "tableFrom": "annotation",
+          "tableTo": "student",
+          "columnsFrom": [
+            "student_email"
+          ],
+          "columnsTo": [
+            "user_mail"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.attendance": {
       "name": "attendance",
       "schema": "",
@@ -367,6 +451,12 @@
           "type": "varchar(50)",
           "primaryKey": false,
           "notNull": true
+        },
+        "source": {
+          "name": "source",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},
@@ -444,6 +534,84 @@
           ],
           "columnsTo": [
             "group_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.session_tag": {
+      "name": "session_tag",
+      "schema": "",
+      "columns": {
+        "session_tag_id": {
+          "name": "session_tag_id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "session_id": {
+          "name": "session_id",
+          "type": "varchar(36)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tag_id": {
+          "name": "tag_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "session_tag_session_id_session_session_id_fk": {
+          "name": "session_tag_session_id_session_session_id_fk",
+          "tableFrom": "session_tag",
+          "tableTo": "session",
+          "columnsFrom": [
+            "session_id"
+          ],
+          "columnsTo": [
+            "session_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        },
+        "session_tag_tag_id_tag_tag_id_fk": {
+          "name": "session_tag_tag_id_tag_tag_id_fk",
+          "tableFrom": "session_tag",
+          "tableTo": "tag",
+          "columnsFrom": [
+            "tag_id"
+          ],
+          "columnsTo": [
+            "tag_id"
           ],
           "onDelete": "cascade",
           "onUpdate": "cascade"
@@ -586,6 +754,30 @@
           "type": "varchar(50)",
           "primaryKey": false,
           "notNull": true
+        },
+        "manual_call_start_at": {
+          "name": "manual_call_start_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "manual_call_end_at": {
+          "name": "manual_call_end_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "source": {
+          "name": "source",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ade_uid": {
+          "name": "ade_uid",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},
@@ -599,6 +791,84 @@
           ],
           "columnsTo": [
             "resource_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.student_tag": {
+      "name": "student_tag",
+      "schema": "",
+      "columns": {
+        "student_tag_id": {
+          "name": "student_tag_id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "tag_id": {
+          "name": "tag_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "student_mail": {
+          "name": "student_mail",
+          "type": "varchar(60)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "student_tag_tag_id_tag_tag_id_fk": {
+          "name": "student_tag_tag_id_tag_tag_id_fk",
+          "tableFrom": "student_tag",
+          "tableTo": "tag",
+          "columnsFrom": [
+            "tag_id"
+          ],
+          "columnsTo": [
+            "tag_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        },
+        "student_tag_student_mail_student_user_mail_fk": {
+          "name": "student_tag_student_mail_student_user_mail_fk",
+          "tableFrom": "student_tag",
+          "tableTo": "student",
+          "columnsFrom": [
+            "student_mail"
+          ],
+          "columnsTo": [
+            "user_mail"
           ],
           "onDelete": "cascade",
           "onUpdate": "cascade"
@@ -675,7 +945,7 @@
           "name": "group_id",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         }
       },
       "indexes": {},
@@ -689,6 +959,77 @@
           ],
           "columnsTo": [
             "group_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.tag": {
+      "name": "tag",
+      "schema": "",
+      "columns": {
+        "tag_id": {
+          "name": "tag_id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "teacher_mail": {
+          "name": "teacher_mail",
+          "type": "varchar(60)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "color": {
+          "name": "color",
+          "type": "varchar(7)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "tag_teacher_mail_teacher_user_mail_fk": {
+          "name": "tag_teacher_mail_teacher_user_mail_fk",
+          "tableFrom": "tag",
+          "tableTo": "teacher",
+          "columnsFrom": [
+            "teacher_mail"
+          ],
+          "columnsTo": [
+            "user_mail"
           ],
           "onDelete": "cascade",
           "onUpdate": "cascade"
@@ -769,12 +1110,18 @@
           "notNull": true,
           "default": false
         },
-        "is_fist_connection": {
-          "name": "is_fist_connection",
+        "is_first_connection": {
+          "name": "is_first_connection",
           "type": "boolean",
           "primaryKey": false,
           "notNull": true,
           "default": false
+        },
+        "ical_url": {
+          "name": "ical_url",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},

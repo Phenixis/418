@@ -347,17 +347,6 @@ export default function StudentsManagementClient({ initialStudents, groups }: Re
 						/>
 					);
 				})}
-
-				{listData.shouldShowUnassignedGroup && (
-					<UnassignedGroupSection
-						students={listData.groupedStudents.get(UNASSIGNED_GROUP_ID) ?? []}
-						isOpen={collapsible.openGroupKeys[UNASSIGNED_GROUP_ID] ?? true}
-						onOpenChange={(isOpen) => collapsible.updateGroupOpenState(UNASSIGNED_GROUP_ID, isOpen)}
-						onEdit={openEditDialog}
-						onMove={openMoveDialog}
-						onDelete={openDeleteDialog}
-					/>
-				)}
 			</div>
 
 			<CreateStudentDialog
