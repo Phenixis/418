@@ -69,6 +69,18 @@ class StudentQueries extends QueryModel<NewStudent, Student> {
         return { success: "Étudiants trouvés.", entity: result as Student[] }
     }
 
+    async getAllIncludingDeleted(): Promise<QueryResult<Student[]>> {
+        const result = await lib.db
+            .select()
+            .from(this.table)
+
+        if (lib.resultEmpty(result)) {
+            return { error: "Aucun étudiant trouvé." }
+        }
+
+        return { success: "Étudiants trouvés (avec supprimés).", entity: result as Student[] }
+    }
+
     async getByGroupId(group: number): Promise<QueryResult<Student[]>> {
         const result = await lib.db
             .select()
@@ -187,6 +199,62 @@ class StudentQueries extends QueryModel<NewStudent, Student> {
         }
 
         return { success: "Étudiant restauré.", entity: result[0] as Student }
+    }
+
+    async deleteByGroupId(groupId: number): Promise<QueryResult<Student[]>> {
+        const result = await lib.db
+            .update(this.table)
+            .set({
+                deletedAt: new Date(),
+                updatedAt: new Date(),
+            })
+            .where(
+                lib.and(
+                    lib.eq(this.table.groupId, groupId),
+                    lib.isNull(this.table.deletedAt)
+                )
+            )
+            .returning()
+
+        if (lib.resultEmpty(result)) {
+            return { error: "Aucun étudiant trouvé pour cette classe." }
+        }
+
+        return { success: "Étudiants de la classe supprimés.", entity: result as Student[] }
+    }
+
+    async deleteByPromo(promo: string): Promise<QueryResult<Student[]>> {
+        // First, get all group IDs for the given promo
+        const groupsResult = await lib.db
+            .select({ id: lib.Schema.GroupTable.table.groupId })
+            .from(lib.Schema.GroupTable.table)
+            .where(lib.eq(lib.Schema.GroupTable.table.promo, promo))
+
+        if (lib.resultEmpty(groupsResult)) {
+            return { error: "Aucun groupe trouvé pour cette année." }
+        }
+
+        const groupIds = groupsResult.map((g) => g.id)
+
+        const result = await lib.db
+            .update(this.table)
+            .set({
+                deletedAt: new Date(),
+                updatedAt: new Date(),
+            })
+            .where(
+                lib.and(
+                    lib.inArray(this.table.groupId, groupIds),
+                    lib.isNull(this.table.deletedAt)
+                )
+            )
+            .returning()
+
+        if (lib.resultEmpty(result)) {
+            return { error: "Aucun étudiant trouvé pour cette année." }
+        }
+
+        return { success: "Étudiants de l'année supprimés.", entity: result as Student[] }
     }
 }
 
