@@ -32,6 +32,26 @@ function closeDialog(openFieldSelector: string): Promise<void> {
   return new Promise(r => setTimeout(r, 400));
 }
 
+// Simule un vrai clic avec la séquence complète d'événements pointeur
+// nécessaire pour déclencher les composants Radix UI (qui écoutent pointerdown)
+function simulateRadixClick(element: HTMLElement): void {
+  const rect = element.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  const init: PointerEventInit = { bubbles: true, cancelable: true, isPrimary: true, clientX: cx, clientY: cy };
+  element.dispatchEvent(new PointerEvent('pointerover',  { ...init }));
+  element.dispatchEvent(new PointerEvent('pointerenter', { ...init, bubbles: false }));
+  element.dispatchEvent(new MouseEvent('mouseover',   { bubbles: true, cancelable: true, clientX: cx, clientY: cy }));
+  element.dispatchEvent(new PointerEvent('pointermove', { ...init }));
+  element.dispatchEvent(new MouseEvent('mousemove',   { bubbles: true, cancelable: true, clientX: cx, clientY: cy }));
+  element.dispatchEvent(new PointerEvent('pointerdown', { ...init }));
+  element.dispatchEvent(new MouseEvent('mousedown',   { bubbles: true, cancelable: true, clientX: cx, clientY: cy }));
+  element.focus?.();
+  element.dispatchEvent(new PointerEvent('pointerup',   { ...init }));
+  element.dispatchEvent(new MouseEvent('mouseup',     { bubbles: true, cancelable: true, clientX: cx, clientY: cy }));
+  element.dispatchEvent(new MouseEvent('click',       { bubbles: true, cancelable: true, clientX: cx, clientY: cy }));
+}
+
 interface CardChoiceProps {
   title: string;
   desc: string;
@@ -66,15 +86,6 @@ function CardChoice({ title, desc, icon: Icon, onClick, color }: CardChoiceProps
   );
 }
 
-async function navigateToFirstResource(): Promise<boolean> {
-  await closeDialog(".resource-input-label");
-  if (getVisibleElement("#btn-creer-seance")) return true;
-  const firstRow = getVisibleElement("#dashboard-resource-table tbody tr.cursor-pointer");
-  if (!firstRow) return false;
-  firstRow.click();
-  return waitForElement("#btn-creer-seance", 7000);
-}
-
 async function openResourceDialog(): Promise<boolean> {
   if (getVisibleElement(".resource-input-label")) return true;
   const createResourceButton = getVisibleElement(".btn-creer-ressource");
@@ -83,13 +94,33 @@ async function openResourceDialog(): Promise<boolean> {
   return waitForElement(".resource-input-label", 7000);
 }
 
-async function openSessionDialog(): Promise<boolean> {
+async function openResourceKebabMenu(): Promise<boolean> {
+  await closeDialog(".resource-input-label");
+  // Si le menu est déjà ouvert (menu item visible)
+  if (getVisibleElement(".menu-item-creer-seance")) return true;
+  const kebabBtn = getVisibleElement(".resource-kebab-btn");
+  if (!kebabBtn) return false;
+  // Radix UI écoute pointerdown → simuler la séquence complète
+  simulateRadixClick(kebabBtn);
+  // Délai pour laisser Radix UI animer l'ouverture du menu
+  await new Promise(r => setTimeout(r, 400));
+  return waitForElement(".menu-item-creer-seance", 4000);
+}
+
+async function openSessionDialogFromMenu(): Promise<boolean> {
   if (getVisibleElement("#session-input-label")) return true;
-  const createSessionButton = getVisibleElement("#btn-creer-seance");
-  if (!createSessionButton) return false;
-  createSessionButton.click();
+  // Toujours ouvrir le menu d'abord (il peut se fermer entre les étapes)
+  const opened = await openResourceKebabMenu();
+  if (!opened) return false;
+  // Délai pour que le menu item soit interactif
+  await new Promise(r => setTimeout(r, 200));
+  const menuItem = getVisibleElement(".menu-item-creer-seance");
+  if (!menuItem) return false;
+  // Simuler le clic avec la séquence complète
+  simulateRadixClick(menuItem);
   return waitForElement("#session-input-label", 7000);
 }
+
 
 function getDynamicSteps(steps: Step[]): Step[] {
   const visibleTrigger = getVisibleElement(".btn-creer-ressource");
@@ -176,8 +207,8 @@ const LONG_TOUR_STEPS: Step[] = [
   },
   {
     target: "#dashboard-resource-table",
-    title: "Navigation",
-    content: "Pour gérer les séances d'une ressource, cliquez sur sa ligne dans le tableau. Je vais le faire pour vous pour gagner du temps !",
+    title: "Le tableau de ressources",
+    content: "Vos ressources apparaissent ici. Pour créer une séance, cliquez sur les 3 petits points à droite d'une ressource.",
     data: { image: "/images/TT6.png" },
     placement: "top",
     before: async () => {
@@ -185,24 +216,35 @@ const LONG_TOUR_STEPS: Step[] = [
     },
   },
   {
-    target: "#btn-creer-seance",
-    title: "Créer une séance",
-    content: "Sur cette page, je vais ouvrir le formulaire de séance pour vous.",
+    target: ".resource-kebab-btn",
+    title: "Le menu d'actions",
+    content: "Cliquez sur les 3 petits points pour voir les actions disponibles pour cette ressource.",
     data: { image: "/images/TT4.png" },
-    placement: "bottom",
+    placement: "left",
     before: async () => {
-      await navigateToFirstResource();
+      await closeDialog(".resource-input-label");
+    },
+  },
+  {
+    target: ".menu-item-creer-seance",
+    title: "Créer une séance",
+    content: "Cliquez sur \"Créer une séance\" pour ouvrir le formulaire. Je vais le faire pour vous !",
+    data: { image: "/images/TT4.png" },
+    placement: "left",
+    targetWaitTimeout: 5000,
+    before: async () => {
+      await openResourceKebabMenu();
     },
   },
   {
     target: "[role='dialog']",
     title: "Fenêtre de séance ouverte",
-    content: "La fenêtre est maintenant ouverte au complet. Vérifiez vos informations, puis on valide.",
+    content: "La fenêtre est maintenant ouverte. Remplissez les informations de votre séance.",
     data: { image: "/images/TT4.png" },
     placement: "left",
     targetWaitTimeout: 15000,
     before: async () => {
-      await openSessionDialog();
+      await openSessionDialogFromMenu();
     },
   },
   {
@@ -212,7 +254,7 @@ const LONG_TOUR_STEPS: Step[] = [
     data: { image: "/images/TT4.png" },
     placement: "top",
     before: async () => {
-      await openSessionDialog();
+      await openSessionDialogFromMenu();
     },
   },
   {
@@ -484,19 +526,26 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
 
       const hasClickedCreateResourceButton =
         clickedElement.closest(".btn-creer-ressource, [id^='btn-creer-ressource-']") !== null;
-      const hasClickedCreateSessionButton = clickedElement.closest("#btn-creer-seance") !== null;
+      const hasClickedKebabButton = clickedElement.closest(".resource-kebab-btn") !== null;
+      const hasClickedCreateSessionMenuItem = clickedElement.closest(".menu-item-creer-seance") !== null;
       const hasClickedResourceSubmitButton =
         clickedElement.closest(".resource-submit-btn, [id^='resource-submit-btn-']") !== null;
       const hasClickedSessionSubmitButton = clickedElement.closest("#session-submit-btn") !== null;
 
       const isCreateResourceStep =
         activeTarget === ".btn-creer-ressource" || activeTarget.startsWith("#btn-creer-ressource-");
-      const isCreateSessionStep = activeTarget === "#btn-creer-seance";
+      const isKebabStep = activeTarget === ".resource-kebab-btn";
+      const isCreateSessionMenuStep = activeTarget === ".menu-item-creer-seance";
       const isResourceSubmitStep =
         activeTarget === ".resource-submit-btn" || activeTarget.startsWith("#resource-submit-btn-");
       const isSessionSubmitStep = activeTarget === "#session-submit-btn";
 
-      if (isCreateSessionStep && hasClickedCreateSessionButton) {
+      if (isKebabStep && hasClickedKebabButton) {
+        scheduleStepAdvance(500);
+        return;
+      }
+
+      if (isCreateSessionMenuStep && hasClickedCreateSessionMenuItem) {
         scheduleStepAdvance(3000);
         return;
       }

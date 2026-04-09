@@ -217,13 +217,14 @@ export default function CollapsibleResource({ resourceItem }: Readonly<{ resourc
                 <TableCell data-ignore-row-click onClick={(event) => event.stopPropagation()}>
                     <DropdownMenu>
                         <DropdownMenuTrigger className="cursor-pointer" title="Actions" asChild>
-                            <Button variant="ghost" size="icon" onClick={(event) => event.stopPropagation()}>
+                            <Button className="resource-kebab-btn" variant="ghost" size="icon" onClick={(event) => event.stopPropagation()}>
                                 <span className="sr-only">Ouvrir le menu actions</span>
                                 <MoreVertIcon />
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
                             <DropdownMenuItem
+                                className="menu-item-creer-seance"
                                 onSelect={() => setCreateSessionResourceId(resourceItem.resource.resourceId)}
                             >
                                 Créer une séance
