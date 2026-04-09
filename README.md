@@ -79,6 +79,24 @@ pnpm dev
 
 Open [http://localhost:3005](http://localhost:3005).
 
+### Isoler Playwright sur une branche Neon
+
+`test:playwright` crée désormais automatiquement une branche Neon temporaire, lance les tests dessus, puis supprime la branche en fin d'exécution.
+
+Pour lancer les tests E2E avec ce flux automatisé :
+
+```bash
+pnpm test:playwright
+```
+
+En mode debug, vous pouvez conserver la branche temporaire :
+
+```bash
+pnpm test:playwright:keep-branch
+```
+
+Les commandes `test:playwright:neon-branch` et `test:playwright:neon-branch:keep` restent disponibles comme alias.
+
 ---
 
 # 📝 Conventions de Nommage

@@ -237,12 +237,12 @@ test.describe('Reset password flow', () => {
         await page.getByLabel('Confirmer le mot de passe').fill(studentCredentials.newPassword);
         await page.getByRole('button', { name: 'Modifier le mot de passe' }).click();
 
-        await page.waitForTimeout(1000);
-
-        // Selon le flux front courant, la redirection peut etre immediate ou rester sur la page.
-        // Dans les deux cas, la session de reset doit etre consommee.
-        await page.goto(`/reset-password?session_id=${sessionId}`);
-        await expect(page.getByRole('heading', { name: 'Session de réinitialisation invalide' })).toBeVisible();
+        // La server action peut finaliser l'invalidation de session apres le click.
+        // On poll l'etat reel de la session au lieu d'un timeout fixe.
+        await expect.poll(async () => {
+            await page.goto(`/reset-password?session_id=${sessionId}`);
+            return await page.getByRole('heading', { name: 'Session de réinitialisation invalide' }).isVisible();
+        }, { timeout: 15_000 }).toBe(true);
     });
 
     test('should show invalid session screen for unsupported target', async ({ page }) => {

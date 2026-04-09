@@ -1,5 +1,5 @@
 import CoursContainer from '@/components/cours/CoursContainer';
-import SessionModal from './SessionModal';
+import CreateSessionButton from './CreateSessionButton';
 import { groupQueries } from '@/lib/db/queries/group';
 import { resourceQueries } from '@/lib/db/queries/resource';
 import { sessionGroupQueries } from '@/lib/db/queries/session-group';
@@ -70,7 +70,7 @@ export default async function ResourcePage({ params }: Readonly<{ params: Promis
         <section className="flex flex-col">
             <header className="sticky top-0 z-20 mb-4 flex flex-col items-center gap-2 bg-background py-2 text-center sm:flex-row sm:items-center sm:justify-between sm:text-left">
                 <h1 className="h1">{resource.subject}</h1>
-                <SessionModal resourceId={resource.resourceId} initSession={undefined} />
+                <CreateSessionButton resourceId={resource.resourceId} />
             </header>
             <CoursContainer courses={sortedSessions} groupCourses={sessionGroups} groups={groups} />
         </section>

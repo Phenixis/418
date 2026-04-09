@@ -9,8 +9,6 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -18,10 +16,15 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { deleteTeacherAccount, refuseTeacherAccount, validateTeacherAccount } from "@/lib/actions/admin";
 import { Select as Teacher } from "@/lib/db/schema/teacher";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
+import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
+import DeleteIcon from '@mui/icons-material/Delete';
+import ClearIcon from '@mui/icons-material/Clear';
 import { useActionState, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -69,9 +72,23 @@ export default function TeachersTableRow({
             <TableCell className="text-left px-6">{teacher.firstName} {teacher.lastName}</TableCell>
             <TableCell className="text-left px-6">{teacher.userMail}</TableCell>
             <TableCell className="text-left px-6">{teacher.isAdmin ? "Administrateur" : "Enseignant"}</TableCell>
-            <TableCell>
-                <DropdownMenu>
-                    <DropdownMenuTrigger className="cursor-pointer p-2" title="Actions" asChild>
+            <TableCell className="flex items-center justify-end px-6">
+                {/* Bouton de validation et de refus visible seulement si non validé */}
+                <form action={validateTeacherAction}>
+                    <input type="hidden" name="teacherEmail" value={teacher.userMail} />
+                    <Button type="submit" hidden={teacher.isValidated} variant="default" className="bg-transparent text-green hover:bg-primary/80" size="icon">
+                        <VerifiedUserIcon />
+                    </Button>
+                    <Button type="reset" hidden={teacher.isValidated} variant="destructive" className="bg-transparent text-red hover:bg-primary/80" size="icon" onClick={(event) => {
+                        event.preventDefault();
+                        setIsRefuseDialogOpen(true);
+                    }}>
+                        <ClearIcon />
+                    </Button>
+                </form>
+                {/* DropdownMenu visible seulement si validé */}
+                <DropdownMenu >
+                    <DropdownMenuTrigger hidden={!teacher.isValidated} className="cursor-pointer p-2" title="Actions" asChild>
                         <Button variant="ghost" size="icon">
                             <span className="sr-only">Open actions menu</span>
                             <MoreVertIcon />
@@ -97,15 +114,6 @@ export default function TeachersTableRow({
                                 <form action={validateTeacherAction} ref={validateTeacherFormRef}>
                                     <input type="hidden" name="teacherEmail" value={teacher.userMail} />
                                 </form>
-                                <DropdownMenuItem
-                                    variant="default"
-                                    onSelect={(event) => {
-                                        event.preventDefault();
-                                        validateTeacherFormRef.current?.requestSubmit();
-                                    }}
-                                >
-                                    Valider le compte
-                                </DropdownMenuItem>
                                 <DropdownMenuItem
                                     variant="destructive"
                                     onSelect={(event) => {
@@ -139,7 +147,6 @@ export default function TeachersTableRow({
                         </form>
                     </AlertDialogContent>
                 </AlertDialog>
-
                 <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
                     <AlertDialogContent size="sm">
                         <form action={deleteTeacherAction}>

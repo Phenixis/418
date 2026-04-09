@@ -96,6 +96,25 @@ function getStudentCards(page: Page): Locator {
 // Un étudiant est considéré présent s'il a un statut « présent » ou un statut de retard
 // (vert = présent, jaune/orange/rouge = retard niveau 1/2/3)
 const PRESENCE_BG_CLASSES = ['div.bg-green', 'div.bg-yellow-400', 'div.bg-orange', 'div.bg-red'];
+function getEditModeButton(page: Page): Locator {
+	return page.getByRole('button', { name: /Activer le mode édition|Désactiver le mode édition/ });
+}
+
+async function activateEditMode(page: Page): Promise<void> {
+	const editButton = getEditModeButton(page);
+	await expect(editButton).toBeVisible();
+	await expect(editButton).toHaveAttribute('aria-pressed', 'false');
+	await editButton.click();
+	await expect(editButton).toHaveAttribute('aria-pressed', 'true');
+}
+
+async function deactivateEditMode(page: Page): Promise<void> {
+	const editButton = getEditModeButton(page);
+	await expect(editButton).toBeVisible();
+	await expect(editButton).toHaveAttribute('aria-pressed', 'true');
+	await editButton.click();
+	await expect(editButton).toHaveAttribute('aria-pressed', 'false');
+}
 
 async function isStudentPresent(studentCard: Locator): Promise<boolean> {
 	for (const presenceClass of PRESENCE_BG_CLASSES) {
@@ -281,6 +300,11 @@ test.describe('Segment dynamique de cours', () => {
 				throw new Error('Impossible de remettre l\'étudiant en non-scanné.');
 			}
 		}
+		// Le mode édition doit être activé pour pouvoir modifier le statut
+		await activateEditMode(authenticatedPage);
+
+		const initialStudentPresence = await isStudentPresent(firstStudentCard);
+		const expectedStatusAfterFirstClick = initialStudentPresence ? 'non-scanne' : 'present';
 
 		await firstStudentCard.click();
 		await expect.poll(async () => isStudentPresent(firstStudentCard)).toBe(true);
@@ -330,5 +354,97 @@ test.describe('Segment dynamique de cours', () => {
 		if (first3A2Index !== -1 && last3A1Index !== -1) {
 			expect(first3A2Index).toBeGreaterThan(last3A1Index);
 		}
+	});
+});
+
+test.describe('Mode édition', () => {
+	test.beforeEach(async ({ authenticatedPage }) => {
+		await openCourseByStatus(authenticatedPage, 'En cours');
+	});
+
+	test('doit afficher le bouton mode édition sur un cours en cours', async ({ authenticatedPage }) => {
+		const editButton = getEditModeButton(authenticatedPage);
+		await expect(editButton).toBeVisible();
+		await expect(editButton).toBeEnabled();
+		await expect(editButton).toHaveAttribute('aria-pressed', 'false');
+	});
+
+	test('ne doit pas modifier le statut d\'un étudiant sans activer le mode édition', async ({ authenticatedPage }) => {
+		const firstStudentCard = getStudentCards(authenticatedPage).first();
+		await expect(firstStudentCard).toBeVisible();
+
+		const initialStudentPresence = await isStudentPresent(firstStudentCard);
+
+		await firstStudentCard.click();
+
+		// Vérifier qu'aucune requête toggle n'a été émise dans les 500 ms
+		let toggleRequestFired = false;
+		try {
+			await authenticatedPage.waitForRequest(
+				(request) => request.url().includes('/api/teacher/attendance/toggle') && request.method() === 'PATCH',
+				{ timeout: 500 },
+			);
+			toggleRequestFired = true;
+		} catch {
+			// Aucune requête émise dans le délai — comportement attendu
+		}
+
+		expect(toggleRequestFired).toBe(false);
+		// Le statut ne doit pas avoir changé
+		expect(await isStudentPresent(firstStudentCard)).toBe(initialStudentPresence);
+	});
+
+	test('doit modifier le statut d\'un étudiant après activation du mode édition', async ({ authenticatedPage }) => {
+		await activateEditMode(authenticatedPage);
+
+		const firstStudentCard = getStudentCards(authenticatedPage).first();
+		await expect(firstStudentCard).toBeVisible();
+
+		const initialStudentPresence = await isStudentPresent(firstStudentCard);
+		const expectedStatusAfterClick = initialStudentPresence ? 'non-scanne' : 'present';
+
+		const toggleResponsePromise = authenticatedPage.waitForResponse((response) =>
+			response.url().includes('/api/teacher/attendance/toggle') && response.request().method() === 'PATCH',
+		);
+
+		await firstStudentCard.click();
+
+		const toggleResponse = await toggleResponsePromise;
+		expect(toggleResponse.ok()).toBeTruthy();
+		const responseBody = await toggleResponse.json() as { status?: string };
+		expect(responseBody.status).toBe(expectedStatusAfterClick);
+
+		await expect.poll(async () => isStudentPresent(firstStudentCard)).toBe(!initialStudentPresence);
+
+		// Remettre le statut initial pour ne pas polluer les autres tests
+		await firstStudentCard.click();
+		await expect.poll(async () => isStudentPresent(firstStudentCard)).toBe(initialStudentPresence);
+	});
+
+	test('ne doit plus modifier le statut d\'un étudiant après désactivation du mode édition', async ({ authenticatedPage }) => {
+		await activateEditMode(authenticatedPage);
+		await deactivateEditMode(authenticatedPage);
+
+		const firstStudentCard = getStudentCards(authenticatedPage).first();
+		await expect(firstStudentCard).toBeVisible();
+
+		const initialStudentPresence = await isStudentPresent(firstStudentCard);
+
+		await firstStudentCard.click();
+
+		// Vérifier qu'aucune requête toggle n'a été émise dans les 500 ms
+		let toggleRequestFired = false;
+		try {
+			await authenticatedPage.waitForRequest(
+				(request) => request.url().includes('/api/teacher/attendance/toggle') && request.method() === 'PATCH',
+				{ timeout: 500 },
+			);
+			toggleRequestFired = true;
+		} catch {
+			// Aucune requête émise dans le délai — comportement attendu
+		}
+
+		expect(toggleRequestFired).toBe(false);
+		expect(await isStudentPresent(firstStudentCard)).toBe(initialStudentPresence);
 	});
 });

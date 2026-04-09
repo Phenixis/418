@@ -6,6 +6,7 @@ export const table = lib.pgTable('resource', {
     ...lib.baseAttributes,
     resourceId: lib.varchar('resource_id', { length: 36 }).primaryKey(),
     subject: lib.varchar('subject', { length: 50 }).notNull(),
+    source: lib.varchar('source', { length: 10 }),
 });
 
 export const relations = lib.relations(table, ({ many }) => ({

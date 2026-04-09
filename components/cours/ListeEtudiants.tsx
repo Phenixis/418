@@ -82,6 +82,7 @@ export default function ListeEtudiants({ sessionId, etudiants, onStudentsChange 
     const [recherche, setRecherche] = useState('');
     const [filtreActif, setFiltreActif] = useState<FiltrePresence>('tous');
     const [modeAffichage, setModeAffichage] = useState<ModeAffichage>('grille');
+    const [isModeEdition, setIsModeEdition] = useState(false);
 
     useEffect(() => {
         setStudents(etudiants);
@@ -175,7 +176,7 @@ export default function ListeEtudiants({ sessionId, etudiants, onStudentsChange 
     }, [connectionState, sessionId, pendingStudentMails]);
 
     async function handleStudentClick(student: StudentWithStatus) {
-        if (pendingStudentMails.has(student.userMail)) {
+        if (!isModeEdition || pendingStudentMails.has(student.userMail)) {
             return;
         }
 
@@ -256,24 +257,25 @@ export default function ListeEtudiants({ sessionId, etudiants, onStudentsChange 
 
     return (
         <div className="flex flex-col gap-4">
-            <div id="barre-actions-etudiants">
-                <BarreActions
-                    recherche={recherche}
-                    onRechercheChange={setRecherche}
-                    filtreActif={filtreActif}
-                    onFiltreChange={setFiltreActif}
-                    modeAffichage={modeAffichage}
-                    onModeAffichageChange={setModeAffichage}
-                />
-            </div>
+            <BarreActions
+                recherche={recherche}
+                onRechercheChange={setRecherche}
+                filtreActif={filtreActif}
+                onFiltreChange={setFiltreActif}
+                modeAffichage={modeAffichage}
+                onModeAffichageChange={setModeAffichage}
+                isModeEdition={isModeEdition}
+                onModeEditionChange={setIsModeEdition}
+            />
 
             {modeAffichage === "grille" ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
                     {etudiantsFiltres.map((etudiant) => (
                         <EtudiantCard
                             key={etudiant.userMail}
                             etudiant={etudiant}
                             isDisabled={pendingStudentMails.has(etudiant.userMail)}
+                            isEditable={isModeEdition}
                             onClick={handleStudentClick}
                         />
                     ))}
@@ -285,6 +287,7 @@ export default function ListeEtudiants({ sessionId, etudiants, onStudentsChange 
                             key={etudiant.userMail}
                             etudiant={etudiant}
                             isDisabled={pendingStudentMails.has(etudiant.userMail)}
+                            isEditable={isModeEdition}
                             onClick={handleStudentClick}
                         />
                     ))}

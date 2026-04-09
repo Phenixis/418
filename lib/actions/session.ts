@@ -4,6 +4,7 @@ import { fromZonedTime } from "date-fns-tz";
 import { revalidatePath } from "next/cache";
 import { sessionGroupQueries } from "@/lib/db/queries/session-group";
 import { sessionQueries } from "@/lib/db/queries/session";
+import { sessionTagQueries } from "@/lib/db/queries/session-tag";
 import { sessionTeacherQueries } from "@/lib/db/queries/session-teacher";
 import { teacherQueries } from "@/lib/db/queries/teacher";
 import { ActionResult } from "./types";
@@ -16,6 +17,7 @@ function parseSessionFormData(formData: FormData): {
     startDate: Date;
     durationInMinutes: number;
     groupIds: number[];
+    tagIds: number[];
     teacherMails: string[];
 } | { error: true; message: string } {
     const labelValue = formData.get("label");
@@ -24,6 +26,7 @@ function parseSessionFormData(formData: FormData): {
     const startTimeValue = formData.get("start-time");
     const durationValue = formData.get("duration");
     const groupsValues = formData.getAll("groups");
+    const tagsValues = formData.getAll("tags");
     const teacherMailsValues = formData.getAll("teacherEmail");
 
     if (
@@ -71,8 +74,20 @@ function parseSessionFormData(formData: FormData): {
         ...new Set(groupsValues.map((groupValue) => Number.parseInt(groupValue as string, 10))),
     ];
 
-    if (groupIds.length === 0 || groupIds.some((groupId) => !Number.isInteger(groupId) || groupId <= 0)) {
+    if (groupIds.some((groupId) => !Number.isInteger(groupId) || groupId <= 0)) {
         return { error: true, message: "Les groupes sélectionnés sont invalides." };
+    }
+
+    const tagIds = tagsValues.length > 0
+        ? [...new Set(tagsValues.map((tagValue) => Number.parseInt(tagValue as string, 10)))]
+        : [];
+
+    if (tagIds.some((tagId) => !Number.isInteger(tagId) || tagId <= 0)) {
+        return { error: true, message: "Les tags sélectionnés sont invalides." };
+    }
+
+    if (groupIds.length === 0 && tagIds.length === 0) {
+        return { error: true, message: "Veuillez sélectionner au moins un groupe ou un tag." };
     }
 
     const startDate = fromZonedTime(`${startDateAndTime}:00`, PARIS_TIME_ZONE);
@@ -93,6 +108,7 @@ function parseSessionFormData(formData: FormData): {
         startDate,
         durationInMinutes,
         groupIds,
+        tagIds,
         teacherMails,
     };
 }
@@ -145,6 +161,14 @@ export async function createSession(prevState: ActionResult, formData: FormData)
 
     if (sessionTeachersResults.some((sessionTeachersResult) => "error" in sessionTeachersResult)) {
         return { error: true, message: "La séance a été créée, mais la liaison avec les enseignants a échoué." };
+    }
+
+    if (parsedData.tagIds.length > 0) {
+        await Promise.all(
+            parsedData.tagIds.map((tagId) =>
+                sessionTagQueries.create({ sessionId, tagId })
+            )
+        );
     }
 
     revalidatePath(`/professeur/resource/${parsedData.resourceId}`);
@@ -224,6 +248,16 @@ export async function updateSession(prevState: ActionResult, formData: FormData)
 
     if (createTeachersResults.some((createTeachersResult) => "error" in createTeachersResult)) {
         return { error: true, message: "La séance a été modifiée, mais la liaison avec les enseignants a échoué." };
+    }
+
+    await sessionTagQueries.deleteBySessionId(sessionId);
+
+    if (parsedData.tagIds.length > 0) {
+        await Promise.all(
+            parsedData.tagIds.map((tagId) =>
+                sessionTagQueries.create({ sessionId, tagId })
+            )
+        );
     }
 
     revalidatePath(`/professeur/resource/${parsedData.resourceId}`);

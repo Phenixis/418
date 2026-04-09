@@ -14,8 +14,12 @@
     "db:seed:main": "npx tsx lib/db/seed-main.ts",
     "lint": "eslint",
     "prepare": "husky",
-    "test:playwright": "playwright test",
-    "test:playwright:ui": "playwright test --ui"
+    "test:playwright:raw": "playwright test",
+    "test:playwright:ui:raw": "playwright test --ui",
+    "test:playwright": "npx tsx scripts/run-playwright-on-neon-branch.ts",
+    "test:playwright:keep-branch": "npx tsx scripts/run-playwright-on-neon-branch.ts --keep-branch",
+    "test:playwright:ui": "npx tsx scripts/run-playwright-on-neon-branch.ts --ui",
+    "test:playwright:ui:keep-branch": "npx tsx scripts/run-playwright-on-neon-branch.ts --keep-branch --ui"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",
@@ -37,6 +41,7 @@
     "drizzle-orm": "^0.45.2",
     "jose": "^6.2.2",
     "lucide-react": "^0.577.0",
+    "neonctl": "^2.22.0",
     "next": "16.1.6",
     "next-themes": "^0.4.6",
     "prettier": "^3.8.1",

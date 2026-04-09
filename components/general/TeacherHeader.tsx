@@ -3,6 +3,7 @@
 import Logo, { LogoSizes, LogoVariants } from '@/components/general/logo';
 import ProfilBadge from '@/components/general/ProfilBadge';
 import { Button } from '@/components/ui/button';
+import { useDialog } from '@/lib/hooks/use-dialog';
 import { useTeacher } from '@/lib/hooks/useTeacher';
 import SearchIcon from '@mui/icons-material/Search';
 import Link from 'next/link';
@@ -11,12 +12,14 @@ import SettingsMenu from '../admin/SettingsMenu';
 
 const ROUTES = {
     Dashboard: '/professeur/dashboard',
-    Trombinoscope: '/professeur/trombinoscope'
+    Trombinoscope: '/professeur/trombinoscope',
+    Tags: '/professeur/tags'
 };
 
 export default function TeacherHeader() {
     const { teacher } = useTeacher();
     const pathname = usePathname();
+    const { setIsGlobalSearchOpen } = useDialog();
 
     return (
         <div className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
@@ -49,11 +52,17 @@ export default function TeacherHeader() {
                 ))}
             </div>
 
-            <div id="nav-settings" className="hidden items-center gap-4 sm:flex">
-                <div className="hidden items-center gap-2 rounded-full bg-white mx-4 pl-4 pr-12 py-2 text-sm">
-                    <SearchIcon />
-                    <p>Rechercher</p>
-                </div>
+            <div className="hidden items-center gap-4 sm:flex">
+                <button
+                    onClick={() => setIsGlobalSearchOpen(true)}
+                    className="hidden items-center gap-2 rounded-full bg-white mx-4 pl-4 pr-4 py-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors sm:flex"
+                >
+                    <SearchIcon className="opacity-50" fontSize="small" />
+                    <span className="text-gray-500">Rechercher</span>
+                    <kbd className="ml-4 pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+                        Ctrl K
+                    </kbd>
+                </button>
                 {
                     teacher.isAdmin && <SettingsMenu/>
                 }

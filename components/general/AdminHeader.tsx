@@ -11,7 +11,8 @@ import SettingsMenu from '../admin/SettingsMenu';
 import { TutorialTrigger } from '@/components/tutorial/tutorial-trigger';
 
 const ROUTES = {
-    "Gestion des comptes": '/administrateur/gestion-comptes',
+    "Gestion des professeurs": '/administrateur/gestion-professeurs',
+    "Gestion des étudiants": '/administrateur/gestion-etudiants',
 };
 
 export default function AdminHeader() {

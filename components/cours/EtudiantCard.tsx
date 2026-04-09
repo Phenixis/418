@@ -14,6 +14,7 @@ interface EtudiantCardProps {
     etudiant: StudentWithStatus
     onClick?: (student: StudentWithStatus) => void
     isDisabled?: boolean
+    isEditable?: boolean
 }
 
 function isValidPhotoSource(photoUrl: string | null): photoUrl is string {
@@ -116,10 +117,12 @@ function ZoneNom({ prenom, nom, statut, groupName }: Readonly<{ prenom: string; 
 export default function EtudiantCard({
     etudiant,
     onClick,
-    isDisabled = false
+    isDisabled = false,
+    isEditable = false
 }: Readonly<EtudiantCardProps>) {
     const { firstName, lastName, picture, statut, groupName } = etudiant
     const isPresent = isEtudiantPresent(statut)
+    const isClickable = isEditable && !isDisabled
 
     return (
         <button className={cn(
@@ -127,9 +130,10 @@ export default function EtudiantCard({
             // Carte non-présente : élévation Material M3/Elevation Light/3
             !isPresent && "shadow-[0px_4px_8px_3px_rgba(0,0,0,0.15),0px_1px_3px_rgba(0,0,0,0.3)]",
             isDisabled && "opacity-70 cursor-not-allowed",
-            onClick && !isDisabled && "cursor-pointer hover:bg-background-alternative/80 active:bg-background-alternative/60 transition-colors"
+            isClickable && "cursor-pointer hover:bg-background-alternative/80 active:bg-background-alternative/60 transition-colors",
+            !isEditable && "cursor-default"
         )}
-            onClick={() => onClick?.(etudiant)}
+            onClick={() => isEditable && onClick?.(etudiant)}
             type="button"
             disabled={isDisabled}
         >

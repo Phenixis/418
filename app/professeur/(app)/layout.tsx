@@ -1,5 +1,6 @@
 import TeacherHeader from '@/components/general/TeacherHeader';
 import { teacherQueries } from '@/lib/db/queries/teacher';
+import { DialogProvider } from '@/lib/hooks/use-dialog';
 import { TeacherProvider } from '@/lib/hooks/useTeacher';
 
 export const dynamic = "force-dynamic"
@@ -9,8 +10,10 @@ export default function ProfesseurLayout({ children }: Readonly<{ children: Reac
 
     return (
         <TeacherProvider teacherPromise={teacherPromise}>
-            <TeacherHeader />
-            <main className="container mx-auto">{children}</main>
+            <DialogProvider>
+                <TeacherHeader />
+                <main className="container mx-auto">{children}</main>
+            </DialogProvider>
         </TeacherProvider>
     );
 }
