@@ -124,6 +124,15 @@ class SessionQueries extends QueryModel<NewSession, Session> {
         return { success: 'Séance trouvée.', entity: result[0] as Session };
     }
 
+    async findAllAde(): Promise<QueryResult<Session[]>> {
+        const result = await lib.db
+            .select()
+            .from(this.table)
+            .where(lib.and(lib.isNotNull(this.table.adeUid), lib.isNull(this.table.deletedAt)));
+
+        return { success: 'Séances ADE trouvées.', entity: result as Session[] };
+    }
+
     async upsertAde(data: {
         adeUid: string;
         resourceId: string;
@@ -132,8 +141,11 @@ class SessionQueries extends QueryModel<NewSession, Session> {
         endAt: Date;
         teacherMail: string;
         groupIds: number[];
+        existingSessionId?: string;
     }): Promise<QueryResult<Session>> {
-        const existing = await this.findByAdeUid(data.adeUid);
+        const existing = data.existingSessionId
+            ? { entity: { sessionId: data.existingSessionId } }
+            : await this.findByAdeUid(data.adeUid);
 
         if ('entity' in existing) {
             const sessionId = existing.entity.sessionId;

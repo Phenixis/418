@@ -24,6 +24,26 @@ async function runIcalImport(
         };
     }
 
+    const allAdeSessionsResult = await sessionQueries.findAllAde();
+    const sessionIdByAdeUid = new Map<string, string>();
+
+    if ('entity' in allAdeSessionsResult) {
+        for (const session of allAdeSessionsResult.entity) {
+            if (session.adeUid) {
+                sessionIdByAdeUid.set(session.adeUid, session.sessionId);
+            }
+        }
+    }
+
+    const allGroupsResult = await groupQueries.getAll();
+    const groupIdByKey = new Map<string, number>();
+
+    if ('entity' in allGroupsResult) {
+        for (const group of allGroupsResult.entity) {
+            groupIdByKey.set(`${group.promo}-${group.td}-${group.tp}`, group.groupId);
+        }
+    }
+
     let resourceCount = 0;
     let sessionCount = 0;
 
@@ -56,17 +76,11 @@ async function runIcalImport(
         const groupIds: number[] = [];
 
         if (event.groupCode) {
-            const parsedGroups = parseGroupCode(event.groupCode);
+            for (const parsedGroup of parseGroupCode(event.groupCode)) {
+                const groupId = groupIdByKey.get(`${parsedGroup.promo}-${parsedGroup.td}-${parsedGroup.tp}`);
 
-            for (const parsedGroup of parsedGroups) {
-                const groupResult = await groupQueries.getByPromoTdTp(
-                    parsedGroup.promo,
-                    parsedGroup.td,
-                    parsedGroup.tp
-                );
-
-                if ('entity' in groupResult) {
-                    groupIds.push(groupResult.entity.groupId);
+                if (groupId !== undefined) {
+                    groupIds.push(groupId);
                 }
             }
         }
@@ -79,6 +93,7 @@ async function runIcalImport(
             endAt: event.endAt,
             teacherMail,
             groupIds,
+            existingSessionId: sessionIdByAdeUid.get(event.uid),
         });
 
         if ("error" in sessionResult) {
