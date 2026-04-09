@@ -1,6 +1,6 @@
 import ResourceModal from '@/components/cours/creation/ResourceModal';
 import { BreadcrumbProvider, BreadcrumbSlot } from './breadcrumb-context';
-import { TutorialTrigger } from '@/components/tutorial/tutorial-trigger';
+import { TutorialAutoLauncher } from '@/components/tutorial/TutorialAutoLauncher';
 
 export default function DashboardLayout({
     children
@@ -25,7 +25,7 @@ export default function DashboardLayout({
                 <div className="hidden sm:flex sm:min-w-max gap-2 items-center">
                     <ResourceModal triggerId="btn-creer-ressource-desktop" uniqueId="desktop" />
                 </div>
-                <TutorialTrigger />
+                <TutorialAutoLauncher />
             </div>
             {children}
         </BreadcrumbProvider>

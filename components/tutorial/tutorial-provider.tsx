@@ -1,7 +1,7 @@
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode, useSyncExternalStore } from "react";
-import { Joyride, EventData, STATUS, Step, TooltipRenderProps, EVENTS } from "react-joyride";
+import React, { createContext, useContext, useEffect, useState, ReactNode, useSyncExternalStore } from "react";
+import { Joyride, EventData, STATUS, Step, TooltipRenderProps, EVENTS, type BeaconRenderProps } from "react-joyride";
 import Image from "next/image";
 import { Zap, BookOpen, type LucideIcon } from "lucide-react";
 
@@ -107,7 +107,7 @@ function getDynamicSteps(steps: Step[]): Step[] {
         newTarget = `#resource-submit-btn-${suffix}`;
       }
     }
-    return { ...step, target: newTarget, disableBeacon: true };
+    return { ...step, target: newTarget };
   });
 }
 
@@ -241,6 +241,7 @@ interface TutorialContextType {
   startTutorial: () => void;
   nextStep: () => void;
   stopTutorial: () => void;
+  hasCompletedTutorial: boolean;
 }
 
 const TutorialContext = createContext<TutorialContextType | undefined>(undefined);
@@ -249,6 +250,72 @@ export function useTutorial() {
   const context = useContext(TutorialContext);
   if (!context) throw new Error("useTutorial must be used within a TutorialProvider");
   return context;
+}
+
+function AnimatedTutorialBeacon({ index, size }: BeaconRenderProps) {
+  return (
+    <span
+      aria-label={`Étape ${index + 1} sur ${size}`}
+      style={{
+        width: "74px",
+        height: "74px",
+        borderRadius: "999px",
+        border: "3px solid #ffffff",
+        background: "rgba(255,255,255,0.95)",
+        boxShadow: "0 14px 34px rgba(0,0,0,0.36), 0 0 0 6px rgba(202,159,255,0.35)",
+        padding: "4px",
+        position: "relative",
+        cursor: "pointer",
+        display: "inline-block",
+        animation: "tutorial-beacon-float 2.2s ease-in-out infinite",
+      }}
+    >
+      <span
+        aria-hidden
+        style={{
+          position: "absolute",
+          inset: "-10px",
+          borderRadius: "999px",
+          border: "3px solid rgba(202,159,255,0.65)",
+          animation: "tutorial-beacon-pulse 1.2s ease-out infinite",
+        }}
+      />
+      <span
+        aria-hidden
+        style={{
+          position: "absolute",
+          inset: "-18px",
+          borderRadius: "999px",
+          background: "radial-gradient(circle, rgba(202,159,255,0.25) 0%, rgba(202,159,255,0) 70%)",
+          animation: "tutorial-beacon-pulse 1.6s ease-out infinite",
+        }}
+      />
+      <span style={{ position: "relative", display: "block", width: "100%", height: "100%" }}>
+        <Image src="/images/TT2.png" alt="Beacon tutoriel" fill style={{ objectFit: "contain" }} />
+      </span>
+      <span
+        aria-hidden
+        style={{
+          position: "absolute",
+          left: "50%",
+          bottom: "-20px",
+          transform: "translateX(-50%)",
+          fontSize: "10px",
+          fontWeight: 800,
+          letterSpacing: "0.08em",
+          color: "#ffffff",
+          background: "#171717",
+          border: "1px solid rgba(255,255,255,0.5)",
+          borderRadius: "999px",
+          padding: "2px 8px",
+          whiteSpace: "nowrap",
+          boxShadow: "0 4px 10px rgba(0,0,0,0.35)",
+        }}
+      >
+        GUIDE
+      </span>
+    </span>
+  );
 }
 
 // ─── Tooltip personnalisé ─────────────────────────────────────────────────────
@@ -329,6 +396,22 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
   const [run, setRun] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const [currentSteps, setCurrentSteps] = useState<Step[]>(SHORT_TOUR_STEPS);
+  const [hasCompletedTutorial, setHasCompletedTutorial] = useState(false);
+  const [shouldStartTour, setShouldStartTour] = useState(false);
+
+  const markTutorialAsCompleted = async () => {
+    try {
+      const response = await fetch('/api/teacher/tutorial/complete', {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to complete tutorial status update.');
+      }
+    } catch (error) {
+      console.error('Unable to update teacher first connection status:', error);
+    }
+  };
 
   const startTutorial = () => {
     setStepIndex(0);
@@ -350,17 +433,35 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
     if (type === EVENTS.TARGET_NOT_FOUND) {
       setStepIndex((prev) => prev + 1);
     }
-    if (([STATUS.FINISHED, STATUS.SKIPPED] as string[]).includes(status)) {
+    if (status === STATUS.FINISHED) {
+      setHasCompletedTutorial(true);
+      void markTutorialAsCompleted();
+      stopTutorial();
+      return;
+    }
+
+    if (status === STATUS.SKIPPED) {
       stopTutorial();
     }
   };
 
   const handleSelectTour = (type: 'short' | 'long') => {
     const baseSteps = type === 'short' ? SHORT_TOUR_STEPS : LONG_TOUR_STEPS;
+    setRun(false);
     setCurrentSteps(getDynamicSteps(baseSteps));
+    setStepIndex(0);
     setShowWelcome(false);
-    setRun(true);
+    setShouldStartTour(true);
   };
+
+  useEffect(() => {
+    if (!shouldStartTour) {
+      return;
+    }
+
+    setRun(true);
+    setShouldStartTour(false);
+  }, [currentSteps, shouldStartTour]);
 
   const mounted = useSyncExternalStore(
     () => () => { },
@@ -369,7 +470,7 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
   );
 
   return (
-    <TutorialContext.Provider value={{ startTutorial, nextStep, stopTutorial }}>
+    <TutorialContext.Provider value={{ startTutorial, nextStep, stopTutorial, hasCompletedTutorial }}>
       {children}
       {mounted && showWelcome && (
         <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -412,8 +513,21 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
           scrollToFirstStep={true}
           onEvent={handleJoyrideCallback}
           tooltipComponent={CustomTooltip}
+          beaconComponent={AnimatedTutorialBeacon}
           styles={{
-            overlay: { backgroundColor: "rgba(23, 23, 23, 0.82)" }
+            overlay: { backgroundColor: "rgba(23, 23, 23, 0.82)" },
+            beacon: {
+              width: "74px",
+              height: "74px",
+              borderRadius: "999px",
+            },
+            beaconInner: {
+              backgroundColor: "rgba(115, 115, 115, 0.9)",
+            },
+            beaconOuter: {
+              backgroundColor: "rgba(163, 163, 163, 0.35)",
+              border: "2px solid rgba(115, 115, 115, 0.9)",
+            },
           }}
           options={{
             zIndex: 10000,
@@ -423,6 +537,18 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
           }}
         />
       )}
+      <style jsx global>{`
+        @keyframes tutorial-beacon-float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-8px); }
+        }
+
+        @keyframes tutorial-beacon-pulse {
+          0% { transform: scale(0.88); opacity: 0.95; }
+          70% { transform: scale(1.45); opacity: 0; }
+          100% { transform: scale(1.45); opacity: 0; }
+        }
+      `}</style>
     </TutorialContext.Provider>
   );
 }
