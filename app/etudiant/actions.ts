@@ -120,11 +120,14 @@ async function getValidCourse(sessionId: string): Promise<ServerActionResult<Cou
     }
 
     const now = new Date();
-    if (normalizedCourseStartAt > now) {
+    const hasStarted = course.manualCallStartAt !== null || normalizedCourseStartAt <= now;
+    const hasEnded = course.manualCallEndAt !== null || normalizedCourseEndAt < now;
+
+    if (!hasStarted) {
       return { success: false, error: "La connexion à ce cours n'est pas encore ouverte." };
     }
 
-    if (normalizedCourseEndAt < now) {
+    if (hasEnded) {
       return { success: false, error: "La connexion à ce cours est terminée." };
     }
 

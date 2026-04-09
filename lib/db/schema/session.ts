@@ -14,6 +14,8 @@ export const table = lib.pgTable('session', {
     startAt: lib.timestamp('start_at').notNull(),
     endAt: lib.timestamp('end_at').notNull(),
     subject: lib.varchar('subject', { length: 50 }).notNull(),
+    manualCallStartAt: lib.timestamp('manual_call_start_at'),
+    manualCallEndAt: lib.timestamp('manual_call_end_at'),
 });
 
 export const relations = lib.relations(table, ({ many, one }) => ({

@@ -25,13 +25,23 @@ interface InitialResource {
 
 export default function ResourceModal({
     initResource,
+    open: controlledOpen,
+    onOpenChange: controlledOnOpenChange,
 }: Readonly<{
     initResource?: InitialResource;
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
 }>) {
     const { teacher } = useTeacher();
     const router = useRouter();
 
-    const [isResourceDialogOpen, setIsResourceDialogOpen] = useState(false);
+    const isControlled = controlledOpen !== undefined;
+    const [internalOpen, setInternalOpen] = useState(false);
+    const isResourceDialogOpen = isControlled ? controlledOpen : internalOpen;
+    const setIsResourceDialogOpen = isControlled
+        ? (controlledOnOpenChange ?? setInternalOpen)
+        : setInternalOpen;
+
     const [label, setLabel] = useState(initResource?.subject || "");
     const [isFormValid, setIsFormValid] = useState(false);
 
@@ -55,75 +65,61 @@ export default function ResourceModal({
     }, [label]);
 
     return (
-        <>
-            {isResourceDialogOpen && (
-                <button
-                    type="button"
-                    aria-label="Fermer le dialogue de création/modification de ressource"
-                    className="fixed inset-0 z-40 bg-black/50"
-                    onClick={() => setIsResourceDialogOpen(false)}
-                />
-            )}
-            <Dialog
-                modal={false}
-                open={isResourceDialogOpen}
-                onOpenChange={setIsResourceDialogOpen}
-            >
+        <Dialog
+            modal={false}
+            open={isResourceDialogOpen}
+            onOpenChange={setIsResourceDialogOpen}
+        >
+            {!isControlled && (
                 <DialogTrigger asChild>
                     <Button variant="default">
-                        {
-                            initResource === undefined ? "Créer une ressource" : "Modifier la ressource"
-                        }
+                        {initResource === undefined ? "Créer une ressource" : "Modifier la ressource"}
                     </Button>
                 </DialogTrigger>
-                <DialogContent className="z-50">
-                    <DialogHeader>
-                        <DialogTitle className="h2 font-normal">
-                            {
-                                initResource === undefined ? "Créer une ressource" : "Modifier la ressource"
-                            }
-                        </DialogTitle>
-                        <DialogDescription hidden>
-                            Dialogue de création/modification de ressource
-                        </DialogDescription>
-                    </DialogHeader>
-                    <form action={formAction} className="w-full">
-                        {
-                            initResource !== undefined && (
-                                <input type="hidden" name="resourceId" value={initResource.resourceId} className="hidden" readOnly />
-                            )
-                        }
-                        <input type="hidden" name="teacherEmail" value={teacher.userMail} className="hidden" readOnly />
-                        <div className="w-full flex flex-col gap-2 mb-2">
-                            <Label htmlFor="label">Nom de la ressource</Label>
-                            <Input
-                                id="label"
-                                name="label"
-                                type="text"
-                                placeholder="Nom de la ressource"
-                                value={label}
-                                onChange={(e) => setLabel(e.target.value.slice(0, 50))}
-                                maxLength={50}
-                            />
-                        </div>
+            )}
+            <DialogContent
+                className="z-50"
+                onInteractOutside={(e) => e.preventDefault()}
+                onFocusOutside={(e) => e.preventDefault()}
+            >
+                <DialogHeader>
+                    <DialogTitle className="h2 font-normal">
+                        {initResource === undefined ? "Créer une ressource" : "Modifier la ressource"}
+                    </DialogTitle>
+                    <DialogDescription hidden>
+                        Dialogue de création/modification de ressource
+                    </DialogDescription>
+                </DialogHeader>
+                <form action={formAction} className="w-full">
+                    {initResource !== undefined && (
+                        <input type="hidden" name="resourceId" value={initResource.resourceId} className="hidden" readOnly />
+                    )}
+                    <input type="hidden" name="teacherEmail" value={teacher.userMail} className="hidden" readOnly />
+                    <div className="w-full flex flex-col gap-2 mb-2">
+                        <Label htmlFor="label">Nom de la ressource</Label>
+                        <Input
+                            id="label"
+                            name="label"
+                            type="text"
+                            placeholder="Nom de la ressource"
+                            value={label}
+                            onChange={(e) => setLabel(e.target.value.slice(0, 50))}
+                            maxLength={50}
+                        />
+                    </div>
 
-                        <DialogFooter className="flex-col sm:flex-col">
-                            {
-                                "error" in state && (
-                                    <p className="text-sm text-red-500">
-                                        {state.message}
-                                    </p>
-                                )
-                            }
-                            <Button type="submit" variant="big" className="w-full" disabled={pending || !isFormValid}>
-                                {
-                                    initResource === undefined ? "Créer la ressource" : "Modifier la ressource"
-                                }
-                            </Button>
-                        </DialogFooter>
-                    </form>
-                </DialogContent>
-            </Dialog>
-        </>
+                    <DialogFooter className="flex-col sm:flex-col">
+                        {"error" in state && (
+                            <p className="text-sm text-red-500">
+                                {state.message}
+                            </p>
+                        )}
+                        <Button type="submit" variant="big" className="w-full" disabled={pending || !isFormValid}>
+                            {initResource === undefined ? "Créer la ressource" : "Modifier la ressource"}
+                        </Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
     );
 }

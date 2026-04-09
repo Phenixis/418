@@ -52,7 +52,7 @@ export default function BarreActions({
     onModeEditionChange
 }: Readonly<BarreActionsProps>) {
     return (
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col md:flex-row items-center gap-3">
             {/* Barre de recherche */}
             <div className="relative w-full max-w-sm">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 !size-5 text-faded pointer-events-none" />
@@ -66,19 +66,25 @@ export default function BarreActions({
             </div>
 
             {/* Badges de filtrage */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center rounded-md border border-faded overflow-hidden">
                 {FILTRES.map(({ valeur, label }) => {
                     const isActif = filtreActif === valeur;
 
                     return (
-                        <Badge
+                        <Button
                             key={valeur}
-                            variant={isActif ? 'default' : 'outline'}
-                            className={cn('cursor-pointer select-none px-3 py-1', !isActif && 'hover:bg-black/5')}
+                            variant={isActif ? 'default' : 'ghost'}
+                            size="sm"
                             onClick={() => onFiltreChange(valeur)}
+                            className={cn(
+                                'rounded-none',
+                                isActif && 'border-r border-faded',
+                                !isActif && 'hover:bg-black/5',
+                                valeur !== FILTRES.at(-1)?.valeur && 'border-r'
+                            )}
                         >
                             {label}
-                        </Badge>
+                        </Button>
                     );
                 })}
             </div>
@@ -100,8 +106,8 @@ export default function BarreActions({
                 {isModeEdition ? 'Terminer' : 'Éditer'}
             </Button>
 
-            {/* Toggle grille / liste */}
-            <div className="flex items-center rounded-md border border-faded">
+            {/* Toggle grille / liste (poussé à droite) */}
+            <div className="md:ml-auto flex items-center rounded-md border border-faded">
                 <Button
                     variant={modeAffichage === 'grille' ? 'default' : 'ghost'}
                     size="icon"
