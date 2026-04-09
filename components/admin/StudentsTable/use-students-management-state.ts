@@ -38,7 +38,7 @@ export function useStudentCollapsible(groups: Group[]) {
 		const defaultOpenYearKeys: Record<string, boolean> = {};
 
 		for (const group of groups) {
-			defaultOpenYearKeys[group.promo] = true;
+			defaultOpenYearKeys[group.promo] = false;
 		}
 
 		return defaultOpenYearKeys;
@@ -48,10 +48,10 @@ export function useStudentCollapsible(groups: Group[]) {
 		const defaultOpenGroupKeys: Record<string, boolean> = {};
 
 		for (const group of groups) {
-			defaultOpenGroupKeys[String(group.groupId)] = true;
+			defaultOpenGroupKeys[String(group.groupId)] = false;
 		}
 
-		defaultOpenGroupKeys[UNASSIGNED_GROUP_ID] = true;
+		defaultOpenGroupKeys[UNASSIGNED_GROUP_ID] = false;
 
 		return defaultOpenGroupKeys;
 	});

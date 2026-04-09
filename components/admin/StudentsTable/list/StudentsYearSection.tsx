@@ -43,7 +43,7 @@ export function StudentsYearSection({
 	return (
 		<Collapsible
 			className="bg-transparent"
-			open={openYearKeys[year] ?? true}
+			open={openYearKeys[year] ?? false}
 			onOpenChange={(isOpen) => onYearOpenChange(year, isOpen)}
 		>
 			<div className="flex items-center justify-between gap-2">
@@ -67,7 +67,7 @@ export function StudentsYearSection({
 							key={group.groupId}
 							group={group}
 							students={groupStudents}
-							isOpen={openGroupKeys[groupKey] ?? true}
+							isOpen={openGroupKeys[groupKey] ?? false}
 							onOpenChange={(isOpen) => onGroupOpenChange(groupKey, isOpen)}
 							onEdit={onEdit}
 							onMove={onMove}
