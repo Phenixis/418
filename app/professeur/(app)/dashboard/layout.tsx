@@ -5,10 +5,10 @@ import { Button } from '@/components/ui/button';
 import { useDialog } from '@/lib/hooks/use-dialog';
 import { TutorialAutoLauncher } from '@/components/tutorial/TutorialAutoLauncher';
 
-function CreateResourceButton() {
+function CreateResourceButton({ id }: { id?: string }) {
     const { setIsCreateResourceDialogOpen } = useDialog();
     return (
-        <Button variant="default" onClick={() => setIsCreateResourceDialogOpen(true)}>
+        <Button variant="default" id={id} className="btn-creer-ressource" onClick={() => setIsCreateResourceDialogOpen(true)}>
             Créer une ressource
         </Button>
     );
@@ -26,7 +26,7 @@ export default function DashboardLayout({
                     <h1 className="h1 min-w-0 text-2xl text-center sm:text-4xl sm:text-left">Dashboard</h1>
 
                     <div className="sm:hidden">
-                        <CreateResourceButton />
+                        <CreateResourceButton id="btn-creer-ressource-mobile" />
                     </div>
                 </div>
 
@@ -35,7 +35,7 @@ export default function DashboardLayout({
                 </div>
 
                 <div className="hidden sm:block sm:min-w-max">
-                    <CreateResourceButton />
+                    <CreateResourceButton id="btn-creer-ressource-desktop" />
                 </div>
                 <TutorialAutoLauncher />
             </div>

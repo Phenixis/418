@@ -71,10 +71,12 @@ export default async function DashboardPage() {
 
     return (
         <section className="flex flex-col">
-            <ResourceTableClient
-                resourceItems={resourceItems}
-                sessionSubjectsByResourceId={sessionSubjectsByResourceId}
-            />
+            <div id="dashboard-resource-table">
+                <ResourceTableClient
+                    resourceItems={resourceItems}
+                    sessionSubjectsByResourceId={sessionSubjectsByResourceId}
+                />
+            </div>
         </section>
     );
 }

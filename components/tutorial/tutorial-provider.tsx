@@ -98,14 +98,8 @@ function getDynamicSteps(steps: Step[]): Step[] {
 
   return steps.map(step => {
     let newTarget = step.target;
-    if (typeof newTarget === "string") {
-      if (newTarget === ".btn-creer-ressource") {
-        newTarget = `#btn-creer-ressource-${suffix}`;
-      } else if (newTarget === ".resource-input-label") {
-        newTarget = `#resource-input-label-${suffix}`;
-      } else if (newTarget === ".resource-submit-btn") {
-        newTarget = `#resource-submit-btn-${suffix}`;
-      }
+    if (typeof newTarget === "string" && newTarget === ".btn-creer-ressource") {
+      newTarget = `#btn-creer-ressource-${suffix}`;
     }
     return { ...step, target: newTarget };
   });
