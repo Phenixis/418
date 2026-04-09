@@ -8,6 +8,7 @@ import { StatutEtudiant } from '@/components/cours/course.types';
 import { getProchainStatut, isEtudiantPresent } from '@/components/cours/course-utils';
 import { StudentWithStatus } from '@/lib/actions/cours-actuel';
 import { useAttendanceRealtime } from '@/hooks/use-attendance-realtime';
+import { useRouter } from 'next/navigation';
 
 interface ListeEtudiantsProps {
     sessionId: string;
@@ -83,6 +84,7 @@ export default function ListeEtudiants({ sessionId, etudiants, onStudentsChange 
     const [filtreActif, setFiltreActif] = useState<FiltrePresence>('tous');
     const [modeAffichage, setModeAffichage] = useState<ModeAffichage>('grille');
     const [isModeEdition, setIsModeEdition] = useState(false);
+    const router = useRouter();
 
     useEffect(() => {
         setStudents(etudiants);
@@ -176,6 +178,11 @@ export default function ListeEtudiants({ sessionId, etudiants, onStudentsChange 
     }, [connectionState, sessionId, pendingStudentMails]);
 
     async function handleStudentClick(student: StudentWithStatus) {
+        if (!isModeEdition) {
+            console.log(`Consultation de la fiche de ${student.firstName} ${student.lastName}`);
+            router.push(`/professeur/etudiant/${encodeURIComponent(student.userMail.split('@')[0])}`);
+        }
+
         if (!isModeEdition || pendingStudentMails.has(student.userMail)) {
             return;
         }
@@ -275,7 +282,7 @@ export default function ListeEtudiants({ sessionId, etudiants, onStudentsChange 
                             key={etudiant.userMail}
                             etudiant={etudiant}
                             isDisabled={pendingStudentMails.has(etudiant.userMail)}
-                            isEditable={isModeEdition}
+                            isEditable={true}
                             onClick={handleStudentClick}
                         />
                     ))}
