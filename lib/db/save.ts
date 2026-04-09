@@ -10,10 +10,11 @@ import { studentQueries } from "./queries/student";
 import { teacherQueries } from "./queries/teacher";
 import { Data } from "./save.types";
 import { normalize } from "node:path";
+import { pathToFileURL } from "node:url";
 
 export const SAVES_FOLDER_PATH = normalize(__dirname + "/saves/")
 
-async function save() {
+export async function saveDataToFile(fileName?: string) {
     const attendances = await attendanceQueries.getAll();
 
     if ("error" in attendances) {
@@ -97,7 +98,14 @@ async function save() {
         return;
     }
 
-    writeFileSync(SAVES_FOLDER_PATH + Date.now() + ".json", JSON.stringify(data, null, 2));
+    const normalizedFileName = fileName?.trim() || `${Date.now()}.json`;
+    writeFileSync(SAVES_FOLDER_PATH + normalizedFileName, JSON.stringify(data, null, 2));
 }
 
-save().then(() => console.log("Data saved successfully")).catch((error) => console.error("Error saving data:", error));
+const isMainModule = process.argv[1]
+    ? import.meta.url === pathToFileURL(process.argv[1]).href
+    : false;
+
+if (isMainModule) {
+    saveDataToFile().then(() => console.log("Data saved successfully")).catch((error) => console.error("Error saving data:", error));
+}

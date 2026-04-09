@@ -66,11 +66,21 @@ async function expandTeachersSection(page: Page): Promise<void> {
     const statusColumn = page.getByRole('columnheader', { name: 'Statut' });
 
     if (await statusColumn.count() > 0 && await statusColumn.first().isVisible()) {
+        // Wait for Suspense skeleton rows to be replaced by actual data rows.
+        // Skeleton rows have the 'animate-pulse' class; real rows do not.
+        await page.waitForFunction(
+            () => document.querySelectorAll('tbody tr:not(.animate-pulse)').length > 0,
+            { timeout: 20_000 },
+        );
         return;
     }
 
     await page.getByRole('button', { name: 'Liste des professeurs' }).click();
     await expect(statusColumn).toBeVisible();
+    await page.waitForFunction(
+        () => document.querySelectorAll('tbody tr:not(.animate-pulse)').length > 0,
+        { timeout: 20_000 },
+    );
 }
 
 function getTeacherRowByEmail(page: Page, teacherEmail: string) {
@@ -78,13 +88,13 @@ function getTeacherRowByEmail(page: Page, teacherEmail: string) {
 }
 
 async function openTeacherActionsMenu(page: Page, teacherRow: ReturnType<typeof getTeacherRowByEmail>) {
-    await page.keyboard.press('Escape');
-    await expect(page.locator('[data-slot="dropdown-menu-content"][data-state="open"]')).toHaveCount(0);
-
     await expect(teacherRow).toBeVisible({ timeout: 15_000 });
     await teacherRow.evaluate((rowElement) => {
         rowElement.scrollIntoView({ block: 'center', inline: 'nearest' });
     });
+
+    await page.keyboard.press('Escape');
+    await expect(page.locator('[data-slot="dropdown-menu-content"][data-state="open"]')).toHaveCount(0);
 
     const actionMenuButton = teacherRow.locator('td').last().locator('button').first();
     await expect(actionMenuButton).toBeVisible({ timeout: 15_000 });

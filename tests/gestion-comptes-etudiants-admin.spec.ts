@@ -52,8 +52,12 @@ test.describe('Page administrateur - gestion des étudiants', () => {
 
         await authenticatedAdminPage.getByRole('button', { name: 'Créer' }).click();
 
+        // Wait for the dialog to close before looking for the student card.
+        // The dialog closes after the API response is processed and the state is updated.
+        await expect(authenticatedAdminPage.getByRole('dialog')).not.toBeVisible({ timeout: 10000 });
+
         const createdStudentRow = authenticatedAdminPage.locator('article', { hasText: studentEmail }).first();
-        await expect(createdStudentRow).toBeVisible({ timeout: 10000 });
+        await expect(createdStudentRow).toBeVisible({ timeout: 5000 });
 
         await createdStudentRow.getByTitle('Supprimer').click();
 
