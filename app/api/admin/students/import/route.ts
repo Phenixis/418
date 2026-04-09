@@ -357,6 +357,11 @@ async function ensureGroupExistsForRow(importState: ImportState, rawGroupCode: s
 }
 
 async function upsertStudentForRow(importState: ImportState, excelLineNumber: number, studentData: StudentRecord): Promise<RowImportResult> {
+    if (studentData.groupId === null) {
+        addImportError(importState, excelLineNumber, 'Groupe introuvable pour cet étudiant.');
+        return { action: 'error', userMail: studentData.userMail };
+    }
+
     const activeStudentResult = await studentQueries.getByEmail(studentData.userMail);
 
     if ('success' in activeStudentResult) {

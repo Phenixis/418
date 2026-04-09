@@ -28,7 +28,7 @@ import { EditStudentDialog } from './dialogs/EditStudentDialog';
 import { MoveStudentDialog } from './dialogs/MoveStudentDialog';
 import { DeleteStudentConfirmDialog } from './dialogs/DeleteStudentConfirmDialog';
 import { StudentsListHeader } from './list/StudentsListHeader';
-import { StudentsYearSection, UnassignedGroupSection } from './list/StudentsYearSection';
+import { StudentsYearSection } from './list/StudentsYearSection';
 import type { Select as Group } from '@/lib/db/schema/group';
 import type { Select as Student } from '@/lib/db/schema/student';
 
