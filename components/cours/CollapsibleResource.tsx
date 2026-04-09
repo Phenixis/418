@@ -13,6 +13,7 @@ import {
 import Vignette from '@/components/ui/Vignette';
 import { TableCell, TableRow } from '@/components/ui/table';
 import { useDialog } from '@/lib/hooks/use-dialog';
+import { useSortState } from '@/hooks/use-sort-state';
 import type { Select as Group } from '@/lib/db/schema/group';
 import type { Select as Session } from '@/lib/db/schema/session';
 import type { Select as SessionGroup } from '@/lib/db/schema/session-group';
@@ -21,7 +22,7 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { cn } from '@/lib/utils';
 import { formatInTimeZone } from 'date-fns-tz';
 import { fr } from 'date-fns/locale/fr';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 const PARIS_TIME_ZONE = 'Europe/Paris';
 
@@ -79,6 +80,7 @@ function SessionsLoadingSkeleton() {
 
 export default function CollapsibleResource({ resourceItem }: Readonly<{ resourceItem: ResourceTableItem }>) {
     const { setCreateSessionResourceId, setDeleteResourceData } = useDialog();
+    const { sortColumn, sortDirection, handleSort } = useSortState();
 
     const [isOpen, setIsOpen] = useState(false);
     const [sessionsData, setSessionsData] = useState<SessionsData | null>(null);
@@ -87,6 +89,34 @@ export default function CollapsibleResource({ resourceItem }: Readonly<{ resourc
     const [error, setError] = useState<string | null>(null);
 
     const resourceStatus = getResourceStatus(resourceItem);
+
+    const sortedSessions = useMemo(() => {
+        if (!sessionsData || !sortColumn) return sessionsData?.sessions ?? [];
+
+        return [...sessionsData.sessions].sort((a, b) => {
+            let aValue: any;
+            let bValue: any;
+
+            if (sortColumn === 'subject') {
+                aValue = a.subject;
+                bValue = b.subject;
+            } else if (sortColumn === 'startAt') {
+                aValue = a.startAt.getTime();
+                bValue = b.startAt.getTime();
+            } else if (sortColumn === 'endAt') {
+                aValue = a.endAt.getTime();
+                bValue = b.endAt.getTime();
+            }
+
+            if (typeof aValue === 'string' && typeof bValue === 'string') {
+                const comparison = aValue.localeCompare(bValue);
+                return sortDirection === 'asc' ? comparison : -comparison;
+            }
+
+            const comparison = aValue - bValue;
+            return sortDirection === 'asc' ? comparison : -comparison;
+        });
+    }, [sessionsData, sortColumn, sortDirection]);
 
     useEffect(() => {
         setHasFetched(false);
@@ -219,9 +249,12 @@ export default function CollapsibleResource({ resourceItem }: Readonly<{ resourc
                             {error && <p className="p-4 text-destructive">{error}</p>}
                             {sessionsData && (
                                 <TableauCours
-                                    courses={sessionsData.sessions}
+                                    courses={sortedSessions}
                                     groupCourses={sessionsData.sessionGroups}
                                     groups={sessionsData.groups}
+                                    sortColumn={sortColumn}
+                                    sortDirection={sortDirection}
+                                    onSort={handleSort}
                                 />
                             )}
                         </div>

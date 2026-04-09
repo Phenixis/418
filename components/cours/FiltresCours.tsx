@@ -32,7 +32,7 @@ export default function FiltresCours({ selectedFilters, onFilterChange }: Filtre
     };
 
     return (
-        <div className="flex justify-center mb-4">
+        <div className="flex justify-center">
             <ButtonGroup>
                 {courseFilters.map((filter) => {
                     const isSelected = selectedFilters.includes(filter);

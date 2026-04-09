@@ -53,9 +53,17 @@ export default async function EtudiantPage({ params }: Readonly<{ params: Promis
 
     return (
         <div className="space-y-4">
-            <header className="flex items-center justify-start gap-2">
-                <h1 className="h1">{etudiant.firstName} {etudiant.lastName}</h1>
-                <h3 className="font-faded">{etudiant.userMail} - {group.promo}{group.td}{group.tp}</h3>
+            <header className="flex items-center justify-between gap-2">
+                <div className="flex items-center justify-start gap-2">
+                    <h1 className="h1">{etudiant.firstName} {etudiant.lastName}</h1>
+                    <h3 className="font-faded">{etudiant.userMail} - {group.promo}{group.td}{group.tp}</h3>
+                </div>
+
+                <EtudiantTags
+                    studentMail={etudiant.userMail}
+                    assignedTags={assignedTagsResult.entity}
+                    availableTags={allTagsResult.entity}
+                />
             </header>
             <div className="flex items-start justify-start gap-4 h-96 relative">
                 <EtudiantPhoto photoUrl={etudiant.picture} prenom={etudiant.firstName} nom={etudiant.lastName} className="h-full w-auto" />
@@ -65,11 +73,6 @@ export default async function EtudiantPage({ params }: Readonly<{ params: Promis
                     teacherEmail={teacher.userMail}
                 />
             </div>
-            <EtudiantTags
-                studentMail={etudiant.userMail}
-                assignedTags={assignedTagsResult.entity}
-                availableTags={allTagsResult.entity}
-            />
             <StudentCoursesSection studentMail={etudiant.userMail} />
         </div>
     );

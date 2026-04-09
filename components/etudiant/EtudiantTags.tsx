@@ -53,7 +53,6 @@ export default function EtudiantTags({
 
     return (
         <div className="flex flex-col gap-2">
-            <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">Tags</h3>
             <div className="flex flex-wrap gap-1.5 items-center">
                 {assignedTags.map((tag) => (
                     <Badge

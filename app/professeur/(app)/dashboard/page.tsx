@@ -1,25 +1,10 @@
-import ResourceTable, { ResourceTableItem } from '@/components/cours/ResourceTable';
+import ResourceTableClient from '@/components/cours/ResourceTableClient';
 import { resourceQueries } from '@/lib/db/queries/resource';
 import { sessionQueries } from '@/lib/db/queries/session';
 import { teacherQueries } from '@/lib/db/queries/teacher';
 import type { Select as Resource } from '@/lib/db/schema/resource';
 import type { Select as Session } from '@/lib/db/schema/session';
 
-function getResourceStatusPriority(resourceItem: ResourceTableItem): number {
-    if (resourceItem.ongoingSessionCount > 0) {
-        return 0;
-    }
-
-    if (resourceItem.upcomingSessionCount > 0) {
-        return 1;
-    }
-
-    if (resourceItem.pastSessionCount > 0) {
-        return 2;
-    }
-
-    return 3;
-}
 
 export default async function DashboardPage() {
     const teacher = await teacherQueries.getTeacher();
@@ -72,28 +57,23 @@ export default async function DashboardPage() {
                 pastSessionCount,
                 nextSessionStartAt: nextSession?.startAt,
             };
-        })
-        .sort((firstResourceItem, secondResourceItem) => {
-            const firstStatusPriority = getResourceStatusPriority(firstResourceItem);
-            const secondStatusPriority = getResourceStatusPriority(secondResourceItem);
-
-            if (firstStatusPriority !== secondStatusPriority) {
-                return firstStatusPriority - secondStatusPriority;
-            }
-
-            const firstNextSessionTimestamp = firstResourceItem.nextSessionStartAt?.getTime() ?? Number.MAX_SAFE_INTEGER;
-            const secondNextSessionTimestamp = secondResourceItem.nextSessionStartAt?.getTime() ?? Number.MAX_SAFE_INTEGER;
-
-            if (firstNextSessionTimestamp !== secondNextSessionTimestamp) {
-                return firstNextSessionTimestamp - secondNextSessionTimestamp;
-            }
-
-            return firstResourceItem.resource.subject.localeCompare(secondResourceItem.resource.subject);
         });
+
+    // Create a mapping of resourceId to session subjects for search
+    const sessionSubjectsByResourceId: Record<string, string[]> = {};
+    for (const session of sessions) {
+        if (!sessionSubjectsByResourceId[session.resourceId]) {
+            sessionSubjectsByResourceId[session.resourceId] = [];
+        }
+        sessionSubjectsByResourceId[session.resourceId].push(session.subject);
+    }
 
     return (
         <section className="flex flex-col">
-            <ResourceTable resourceItems={resourceItems} />
+            <ResourceTableClient
+                resourceItems={resourceItems}
+                sessionSubjectsByResourceId={sessionSubjectsByResourceId}
+            />
         </section>
     );
 }
