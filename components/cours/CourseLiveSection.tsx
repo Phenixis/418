@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import CourseInfo from "@/components/cours/CourseInfo";
 import ListeEtudiants from "@/components/cours/ListeEtudiants";
 import QRCode from "@/components/cours/QrCode";
-import { CourseStatus } from "@/components/cours/course.types";
 import { isEtudiantPresent } from "@/components/cours/course-utils";
 import { StudentWithStatus } from "@/lib/actions/cours-actuel";
 
@@ -14,7 +13,7 @@ interface CourseLiveSectionProps {
     heureDebut: string;
     heureFin: string;
     classe: string;
-    status: CourseStatus;
+    isCallActive: boolean;
     etudiants: StudentWithStatus[];
 }
 
@@ -24,7 +23,7 @@ export default function CourseLiveSection({
     heureDebut,
     heureFin,
     classe,
-    status,
+    isCallActive,
     etudiants
 }: Readonly<CourseLiveSectionProps>) {
     const [students, setStudents] = useState<StudentWithStatus[]>(etudiants);
@@ -49,7 +48,7 @@ export default function CourseLiveSection({
                     presents={presentsCount}
                     nonScannes={totalStudents - presentsCount}
                 />
-                {status === CourseStatus.EN_COURS && (
+                {isCallActive && (
                     <QRCode codePin={entPageUrl} />
                 )}
             </div>

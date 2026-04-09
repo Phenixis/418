@@ -80,7 +80,7 @@ export default function BarreActions({
                                 'rounded-none',
                                 isActif && 'border-r border-faded',
                                 !isActif && 'hover:bg-black/5',
-                                valeur !== FILTRES[FILTRES.length - 1].valeur && 'border-r'
+                                valeur !== FILTRES.at(-1)?.valeur && 'border-r'
                             )}
                         >
                             {label}

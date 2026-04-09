@@ -53,12 +53,12 @@ export default function CourseHeader({ cours, groups, status, onTerminer, onDema
                     )}
                     {onTerminer && (
                         <Button variant="default" onClick={onTerminer}>
-                            Terminer
+                            Terminer l'appel
                         </Button>
                     )}
                     {onDemarrer && (
                         <Button variant="default" onClick={onDemarrer}>
-                            Démarrer le cours
+                            Démarrer l'appel
                         </Button>
                     )}
                 </div>

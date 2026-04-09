@@ -1,13 +1,26 @@
-import CourseHeader from '@/components/cours/CourseHeader';
+import SessionActionsClient from '@/components/cours/SessionActionsClient';
 import CourseLiveSection from '@/components/cours/CourseLiveSection';
 import { CourseStatus } from '@/components/cours/course.types';
 import { fetchCoursActuel } from '@/lib/actions/cours-actuel';
+import { demarrerAppel, terminerAppel } from '@/lib/actions/appel';
 
 function resolveCourseStatus(dateDebut: Date, dateFin: Date): CourseStatus {
     const now = new Date();
     if (now < dateDebut) return CourseStatus.A_VENIR;
     if (now > dateFin) return CourseStatus.TERMINE;
     return CourseStatus.EN_COURS;
+}
+
+function resolveIsCallActive(
+    manualCallStartAt: Date | null,
+    manualCallEndAt: Date | null,
+    startAt: Date,
+    endAt: Date
+): boolean {
+    const now = new Date();
+    const hasStarted = manualCallStartAt !== null || now >= startAt;
+    const hasEnded = manualCallEndAt !== null || now > endAt;
+    return hasStarted && !hasEnded;
 }
 
 function formatHeure(date: Date): string {
@@ -35,9 +48,28 @@ export default async function SessionPage({ params }: Readonly<{ params: Promise
     const classe = groups.map((group) => (group.promo || '') + (group.td || '') + (group.tp || '')).join(', ');
     const status = resolveCourseStatus(dateDebut, dateFin);
 
+    const isCallActive = resolveIsCallActive(
+        cours.manualCallStartAt,
+        cours.manualCallEndAt,
+        dateDebut,
+        dateFin
+    );
+
+    const showDemarrerButton = !isCallActive && status !== CourseStatus.TERMINE;
+    const showTerminerButton = isCallActive;
+
+    const demarrer = showDemarrerButton ? demarrerAppel.bind(null, session_id) : undefined;
+    const terminer = showTerminerButton ? terminerAppel.bind(null, session_id) : undefined;
+
     return (
         <section className="flex flex-col gap-6">
-            <CourseHeader cours={cours} groups={groups} status={status} />
+            <SessionActionsClient
+                cours={cours}
+                groups={groups}
+                status={status}
+                onDemarrerAppel={demarrer}
+                onTerminerAppel={terminer}
+            />
 
             <CourseLiveSection
                 sessionId={session_id}
@@ -45,7 +77,7 @@ export default async function SessionPage({ params }: Readonly<{ params: Promise
                 heureDebut={formatHeure(dateDebut)}
                 heureFin={formatHeure(dateFin)}
                 classe={classe}
-                status={status}
+                isCallActive={isCallActive}
                 etudiants={students}
             />
         </section>
