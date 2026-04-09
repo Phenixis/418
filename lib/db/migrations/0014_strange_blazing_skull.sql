@@ -1,1 +1,0 @@
-ALTER TABLE "teacher" RENAME COLUMN "is_fist_connection" TO "is_first_connection";

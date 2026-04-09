@@ -1,1 +1,0 @@
-ALTER TABLE "teacher" ADD COLUMN "is_fist_connection" boolean DEFAULT false NOT NULL;
