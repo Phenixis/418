@@ -12,7 +12,7 @@ export const courseFilters = [
 
 export type CourseFilter = typeof courseFilters[number];
 
-interface FiltresCoursProps {
+export interface FiltresCoursProps {
     selectedFilters: CourseFilter[];
     onFilterChange: (filters: CourseFilter[]) => void;
 }

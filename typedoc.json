@@ -1,0 +1,22 @@
+{
+    "$schema": "https://typedoc.org/schema.json",
+    "entryPoints": ["app", "components", "hooks", "lib"],
+    "entryPointStrategy": "expand",
+    "out": "docs",
+    "name": "Soko",
+    "includeVersion": true,
+    "excludePrivate": true,
+    "excludeProtected": true,
+    "excludeExternals": true,
+    "exclude": [
+        "**/*.test.ts",
+        "**/*.test.tsx",
+        "**/*.spec.ts",
+        "**/*.spec.tsx",
+        "**/node_modules/**",
+        "tests/**",
+        "scripts/**"
+    ],
+    "readme": "README.md",
+    "tsconfig": "tsconfig.json"
+}

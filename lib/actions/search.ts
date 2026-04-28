@@ -10,6 +10,11 @@ import type { Select as Resource } from '@/lib/db/schema/resource'
 import type { Select as Session } from '@/lib/db/schema/session'
 import type { Select as Student } from '@/lib/db/schema/student'
 
+/**
+ * Aggregated data payload used to populate the global search index.
+ *
+ * Produced by {@link fetchSearchData}.
+ */
 export type SearchData = {
     resources: Resource[]
     sessions: Session[]
@@ -17,6 +22,15 @@ export type SearchData = {
     groups: Group[]
 }
 
+/**
+ * Fetches all searchable entities for the authenticated teacher.
+ *
+ * Resources and sessions are filtered to those owned by the teacher; students
+ * and groups are fetched globally. Errors from individual queries are silently
+ * swallowed and return empty arrays so a single failed query does not break search.
+ *
+ * @returns A {@link SearchData} object ready to be indexed by the search component.
+ */
 export async function fetchSearchData(): Promise<SearchData> {
     const teacher = await teacherQueries.getTeacher()
 

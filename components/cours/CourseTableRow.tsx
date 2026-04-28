@@ -21,7 +21,7 @@ import { useRouter } from 'next/navigation';
 
 const PARIS_TIME_ZONE = 'Europe/Paris';
 
-interface CoursProps {
+export interface CoursProps {
     cours: Session;
     groups: Group[];
 }

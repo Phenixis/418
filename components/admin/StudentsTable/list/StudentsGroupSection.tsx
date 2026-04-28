@@ -6,7 +6,7 @@ import { StudentCard } from './StudentCard';
 import type { Select as Group } from '@/lib/db/schema/group';
 import type { Select as Student } from '@/lib/db/schema/student';
 
-interface StudentsGroupSectionProps {
+export interface StudentsGroupSectionProps {
 	group: Group;
 	students: Student[];
 	isOpen: boolean;

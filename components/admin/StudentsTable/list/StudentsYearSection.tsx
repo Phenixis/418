@@ -7,7 +7,7 @@ import type { Select as Student } from '@/lib/db/schema/student';
 import { StudentCard } from './StudentCard';
 import { StudentsGroupSection } from './StudentsGroupSection';
 
-interface StudentsYearSectionProps {
+export interface StudentsYearSectionProps {
 	year: string;
 	yearGroups: Group[];
 	groupedStudents: Map<string, Student[]>;
@@ -81,7 +81,7 @@ export function StudentsYearSection({
 	);
 }
 
-interface UnassignedGroupSectionProps {
+export interface UnassignedGroupSectionProps {
 	students: Student[];
 	isOpen: boolean;
 	onOpenChange: (isOpen: boolean) => void;

@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import type { Select as Student } from '@/lib/db/schema/student';
 
-interface DeleteStudentConfirmDialogProps {
+export interface DeleteStudentConfirmDialogProps {
 	open: boolean;
 	onOpenChange: (isOpen: boolean) => void;
 	selectedStudent: Student | null;

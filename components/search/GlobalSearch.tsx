@@ -23,7 +23,7 @@ import { fr } from 'date-fns/locale'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 
-interface GlobalSearchProps {
+export interface GlobalSearchProps {
     open: boolean
     onOpenChange: (open: boolean) => void
 }

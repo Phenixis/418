@@ -1,7 +1,7 @@
 import EtudiantPhoto from './etudiant-photo';
 import type { Select as Etudiant } from "@/lib/db/schema/student"
 
-interface EtudiantCardProps {
+export interface EtudiantCardProps {
     etudiant: Etudiant;
 }
 

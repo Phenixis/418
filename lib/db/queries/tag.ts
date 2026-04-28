@@ -6,7 +6,7 @@ const tagTable = lib.Schema.TagTable.table;
 type NewTag = lib.Schema.TagTable.Insert;
 type Tag = lib.Schema.TagTable.Select;
 
-class TagQueries extends QueryModel<NewTag, Tag> {
+export class TagQueries extends QueryModel<NewTag, Tag> {
     constructor() {
         super(tagTable);
     }

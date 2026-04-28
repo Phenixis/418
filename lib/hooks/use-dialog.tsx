@@ -24,7 +24,7 @@ import { createContext, ReactNode, useActionState, useContext, useEffect, useSta
 
 const PARIS_TIME_ZONE = 'Europe/Paris';
 
-interface InitialSession {
+export interface InitialSession {
     sessionId: string;
     subject: string;
     startAt: Date;
@@ -33,23 +33,23 @@ interface InitialSession {
     tags?: Array<{ tagId: number }>;
 }
 
-interface EditSessionData {
+export interface EditSessionData {
     resourceId: string;
     session: InitialSession;
 }
 
-interface DeleteResourceData {
+export interface DeleteResourceData {
     resourceId: string;
     subject: string;
 }
 
-interface DeleteSessionData {
+export interface DeleteSessionData {
     sessionId: string;
     subject: string;
     startAt: Date;
 }
 
-interface DialogContextType {
+export interface DialogContextType {
     // Créer une ressource
     isCreateResourceDialogOpen: boolean;
     setIsCreateResourceDialogOpen: (open: boolean) => void;

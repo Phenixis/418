@@ -10,7 +10,7 @@ type StudentTag = lib.Schema.StudentTagTable.Select;
 type Tag = lib.Schema.TagTable.Select;
 type Student = lib.Schema.StudentTable.Select;
 
-class StudentTagQueries extends QueryModel<NewStudentTag, StudentTag> {
+export class StudentTagQueries extends QueryModel<NewStudentTag, StudentTag> {
     constructor() {
         super(studentTagTable);
     }

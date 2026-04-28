@@ -7,12 +7,26 @@ import {
     subscribeToAttendanceUpdates
 } from "@/lib/realtime/provider-client";
 
-interface UseAttendanceRealtimeOptions {
+export interface UseAttendanceRealtimeOptions {
     sessionId: string;
     pendingStudentMails: Set<string>;
     onAttendanceEvent: (event: AttendanceRealtimeEvent) => void;
 }
 
+/**
+ * Subscribes to live attendance updates for a session and deduplicates events.
+ *
+ * Wraps {@link subscribeToAttendanceUpdates} with React lifecycle management.
+ * Events whose `eventId` has already been processed are silently dropped to
+ * handle Pusher's at-least-once delivery guarantee. Events for students in
+ * `pendingStudentMails` are also suppressed (optimistic update already applied).
+ * The deduplication set is cleared automatically when it exceeds 500 entries.
+ *
+ * @param options.sessionId - UUID of the session to subscribe to.
+ * @param options.pendingStudentMails - Mails of students with in-flight optimistic updates.
+ * @param options.onAttendanceEvent - Callback invoked for each new, validated event.
+ * @returns `{ connectionState }` — the current {@link RealtimeConnectionState}.
+ */
 export function useAttendanceRealtime(options: Readonly<UseAttendanceRealtimeOptions>) {
     const [connectionState, setConnectionState] = useState<RealtimeConnectionState>("connecting");
     const handledEventIdsRef = useRef<Set<string>>(new Set());

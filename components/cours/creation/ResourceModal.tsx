@@ -18,7 +18,7 @@ import { useTeacher } from "@/lib/hooks/useTeacher";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 
-interface InitialResource {
+export interface InitialResource {
     resourceId: string;
     subject: string;
 }

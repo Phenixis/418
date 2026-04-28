@@ -10,7 +10,7 @@ import { StudentWithStatus } from '@/lib/actions/cours-actuel';
 import { useAttendanceRealtime } from '@/hooks/use-attendance-realtime';
 import { useRouter } from 'next/navigation';
 
-interface ListeEtudiantsProps {
+export interface ListeEtudiantsProps {
     sessionId: string;
     etudiants: StudentWithStatus[];
     onStudentsChange?: (students: StudentWithStatus[]) => void;

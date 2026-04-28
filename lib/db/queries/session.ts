@@ -7,10 +7,10 @@ const sessionTable = lib.Schema.SessionTable.table;
 const studentTable = lib.Schema.StudentTable.table;
 const sessionGroupTable = lib.Schema.SessionGroupTable.table;
 
-type NewSession = lib.Schema.SessionTable.Insert;
-type Session = lib.Schema.SessionTable.Select;
+export type NewSession = lib.Schema.SessionTable.Insert;
+export type Session = lib.Schema.SessionTable.Select;
 
-class SessionQueries extends QueryModel<NewSession, Session> {
+export class SessionQueries extends QueryModel<NewSession, Session> {
     constructor() {
         super(sessionTable);
     }

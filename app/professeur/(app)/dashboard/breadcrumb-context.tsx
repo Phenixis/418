@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 
-interface BreadcrumbContextType {
+export interface BreadcrumbContextType {
     extraContent: ReactNode | null;
     setExtraContent: (content: ReactNode | null) => void;
 }

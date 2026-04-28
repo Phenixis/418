@@ -8,7 +8,7 @@ const teacherTable = lib.Schema.TeacherTable.table
 type NewTeacher = lib.Schema.TeacherTable.Insert
 type Teacher = lib.Schema.TeacherTable.Select
 
-class TeacherQueries extends QueryModel<NewTeacher, Teacher> {
+export class TeacherQueries extends QueryModel<NewTeacher, Teacher> {
     constructor() {
         super(teacherTable)
     }

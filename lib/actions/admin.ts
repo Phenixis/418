@@ -19,6 +19,14 @@ function parseTeacherEmail(formData: FormData): string | null {
 	return teacherEmail;
 }
 
+/**
+ * Validates a pending teacher account, granting access to the platform.
+ *
+ * Requires an active admin session. Revalidates the teacher management page cache.
+ *
+ * @param formData - Must include `teacherEmail`.
+ * @returns `{ success: true }` on success, or an error object with a message.
+ */
 export async function validateTeacherAccount(formData: FormData): Promise<{ success: true } | { error: true; message: string }> {
 	await teacherQueries.getAdmin();
 
@@ -38,6 +46,14 @@ export async function validateTeacherAccount(formData: FormData): Promise<{ succ
 	return { success: true };
 }
 
+/**
+ * Refuses a pending teacher account registration request.
+ *
+ * Requires an active admin session. Revalidates the teacher management page cache.
+ *
+ * @param formData - Must include `teacherEmail`.
+ * @returns `{ success: true }` on success, or an error object with a message.
+ */
 export async function refuseTeacherAccount(formData: FormData): Promise<{ success: true } | { error: true; message: string }> {
 	await teacherQueries.getAdmin();
 
@@ -57,6 +73,14 @@ export async function refuseTeacherAccount(formData: FormData): Promise<{ succes
 	return { success: true };
 }
 
+/**
+ * Deletes a teacher account from the platform.
+ *
+ * Requires an active admin session. Revalidates the teacher management page cache.
+ *
+ * @param formData - Must include `teacherEmail`.
+ * @returns `{ success: true }` on success, or an error object with a message.
+ */
 export async function deleteTeacherAccount(formData: FormData): Promise<{ success: true } | { error: true; message: string }> {
 	await teacherQueries.getAdmin();
 

@@ -7,7 +7,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import type { Select as Student } from '@/lib/db/schema/student';
 
-interface StudentCardProps {
+export interface StudentCardProps {
 	student: Student;
 	onEdit: (student: Student) => void;
 	onMove: (student: Student) => void;

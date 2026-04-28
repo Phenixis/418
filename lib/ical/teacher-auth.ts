@@ -3,6 +3,16 @@ import { getServerSession } from '@/lib/actions/authentication';
 import { teacherQueries } from '@/lib/db/queries/teacher';
 import { Select as Teacher } from '@/lib/db/schema/teacher';
 
+/**
+ * Resolves the currently authenticated and validated teacher for an API route.
+ *
+ * Returns the teacher entity on success, or a pre-built `NextResponse` (401 or
+ * 403) that the route handler should return immediately on failure. This
+ * pattern avoids throwing from within API routes.
+ *
+ * @returns `{ teacher, errorResponse: null }` when authenticated, or
+ *   `{ teacher: null, errorResponse: NextResponse }` when not.
+ */
 export async function getAuthenticatedTeacher(): Promise<
     { teacher: Teacher; errorResponse: null } |
     { teacher: null; errorResponse: NextResponse }

@@ -7,7 +7,7 @@ import QRCode from "@/components/cours/QrCode";
 import { isEtudiantPresent } from "@/components/cours/course-utils";
 import { StudentWithStatus } from "@/lib/actions/cours-actuel";
 
-interface CourseLiveSectionProps {
+export interface CourseLiveSectionProps {
     sessionId: string;
     date: Date;
     heureDebut: string;

@@ -1,7 +1,7 @@
 import { TableCell, TableRow } from '@/components/ui/table';
 import type { Select as Student } from '@/lib/db/schema/student';
 
-type StudentsTableRowProps = {
+export type StudentsTableRowProps = {
     student: Student;
     groupLabel: string;
 };

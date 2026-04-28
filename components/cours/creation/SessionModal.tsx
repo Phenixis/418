@@ -22,7 +22,7 @@ import { useActionState, useEffect, useState } from "react";
 import SelectGroupComponent from "./select-group";
 import SelectTag from "./select-tag";
 
-interface InitialSession {
+export interface InitialSession {
     sessionId: string;
     subject: string;
     startAt: Date;

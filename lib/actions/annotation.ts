@@ -5,6 +5,16 @@ import { annotationQueries } from "@/lib/db/queries/annotation";
 import { teacherQueries } from "@/lib/db/queries/teacher";
 import { ActionResult } from "./types";
 
+/**
+ * Creates or updates a teacher annotation for a student.
+ *
+ * When `annotationId` is present in the form data the existing annotation is
+ * updated; otherwise a new one is created. Requires an active teacher session.
+ *
+ * @param prevState - Previous {@link ActionResult} required by `useActionState`.
+ * @param formData - Must include `content`, `studentEmail`, and optionally `annotationId`.
+ * @returns `{ success: true }` on success, or an error result.
+ */
 export async function upsertAnnotation(prevState: ActionResult, formData: FormData): Promise<ActionResult> {
     const teacher = await teacherQueries.getTeacher();
 
@@ -52,6 +62,15 @@ export async function upsertAnnotation(prevState: ActionResult, formData: FormDa
     return { success: true };
 }
 
+/**
+ * Clears the content of an annotation without deleting the record.
+ *
+ * Sets the annotation body to an empty string. Requires an active teacher session.
+ *
+ * @param prevState - Previous {@link ActionResult} required by `useActionState`.
+ * @param formData - Must include `annotationId` (numeric string).
+ * @returns `{ success: true }` on success, or an error result.
+ */
 export async function clearAnnotation(prevState: ActionResult, formData: FormData): Promise<ActionResult> {
     await teacherQueries.getTeacher();
 

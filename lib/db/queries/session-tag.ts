@@ -8,7 +8,7 @@ type NewSessionTag = lib.Schema.SessionTagTable.Insert;
 type SessionTag = lib.Schema.SessionTagTable.Select;
 type Tag = lib.Schema.TagTable.Select;
 
-class SessionTagQueries extends QueryModel<NewSessionTag, SessionTag> {
+export class SessionTagQueries extends QueryModel<NewSessionTag, SessionTag> {
     constructor() {
         super(sessionTagTable);
     }

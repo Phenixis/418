@@ -32,15 +32,30 @@ const KNOWN_COURSES = [
     "Présentation de l'alternance",
 ].sort((firstCourse, secondCourse) => secondCourse.length - firstCourse.length);
 
+/**
+ * Database-level group coordinates extracted from an ADE group code.
+ *
+ * Produced by {@link parseGroupCode}.
+ */
 export interface ParsedGroup {
+    /** Year of study (e.g. `"2"`). */
     promo: string;
+    /** TD group letter (e.g. `"A"`, `"D"`). */
     td: string;
+    /** TP subgroup digit (e.g. `"1"`, `"2"`). */
     tp: string;
 }
 
 /**
- * Parse un code groupe ADE (ex: "2D2", "2A") en une liste de groupes DB.
- * Si le TP est absent, on retourne les deux groupes TP1 et TP2 (cours en TD complet).
+ * Parses an ADE group code into one or two {@link ParsedGroup} records.
+ *
+ * A code like `"2D2"` maps to a single TP group `{ promo: "2", td: "D", tp: "2" }`.
+ * A code like `"2A"` (no TP digit) expands to both `tp: "1"` and `tp: "2"`,
+ * representing a full TD session that covers both subgroups.
+ *
+ * @param code - ADE group code to parse (e.g. `"2D2"`, `"2A"`).
+ * @returns An array of parsed group coordinates, or an empty array if the code
+ *   does not match the expected pattern.
  */
 export function parseGroupCode(code: string): ParsedGroup[] {
     const match = code.match(/^(\d)([A-Za-z])(\d)?$/);
@@ -63,14 +78,28 @@ export function parseGroupCode(code: string): ParsedGroup[] {
     ];
 }
 
+/**
+ * Successful match between an ADE SUMMARY string and a known course.
+ *
+ * Produced by {@link mapSummaryToCourse}.
+ */
 export interface CourseMappingResult {
+    /** Canonical course name as it appears in the known-courses list. */
     courseName: string;
+    /** Remainder of the SUMMARY after the course prefix (used as the session label). */
     sessionName: string;
 }
 
 /**
- * Tente de faire correspondre un SUMMARY ADE à un cours connu.
- * Retourne null si aucune correspondance n'est trouvée (événement à ignorer).
+ * Matches an ADE SUMMARY string against the list of known courses.
+ *
+ * Courses are tried longest-first so that more specific names (e.g.
+ * `"R3.10 Management des SI Atelier AGILE"`) take precedence over shorter
+ * prefixes (`"R3.10 Management des SI"`). The comparison is case-insensitive.
+ *
+ * @param summary - Raw SUMMARY from the iCal event.
+ * @returns A {@link CourseMappingResult} when a match is found, or `null` when
+ *   the event should be skipped (unknown course).
  */
 export function mapSummaryToCourse(summary: string): CourseMappingResult | null {
     const lowerSummary = summary.toLowerCase();

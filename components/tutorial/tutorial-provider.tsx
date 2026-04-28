@@ -268,7 +268,7 @@ const LONG_TOUR_STEPS: Step[] = [
 
 // ─── Contexte ─────────────────────────────────────────────────────────────────
 
-interface TutorialContextType {
+export interface TutorialContextType {
   startTutorial: () => void;
   nextStep: () => void;
   stopTutorial: () => void;

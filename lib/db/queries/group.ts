@@ -7,7 +7,7 @@ const groupeTable = lib.Schema.GroupTable.table
 type NewGroup = lib.Schema.GroupTable.Insert
 type Group = lib.Schema.GroupTable.Select
 
-class GroupQueries extends QueryModel<NewGroup, Group> {
+export class GroupQueries extends QueryModel<NewGroup, Group> {
     constructor() {
         super(groupeTable)
     }

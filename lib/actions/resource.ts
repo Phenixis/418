@@ -32,6 +32,15 @@ function parseResourceFormData(formData: FormData): {
     return { label, teacherEmail };
 }
 
+/**
+ * Creates a new resource (course module) and links it to a teacher.
+ *
+ * Requires an active teacher session. Revalidates the dashboard cache.
+ *
+ * @param prevState - Previous {@link ActionResult} required by `useActionState`.
+ * @param formData - Must include `label` (1–50 chars) and `teacherEmail`.
+ * @returns `{ success: true, resource: { id: string } }` on success, or an error result.
+ */
 export async function createResource(prevState: ActionResult, formData: FormData): Promise<ActionResult> {
     await teacherQueries.getTeacher();
 
@@ -71,6 +80,15 @@ export async function createResource(prevState: ActionResult, formData: FormData
     };
 }
 
+/**
+ * Updates the label of an existing resource.
+ *
+ * Requires an active teacher session. Revalidates the dashboard cache.
+ *
+ * @param prevState - Previous {@link ActionResult} required by `useActionState`.
+ * @param formData - Must include `resourceId`, `label` (1–50 chars), and `teacherEmail`.
+ * @returns `{ success: true, resource: { id: string } }` on success, or an error result.
+ */
 export async function updateResource(prevState: ActionResult, formData: FormData): Promise<ActionResult> {
     await teacherQueries.getTeacher();
 
@@ -106,6 +124,16 @@ export async function updateResource(prevState: ActionResult, formData: FormData
     };
 }
 
+/**
+ * Soft-deletes a resource and all its associated sessions.
+ *
+ * Fetches the resource's sessions, soft-deletes each one, then soft-deletes the
+ * resource itself. Requires an active teacher session. Revalidates the dashboard cache.
+ *
+ * @param prevState - Previous {@link ActionResult} required by `useActionState`.
+ * @param formData - Must include `resourceId`.
+ * @returns `{ success: true }` on success, or an error result.
+ */
 export async function deleteResource(prevState: ActionResult, formData: FormData): Promise<ActionResult> {
     await teacherQueries.getTeacher();
 

@@ -11,21 +11,49 @@ import { groupQueries } from '@/lib/db/queries/group';
 import { studentQueries } from '@/lib/db/queries/student';
 import * as Schema from '@/lib/db/schema';
 
-type Course = Schema.SessionTable.Select;
-type Student = Schema.StudentTable.Select;
+export type Course = Schema.SessionTable.Select;
+export type Student = Schema.StudentTable.Select;
+/**
+ * A student record enriched with their group display name and current
+ * attendance status for a session.
+ */
 export type StudentWithStatus = Student & { groupName: string, statut: StatutEtudiant };
-type Attendance = Schema.AttendanceTable.Select;
-type CourseGroup = Schema.SessionGroupTable.Select;
-type Group = Schema.GroupTable.Select;
-type Tag = Schema.TagTable.Select;
+export type Attendance = Schema.AttendanceTable.Select;
+export type CourseGroup = Schema.SessionGroupTable.Select;
+export type Group = Schema.GroupTable.Select;
+export type Tag = Schema.TagTable.Select;
 
+/**
+ * Aggregated data for a live session view.
+ *
+ * Produced by {@link fetchCoursActuel} and consumed by the session page
+ * to render the roll-call interface.
+ */
 export interface CoursActuelData {
+    /** The session record from the database. */
     cours: Course;
+    /** Groups explicitly linked to this session. */
     groups: Group[];
+    /** Tags associated with this session. */
     tags: Tag[];
+    /**
+     * Deduplicated list of students from linked groups and tags, each
+     * enriched with their group name and attendance status.
+     */
     students: StudentWithStatus[];
 }
 
+/**
+ * Fetches all data needed to render the live session view.
+ *
+ * Resolves students from both direct group links and tag-based membership,
+ * deduplicates them by email, and attaches each student's current attendance
+ * status for the session.
+ *
+ * @param sessionId - UUID of the session to load.
+ * @returns `{ success: true, data: CoursActuelData }` on success, or
+ *   `{ success: false, error: string }` when the session is not found.
+ */
 export async function fetchCoursActuel(
     sessionId: string
 ): Promise<{ success: true; data: CoursActuelData } | { success: false; error: string }> {

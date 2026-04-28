@@ -4,10 +4,10 @@ import { QueryModel, QueryResult } from './model';
 
 const resourceTable = lib.Schema.ResourceTable.table;
 
-type NewResource = lib.Schema.ResourceTable.Insert;
-type Resource = lib.Schema.ResourceTable.Select;
+export type NewResource = lib.Schema.ResourceTable.Insert;
+export type Resource = lib.Schema.ResourceTable.Select;
 
-class ResourceQueries extends QueryModel<NewResource, Resource> {
+export class ResourceQueries extends QueryModel<NewResource, Resource> {
     constructor() {
         super(resourceTable);
     }

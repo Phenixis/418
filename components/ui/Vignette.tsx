@@ -15,7 +15,7 @@ export const vignetteLabels: Record<CourseStatus, string> = {
     [CourseStatus.A_VENIR]: 'À venir'
 };
 
-interface VignetteProps {
+export interface VignetteProps {
     status: CourseStatus;
     className?: string;
 }

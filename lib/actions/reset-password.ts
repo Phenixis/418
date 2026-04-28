@@ -11,6 +11,18 @@ import { ActionResult } from "./types";
 import { teacherQueries } from "../db/queries/teacher";
 import { studentQueries } from "../db/queries/student";
 
+/**
+ * Initiates the password reset flow for a teacher or student.
+ *
+ * Looks up the user by email, creates a time-limited reset session (1 hour),
+ * and sends a reset link via email. Returns a generic success message even
+ * when the email is not found to prevent user enumeration. In development or
+ * test environments without email credentials, the email step is skipped.
+ *
+ * @param _prevState - Previous {@link ActionResult} required by `useActionState`.
+ * @param formData - Must include `target` (`"teacher"` | `"student"`) and `email`.
+ * @returns `{ success: true, message: string }` on success, or an error result.
+ */
 export async function createResetPasswordSession(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
     const target = formData.get("target");
     const email = formData.get("email");
@@ -136,6 +148,16 @@ const resetPasswordErrorResult = {
     message: "Session de réinitialisation invalide ou expirée.",
 } as const;
 
+/**
+ * Verifies that a supplied email matches the one associated with a reset session.
+ *
+ * Used as a secondary confirmation step before the user is allowed to set a
+ * new password. Returns an error if the session is expired or the emails differ.
+ *
+ * @param _prevState - Previous {@link ActionResult} required by `useActionState`.
+ * @param formData - Must include `sessionId` and `email`.
+ * @returns `{ success: true }` when the email matches, or an error result.
+ */
 export async function verifyResetPasswordSessionEmail(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
     const sessionId = formData.get("sessionId");
     const email = formData.get("email");
@@ -174,6 +196,17 @@ export async function verifyResetPasswordSessionEmail(_prevState: ActionResult, 
     };
 }
 
+/**
+ * Resets the password for the user identified by a valid reset session.
+ *
+ * Validates the session and email, hashes the new password (bcrypt cost 12),
+ * updates the user record, and marks the session as used to prevent replay.
+ * On success the caller is redirected to the appropriate login page.
+ *
+ * @param _prevState - Previous {@link ActionResult} required by `useActionState`.
+ * @param formData - Must include `sessionId`, `email`, and `password`.
+ * @returns `{ success: true, redirectTo: string }` on success, or an error result.
+ */
 export async function resetPassword(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
     const sessionId = formData.get("sessionId");
     const newPassword = formData.get("password");

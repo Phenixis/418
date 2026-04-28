@@ -36,6 +36,14 @@ function getPusherServer(): Pusher | null {
     return cachedPusherServer;
 }
 
+/**
+ * Publishes an attendance update event to the appropriate Pusher channel.
+ *
+ * No-ops silently when Pusher server credentials are not configured, so the
+ * application degrades gracefully in environments without realtime support.
+ *
+ * @param event - The {@link AttendanceRealtimeEvent} to broadcast.
+ */
 export async function publishAttendanceRealtimeEvent(event: AttendanceRealtimeEvent): Promise<void> {
     const pusherServer = getPusherServer();
     if (!pusherServer) {
@@ -49,6 +57,17 @@ export async function publishAttendanceRealtimeEvent(event: AttendanceRealtimeEv
     );
 }
 
+/**
+ * Generates a Pusher channel authorization token for a private channel.
+ *
+ * Called from the `/api/realtime/pusher/auth` route handler when a client
+ * requests access to a private attendance channel.
+ *
+ * @param socketId - The socket ID provided by the Pusher client.
+ * @param channelName - The private channel name the client wants to join.
+ * @returns An `{ auth: string }` object to return to the client.
+ * @throws {Error} If Pusher is not configured.
+ */
 export function authorizePrivateChannel(socketId: string, channelName: string): { auth: string } {
     const pusherServer = getPusherServer();
 

@@ -6,7 +6,7 @@ const annotationTable = lib.Schema.AnnotationTable.table
 type NewAnnotation = lib.Schema.AnnotationTable.Insert
 type Annotation = lib.Schema.AnnotationTable.Select
 
-class AnnotationQueries extends QueryModel<NewAnnotation, Annotation> {
+export class AnnotationQueries extends QueryModel<NewAnnotation, Annotation> {
     constructor() {
         super(annotationTable)
     }

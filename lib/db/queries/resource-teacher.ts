@@ -3,10 +3,10 @@ import * as lib from './lib';
 
 const resourceTeacherTable = lib.Schema.ResourceTeacherTable.table;
 
-type NewResourceTeacher = lib.Schema.ResourceTeacherTable.Insert;
-type ResourceTeacher = lib.Schema.ResourceTeacherTable.Select;
+export type NewResourceTeacher = lib.Schema.ResourceTeacherTable.Insert;
+export type ResourceTeacher = lib.Schema.ResourceTeacherTable.Select;
 
-class ResourceTeacherQueries extends QueryModel<NewResourceTeacher, ResourceTeacher> {
+export class ResourceTeacherQueries extends QueryModel<NewResourceTeacher, ResourceTeacher> {
     constructor() {
         super(resourceTeacherTable);
     }

@@ -8,7 +8,7 @@ import { StatutEtudiant } from "@/components/cours/course.types"
 import { isEtudiantPresent } from "@/components/cours/course-utils"
 import { StudentWithStatus } from "@/lib/actions/cours-actuel"
 
-interface EtudiantRowProps {
+export interface EtudiantRowProps {
     etudiant: StudentWithStatus
     onClick?: (student: StudentWithStatus) => void
     isDisabled?: boolean

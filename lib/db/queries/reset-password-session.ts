@@ -4,7 +4,7 @@ import * as lib from './lib'
 type Insert = lib.Schema.ResetPasswordSessionTable.Insert
 type Select = lib.Schema.ResetPasswordSessionTable.Select
 
-class ResetPasswordSessionQueries extends QueryModel<Insert, Select> {
+export class ResetPasswordSessionQueries extends QueryModel<Insert, Select> {
     constructor() {
         super(lib.Schema.ResetPasswordSessionTable.table)
     }

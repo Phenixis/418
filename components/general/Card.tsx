@@ -1,6 +1,6 @@
 import React from 'react';
 
-interface StudentCardProps {
+export interface StudentCardProps {
     firstName: string;
     lastName: string;
     photoUrl: string;

@@ -1,26 +1,26 @@
 import type { Select as Student } from '@/lib/db/schema/student';
 import type { Select as Group } from '@/lib/db/schema/group';
 
-type JsonErrorPayload = {
+export type JsonErrorPayload = {
     error?: string;
 };
 
-type StudentUploadResponse = {
+export type StudentUploadResponse = {
     url: string;
     pathname: string;
     success: boolean;
 };
 
-type StudentResponse = {
+export type StudentResponse = {
     student: Student;
 };
 
-type StudentImportError = {
+export type StudentImportError = {
     line: number;
     reason: string;
 };
 
-type StudentImportSummary = {
+export type StudentImportSummary = {
     totalRows: number;
     processedRows: number;
     createdCount: number;
@@ -31,14 +31,14 @@ type StudentImportSummary = {
     errors: StudentImportError[];
 };
 
-type StudentImportResponse = {
+export type StudentImportResponse = {
     summary: StudentImportSummary;
     students: Student[];
     groups: Group[];
     initializationStudents: Student[];
 };
 
-type StudentWritePayload = {
+export type StudentWritePayload = {
     currentEmail?: string;
     email?: string;
     firstName?: string;

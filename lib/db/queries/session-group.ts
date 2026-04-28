@@ -6,7 +6,7 @@ const sessionGroupTable = lib.Schema.SessionGroupTable.table;
 type NewSessionGroup = lib.Schema.SessionGroupTable.Insert;
 type SessionGroup = lib.Schema.SessionGroupTable.Select;
 
-class SessionGroupQueries extends QueryModel<NewSessionGroup, SessionGroup> {
+export class SessionGroupQueries extends QueryModel<NewSessionGroup, SessionGroup> {
     constructor() {
         super(sessionGroupTable);
     }

@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { useSortState } from '@/hooks/use-sort-state';
 import { CourseStatus } from '@/components/cours/course.types';
 
-interface ResourceTableClientProps {
+export interface ResourceTableClientProps {
   resourceItems: ResourceTableItem[];
   sessionSubjectsByResourceId?: Record<string, string[]>;
 }

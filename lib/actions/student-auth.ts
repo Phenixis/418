@@ -10,12 +10,18 @@ if (!authSecret) {
 const key = new TextEncoder().encode(authSecret);
 const STUDENT_STORAGE_KEY = "student_session";
 
-type StudentSessionData = {
+export type StudentSessionData = {
 	expires: string;
 	studentEmail: string;
 	isPersistentSession: boolean;
 };
 
+/**
+ * Signs a student session payload as a HS256 JWT.
+ *
+ * @param payload - Session data to encode, including expiry.
+ * @returns The signed JWT string.
+ */
 export async function signStudentToken(payload: StudentSessionData) {
 	const expirationTimestamp = Math.floor(new Date(payload.expires).getTime() / 1000);
 	const fallbackExpirationTimestamp = Math.floor(Date.now() / 1000) + 24 * 60 * 60;
@@ -30,6 +36,15 @@ export async function signStudentToken(payload: StudentSessionData) {
 		.sign(key);
 }
 
+/**
+ * Verifies a HS256 JWT and returns the decoded student session payload.
+ *
+ * Validates that `studentEmail` is present in the payload before returning.
+ *
+ * @param input - The JWT string to verify.
+ * @returns The decoded session data, or `null` when the token is invalid, expired,
+ *   or missing required fields.
+ */
 export async function verifyStudentToken(input: string) {
 	try {
 		const { payload } = await jwtVerify(input, key, {
@@ -67,11 +82,20 @@ export async function verifyStudentToken(input: string) {
 	}
 }
 
-type SetStudentSessionInput = {
+export type SetStudentSessionInput = {
 	studentEmail: string;
 	isPersistentSession: boolean;
 };
 
+/**
+ * Creates or refreshes the student session cookie.
+ *
+ * Persistent sessions expire in 30 days; non-persistent sessions expire in 1 day.
+ * Always sets `HttpOnly`, `SameSite=Lax`, and `Secure` in production.
+ *
+ * @param session - Student email and persistence preference.
+ * @returns The signed JWT stored in the cookie.
+ */
 export async function setStudentSession(session: SetStudentSessionInput) {
 	const expiresInOneDay = new Date(Date.now() + 24 * 60 * 60 * 1000);
     // You can adjust expiration for persistent vs non-persistent (for example 30 days if persistent)
@@ -105,6 +129,14 @@ export async function setStudentSession(session: SetStudentSessionInput) {
 	return encryptedSession;
 }
 
+/**
+ * Reads, verifies, and extends the student session cookie.
+ *
+ * Each call rolls the session expiry forward. Returns `null` when no valid
+ * session exists.
+ *
+ * @returns The decoded student session data, or `null`.
+ */
 export async function getStudentServerSession() {
 	const cookieStore = await cookies();
 	const credentialsSession = cookieStore.get(STUDENT_STORAGE_KEY)?.value;
@@ -133,6 +165,9 @@ export async function getStudentServerSession() {
 	}
 }
 
+/**
+ * Deletes the student session cookie, effectively logging the student out.
+ */
 export async function removeStudentSession() {
 	"use server";
 	const cookieStore = await cookies();

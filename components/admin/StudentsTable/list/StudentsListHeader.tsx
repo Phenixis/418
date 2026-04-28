@@ -9,7 +9,7 @@ import FileUploadIcon from '@mui/icons-material/FileUpload';
 import { ALL_FILTER_VALUE } from '../students-management-utils';
 import type { Select as Group } from '@/lib/db/schema/group';
 
-interface StudentsListHeaderProps {
+export interface StudentsListHeaderProps {
 	searchTerm: string;
 	onSearchChange: (value: string) => void;
 	yearFilter: string;

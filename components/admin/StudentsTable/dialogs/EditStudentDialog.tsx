@@ -12,7 +12,7 @@ import { STUDENT_EMAIL_DOMAIN } from '@/lib/utils/student-email';
 import { UNASSIGNED_GROUP_ID, type StudentFormState } from '../students-management-utils';
 import type { Select as Group } from '@/lib/db/schema/group';
 
-interface EditStudentDialogProps {
+export interface EditStudentDialogProps {
 	open: boolean;
 	onOpenChange: (isOpen: boolean) => Promise<void>;
 	groups: Group[];

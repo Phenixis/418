@@ -67,6 +67,17 @@ function parseFormDataValues(formData: FormData): {
     return { label, startDate: startDateDate, durationInMinutes, groupIds, teachers: teachers as string[] };
 }
 
+/**
+ * Creates a new course (resource + first session) from form data.
+ *
+ * Atomically creates a resource and a session, then links them to the selected
+ * groups and teachers. Paris timezone is applied when parsing the start time.
+ *
+ * @param prevState - Previous {@link ActionResult} required by `useActionState`.
+ * @param formData - Must include `label`, `start-date`, `start-time`, `duration`,
+ *   one or more `groups`, and one or more `teacherEmail` values.
+ * @returns `{ success: true, course: { id: string } }` on success, or an error result.
+ */
 export async function creerCours(prevState: ActionResult, formData: FormData): Promise<ActionResult> {
     const parsedData = parseFormDataValues(formData);
 
@@ -146,6 +157,16 @@ export async function creerCours(prevState: ActionResult, formData: FormData): P
     };
 }
 
+/**
+ * Updates an existing course session's schedule, groups, and teachers.
+ *
+ * Replaces group and teacher associations (delete-then-recreate). Requires
+ * `resourceId` in the form data to identify the session.
+ *
+ * @param prevState - Previous {@link ActionResult} required by `useActionState`.
+ * @param formData - Same fields as {@link creerCours} plus `resourceId`.
+ * @returns `{ success: true, course: { id: string } }` on success, or an error result.
+ */
 export async function modifierCours(prevState: ActionResult, formData: FormData): Promise<ActionResult> {
     const parsedData = parseFormDataValues(formData);
 
@@ -221,6 +242,16 @@ export async function modifierCours(prevState: ActionResult, formData: FormData)
     };
 }
 
+/**
+ * Soft-deletes a course session.
+ *
+ * Sets `deletedAt` on the session row. Related `session_group`, `session_teacher`,
+ * and `attendance` rows are **not** deleted automatically and must be managed
+ * separately if needed. Revalidates the dashboard cache.
+ *
+ * @param formData - Must include `courseId` (session UUID).
+ * @returns `{ success: true, course: { id: string } }` on success, or an error result.
+ */
 export async function deleteCourse(formData: FormData): Promise<ActionResult> {
     await teacherQueries.getTeacher();
 

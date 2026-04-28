@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import type { Select as Group } from '@/lib/db/schema/group';
 import type { Select as Student } from '@/lib/db/schema/student';
 
-interface MoveStudentDialogProps {
+export interface MoveStudentDialogProps {
 	open: boolean;
 	onOpenChange: (isOpen: boolean) => void;
 	selectedStudent: Student | null;

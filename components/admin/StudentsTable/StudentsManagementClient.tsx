@@ -60,12 +60,12 @@ import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import WarningIcon from '@mui/icons-material/Warning';
 
-type StudentsManagementClientProps = {
+export type StudentsManagementClientProps = {
     initialStudents: Student[];
     groups: Group[];
 };
 
-type StudentFormState = {
+export type StudentFormState = {
     firstName: string;
     lastName: string;
     email: string;
@@ -73,7 +73,7 @@ type StudentFormState = {
     picture: string | null;
 };
 
-type InitializationStudentDraft = Student & {
+export type InitializationStudentDraft = Student & {
     groupCode?: string;
 };
 

@@ -6,7 +6,7 @@ const attendanceTable = lib.Schema.AttendanceTable.table
 type NewAttendance = lib.Schema.AttendanceTable.Insert
 type Attendance = lib.Schema.AttendanceTable.Select
 
-class AttendanceQueries extends QueryModel<NewAttendance, Attendance> {
+export class AttendanceQueries extends QueryModel<NewAttendance, Attendance> {
     constructor() {
         super(attendanceTable)
     }

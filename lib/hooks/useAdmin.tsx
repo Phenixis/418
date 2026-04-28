@@ -10,12 +10,17 @@ import {
     useState
 } from 'react';
 
-type AdminContextType = {
+export type AdminContextType = {
     admin: Teacher;
 };
 
 const AdminContext = createContext<AdminContextType | null>(null);
 
+/**
+ * Returns the admin teacher data from the nearest {@link AdminProvider}.
+ *
+ * @throws {Error} When called outside of an `AdminProvider` tree.
+ */
 export function useAdmin(): AdminContextType {
     const context = useContext(AdminContext);
     if (context === null) {
@@ -24,6 +29,16 @@ export function useAdmin(): AdminContextType {
     return context;
 }
 
+/**
+ * Provides the authenticated admin's teacher record to the React tree.
+ *
+ * Mirrors `TeacherProvider` but scoped to admin layouts. Wrap admin
+ * layout components with this provider so that {@link useAdmin} works in
+ * all descendant components.
+ *
+ * The `children` prop is the component tree that may consume {@link useAdmin}.
+ * The `adminPromise` prop is a promise resolving to the authenticated admin's teacher record.
+ */
 export function AdminProvider({
     children,
     adminPromise,

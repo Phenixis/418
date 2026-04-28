@@ -6,7 +6,7 @@ const sessionTeacherTable = lib.Schema.SessionTeacherTable.table;
 type NewSessionTeacher = lib.Schema.SessionTeacherTable.Insert;
 type SessionTeacher = lib.Schema.SessionTeacherTable.Select;
 
-class SessionTeacherQueries extends QueryModel<NewSessionTeacher, SessionTeacher> {
+export class SessionTeacherQueries extends QueryModel<NewSessionTeacher, SessionTeacher> {
     constructor() {
         super(sessionTeacherTable);
     }

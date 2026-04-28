@@ -22,7 +22,7 @@ const FILTRES: { valeur: FiltrePresence; label: string }[] = [
     { valeur: 'presents', label: 'Présents' }
 ];
 
-interface BarreActionsProps {
+export interface BarreActionsProps {
     /** Valeur actuelle du champ de recherche */
     recherche: string;
     /** Callback déclenché à chaque saisie dans le champ de recherche */

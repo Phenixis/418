@@ -4,7 +4,7 @@ import { useTransition } from 'react';
 import CourseHeader from '@/components/cours/CourseHeader';
 import type { CourseHeaderProps } from '@/components/cours/CourseHeader';
 
-interface SessionActionsClientProps extends CourseHeaderProps {
+export interface SessionActionsClientProps extends CourseHeaderProps {
     onDemarrerAppel?: () => Promise<void>;
     onTerminerAppel?: () => Promise<void>;
 }

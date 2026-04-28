@@ -8,9 +8,17 @@ import {
     isAttendanceRealtimeEvent
 } from "@/lib/realtime/attendance-events";
 
+/**
+ * Current state of the Pusher WebSocket connection for a session subscription.
+ *
+ * - `"disabled"` — Pusher credentials are not configured; realtime is off.
+ * - `"connecting"` — Subscription request sent, waiting for confirmation.
+ * - `"connected"` — Successfully subscribed to the private channel.
+ * - `"unavailable"` — Subscription failed (auth error or network issue).
+ */
 export type RealtimeConnectionState = "disabled" | "connecting" | "connected" | "unavailable";
 
-interface SubscribeOptions {
+export interface SubscribeOptions {
     sessionId: string;
     onAttendanceEvent: (event: AttendanceRealtimeEvent) => void;
     onConnectionStateChange?: (state: RealtimeConnectionState) => void;
@@ -49,6 +57,22 @@ function getPusherClient(): Pusher | null {
     return cachedPusherClient;
 }
 
+/**
+ * Subscribes to live attendance updates for a session via Pusher.
+ *
+ * Uses a singleton Pusher client instance (lazily created). Returns a cleanup
+ * function that unsubscribes from the channel and removes all event listeners;
+ * suitable for use as a `useEffect` return value.
+ *
+ * When Pusher credentials are not configured, immediately signals `"disabled"`
+ * and returns a no-op cleanup function.
+ *
+ * @param options.sessionId - UUID of the session to subscribe to.
+ * @param options.onAttendanceEvent - Called for each validated {@link AttendanceRealtimeEvent}.
+ * @param options.onConnectionStateChange - Optional callback tracking the
+ *   {@link RealtimeConnectionState}.
+ * @returns A cleanup function to call when the subscription is no longer needed.
+ */
 export function subscribeToAttendanceUpdates(options: SubscribeOptions): () => void {
     const pusherClient = getPusherClient();
     if (!pusherClient) {

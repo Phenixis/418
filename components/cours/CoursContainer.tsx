@@ -9,7 +9,7 @@ import type { Select as Session } from '@/lib/db/schema/session';
 import type { Select as SessionGroup } from '@/lib/db/schema/session-group';
 import type { Select as Group } from '@/lib/db/schema/group';
 
-interface CoursContainerProps {
+export interface CoursContainerProps {
     courses: Session[];
     groupCourses: SessionGroup[];
     groups: Group[];

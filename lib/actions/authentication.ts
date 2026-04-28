@@ -7,6 +7,16 @@ import { cookies } from "next/headers"
 import { SignJWT, jwtVerify } from "jose"
 import { redirect } from "next/navigation";
 
+/**
+ * Authenticates a teacher with email and password.
+ *
+ * Creates a JWT session cookie on success. The email field is the local part
+ * only — `@univ-rennes.fr` is appended automatically.
+ *
+ * @param _prevState - Previous {@link ActionResult} required by `useActionState`.
+ * @param formData - Must include `email`, `password`, and optionally `remember`.
+ * @returns `{ success: true, redirectTo: string }` on success, or an error result.
+ */
 export async function login(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
 	const email = formData.get("email");
 	const password = formData.get("password");
@@ -57,6 +67,18 @@ export async function login(_prevState: ActionResult, formData: FormData): Promi
 	};
 }
 
+/**
+ * Registers a new teacher account and logs them in immediately.
+ *
+ * Returns an error if an account with the same email already exists. On
+ * success, creates the account, hashes the password with bcrypt (cost 12),
+ * sets a session cookie, and returns a redirect to the onboarding flow.
+ *
+ * @param _prevState - Previous {@link ActionResult} required by `useActionState`.
+ * @param formData - Must include `first-name`, `last-name`, `email`, `password`,
+ *   and optionally `remember`.
+ * @returns `{ success: true, redirectTo: string }` on success, or an error result.
+ */
 export async function register(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
 	const firstName = formData.get("first-name");
 	const lastName = formData.get("last-name");
@@ -122,12 +144,18 @@ if (!authSecret) {
 const key = new TextEncoder().encode(authSecret)
 const STORAGE_KEY = "teacher_session"
 
-type TeacherSessionData = {
+export type TeacherSessionData = {
 	expires: string
 	teacherEmail: string
 	isPersistentSession: boolean
 }
 
+/**
+ * Signs a teacher session payload as a HS256 JWT.
+ *
+ * @param payload - Session data to encode, including expiry.
+ * @returns The signed JWT string.
+ */
 export async function signToken(payload: TeacherSessionData) {
 	const expirationTimestamp = Math.floor(new Date(payload.expires).getTime() / 1000)
 	const fallbackExpirationTimestamp = Math.floor(Date.now() / 1000) + 24 * 60 * 60
@@ -142,6 +170,12 @@ export async function signToken(payload: TeacherSessionData) {
 		.sign(key)
 }
 
+/**
+ * Verifies a HS256 JWT and returns the decoded teacher session payload.
+ *
+ * @param input - The JWT string to verify.
+ * @returns The decoded session data, or `null` when the token is invalid or expired.
+ */
 export async function verifyToken(input: string) {
 	try {
 		const { payload } = await jwtVerify(input, key, {
@@ -169,6 +203,14 @@ export async function verifyToken(input: string) {
 	}
 }
 
+/**
+ * Reads and verifies the teacher session from the request cookie (client-side use).
+ *
+ * Unlike {@link getServerSession}, this function does **not** extend the session
+ * expiry. Intended for non-critical reads where a rolling session is undesirable.
+ *
+ * @returns The session data, or `null` when no valid session cookie is present.
+ */
 export async function getClientSession() {
 	const cookieStore = await cookies()
 	const credentialsSession = cookieStore.get(STORAGE_KEY)?.value
@@ -193,7 +235,14 @@ export async function getClientSession() {
 	}
 }
 
-// For server components and server actions
+/**
+ * Reads, verifies, and **extends** the teacher session cookie.
+ *
+ * Intended for use in Server Components and Server Actions. Each call rolls the
+ * session expiry forward by one day. Returns `null` when no valid session exists.
+ *
+ * @returns The session data with the teacher email, or `null`.
+ */
 export async function getServerSession() {
 	const cookieStore = await cookies()
 	const credentialsSession = cookieStore.get(STORAGE_KEY)?.value
@@ -224,7 +273,15 @@ export async function getServerSession() {
 	}
 }
 
-// For proxy - only verifies, doesn't extend
+/**
+ * Verifies a raw session cookie string without extending its expiry.
+ *
+ * Used by the proxy middleware, which reads the cookie value directly from
+ * request headers rather than through Next.js `cookies()`.
+ *
+ * @param sessionCookie - The raw cookie value, or `undefined` when absent.
+ * @returns The decoded session data, or `null` when invalid or missing.
+ */
 export async function verifySession(sessionCookie: string | undefined) {
 	if (!sessionCookie) {
 		return null
@@ -239,11 +296,21 @@ export async function verifySession(sessionCookie: string | undefined) {
 	}
 }
 
-type SetSessionInput = {
+export type SetSessionInput = {
 	teacherEmail: string
 	isPersistentSession: boolean
 }
 
+/**
+ * Creates or refreshes the teacher session cookie.
+ *
+ * For persistent sessions the cookie has an explicit expiry date; for
+ * non-persistent sessions it is set as a session cookie (no `expires`).
+ * Always sets `HttpOnly`, `SameSite=Lax`, and `Secure` in production.
+ *
+ * @param session - Teacher email and persistence preference.
+ * @returns The signed JWT stored in the cookie.
+ */
 export async function setSession(session: SetSessionInput) {
 	const expiresInOneDay = new Date(Date.now() + 24 * 60 * 60 * 1000)
 	const sessionData: TeacherSessionData = {
@@ -274,6 +341,9 @@ export async function setSession(session: SetSessionInput) {
 	return encryptedSession
 }
 
+/**
+ * Deletes the teacher session cookie, effectively logging the user out.
+ */
 export async function removeSession() {
 	"use server"
 	// Await the cookies() function before calling delete()
@@ -285,6 +355,11 @@ export async function removeSession() {
 	})
 }
 
+/**
+ * Returns a minimal user object for the currently authenticated teacher.
+ *
+ * @returns `{ id: teacherEmail }` when a valid session exists, or `null`.
+ */
 export async function getUser() {
 	const session = await getServerSession()
 	if (!session) {
@@ -296,6 +371,12 @@ export async function getUser() {
 }
 
 
+/**
+ * Logs the current teacher out and redirects to the login page.
+ *
+ * Removes the session cookie via {@link removeSession} then calls
+ * Next.js `redirect`. This function never returns normally.
+ */
 export async function logout() {
     "use server"
 

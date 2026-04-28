@@ -113,6 +113,19 @@ function parseSessionFormData(formData: FormData): {
     };
 }
 
+/**
+ * Creates a new session under an existing resource.
+ *
+ * Links the session to the supplied groups, teachers, and tags (optional).
+ * Paris timezone is applied when parsing the start time. Revalidates the
+ * resource page and dashboard caches.
+ *
+ * @param prevState - Previous {@link ActionResult} required by `useActionState`.
+ * @param formData - Must include `label`, `resourceId`, `start-date`, `start-time`,
+ *   `duration`, one or more `groups`, and one or more `teacherEmail` values.
+ *   Optionally includes one or more `tags`.
+ * @returns `{ success: true, session: { id: string } }` on success, or an error result.
+ */
 export async function createSession(prevState: ActionResult, formData: FormData): Promise<ActionResult> {
     await teacherQueries.getTeacher();
 
@@ -182,6 +195,16 @@ export async function createSession(prevState: ActionResult, formData: FormData)
     };
 }
 
+/**
+ * Updates an existing session's schedule, groups, teachers, and tags.
+ *
+ * Replaces group, teacher, and tag associations via delete-then-recreate.
+ * Revalidates the resource page and dashboard caches.
+ *
+ * @param prevState - Previous {@link ActionResult} required by `useActionState`.
+ * @param formData - Same fields as {@link createSession} plus `sessionId`.
+ * @returns `{ success: true, session: { id: string } }` on success, or an error result.
+ */
 export async function updateSession(prevState: ActionResult, formData: FormData): Promise<ActionResult> {
     await teacherQueries.getTeacher();
 

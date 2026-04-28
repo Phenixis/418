@@ -5,7 +5,7 @@ import {
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 
-interface ProfilBadgeProps {
+export interface ProfilBadgeProps {
     firstName: string;
     lastName: string;
 }

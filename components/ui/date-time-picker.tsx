@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { useEffect } from "react";
 import { Label } from "./label";
 
-interface DateTimePickerProps {
+export interface DateTimePickerProps {
     value: Date;
     onChange: (date: Date) => void;
     dateLabel?: string;

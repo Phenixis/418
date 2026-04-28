@@ -3,10 +3,10 @@ import * as lib from './lib'
 
 const studentTable = lib.Schema.StudentTable.table
 
-type NewStudent = lib.Schema.StudentTable.Insert
-type Student = lib.Schema.StudentTable.Select
+export type NewStudent = lib.Schema.StudentTable.Insert
+export type Student = lib.Schema.StudentTable.Select
 
-class StudentQueries extends QueryModel<NewStudent, Student> {
+export class StudentQueries extends QueryModel<NewStudent, Student> {
     constructor() {
         super(studentTable)
     }

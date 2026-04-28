@@ -1,10 +1,24 @@
 import * as nodeIcal from 'node-ical';
 
+/**
+ * Normalised representation of a single VEVENT from an iCal feed.
+ *
+ * Produced by {@link fetchAndParseIcalFeed} and consumed by
+ * `runIcalImport` in `lib/ical/runner.ts`.
+ */
 export interface ParsedIcalEvent {
+    /** ADE-assigned unique identifier for the event. */
     uid: string;
+    /** Event title, trimmed and capped at 50 characters. */
     summary: string;
+    /** Session start time in UTC. */
     startAt: Date;
+    /** Session end time in UTC. */
     endAt: Date;
+    /**
+     * Student group code extracted from the event description or summary
+     * (e.g. `"2D2"`, `"2A"`). `null` when no recognisable code is found.
+     */
     groupCode: string | null;
 }
 
@@ -40,6 +54,19 @@ function extractGroupCodeFromSummary(summary: string): string | null {
     return match ? match[1] : null;
 }
 
+/**
+ * Fetches an iCal feed from a URL and returns normalised VEVENT entries.
+ *
+ * Only `VEVENT` components that carry a UID, summary, start time, and end time
+ * are included in the result. The group code is extracted from the description
+ * first, then from the summary (ADE-specific heuristics).
+ *
+ * @param url - Public URL of the iCal feed to fetch.
+ * @returns Array of parsed events. Never empty — throws if the feed is
+ *   unreachable or contains no events.
+ * @throws {Error} If the URL is unreachable or the response contains no valid
+ *   VEVENT entries.
+ */
 export async function fetchAndParseIcalFeed(url: string): Promise<ParsedIcalEvent[]> {
     let rawEvents: nodeIcal.CalendarResponse;
 

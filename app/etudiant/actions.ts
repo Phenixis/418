@@ -11,16 +11,16 @@ import { publishAttendanceRealtimeEvent } from "@/lib/realtime/provider-server";
 import { getStudentServerSession, setStudentSession } from "@/lib/actions/student-auth";
 import { normalizeStudentEmail } from "@/lib/utils/student-email";
 
-type ServerActionResult<T> =
+export type ServerActionResult<T> =
   | { success: true; data: T }
   | { success: false; error: string };
 
-type CourseData = {
+export type CourseData = {
   sessionId: string;
   courseName: string;
 };
 
-type StudentStepData = {
+export type StudentStepData = {
   nextStep: "PASSWORD" | "CREATE_PASSWORD";
   courseName: string;
 };

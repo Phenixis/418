@@ -3,7 +3,7 @@ import { formatInTimeZone } from 'date-fns-tz';
 
 const PARIS_TIME_ZONE = 'Europe/Paris';
 
-interface CoursProps {
+export interface CoursProps {
     cours: Session;
 }
 

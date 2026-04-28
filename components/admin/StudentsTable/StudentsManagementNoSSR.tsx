@@ -8,7 +8,7 @@ const StudentsManagementClientOnly = dynamic(() => import('./StudentsManagementC
     ssr: false,
 });
 
-type StudentsManagementNoSSRProps = {
+export type StudentsManagementNoSSRProps = {
     initialStudents: Student[];
     groups: Group[];
 };
